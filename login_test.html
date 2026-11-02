@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supabase Auth Test</title>
+    <!-- Load Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h2>Account Access</h2>
+    <form id="auth-form">
+        <div>
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" required>
+        </div>
+        <br>
+        <div>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" required>
+        </div>
+        <br>
+        <!-- Two distinct submit buttons -->
+        <button type="button" id="signup-btn">Create Account</button>
+        <button type="button" id="login-btn">Log In</button>
+    </form>
+    <br>
+    <p id="status-message"></p>
+
+    <!-- Recent sign-ups section -->
+    <h3>Recent sign-ups because privacy doesn't matter lol</h3>
+    <ul id="recent-list">
+        <!-- Emails will be injected here -->
+    </ul>
+
+    <script>
+        const SUPABASE_URL = 'https://bzqepyhnvvrwzafydeqp.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_VbXs3R4Y6H4bVS63j2KkoA_g0trAUp5';
+
+        const testDatabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const statusMessage = document.getElementById('status-message');
+        const recentList = document.getElementById('recent-list');
+
+        // Function to fetch and display the last 3 sign-ups
+        async function loadRecentSignUps() {
+            const { data, error } = await testDatabase
+                .from('SIGN_IN')
+                .select('email')
+                .order('user_id', { ascending: false })
+                .limit(3);
+
+            if (error) {
+                console.error("Error fetching recent signups:", error);
+                return;
+            }
+
+            recentList.innerHTML = '';
+            data.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = user.email;
+                recentList.appendChild(li);
+            });
+        }
+
+        // Helper to update status message UI
+        function setStatus(message, color) {
+            statusMessage.textContent = message;
+            statusMessage.style.color = color;
+        }
+
+        // Handle Create Account
+        document.getElementById('signup-btn').addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                setStatus("Please enter both email and password.", "red");
+                return;
+            }
+
+            setStatus("Creating account...", "blue");
+
+            const { data, error } = await testDatabase
+                .from('SIGN_IN')
+                .insert([{ email: email, password_hash: password }]);
+
+            if (error) {
+                setStatus(`Error: ${error.message}`, 'red');
+                console.error("Insert error:", error);
+            } else {
+                setStatus('Account created successfully!', 'green');
+                emailInput.value = '';
+                passwordInput.value = '';
+                loadRecentSignUps();
+            }
+        });
+
+        // Handle Log In
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                setStatus("Please enter both email and password.", "red");
+                return;
+            }
+
+            setStatus("Verifying credentials...", "blue");
+
+            // Query database for matching email and password combination
+            const { data, error } = await testDatabase
+                .from('SIGN_IN')
+                .select('user_id, email')
+                .eq('email', email)
+                .eq('password_hash', password);
+
+            if (error) {
+                setStatus(`Database error: ${error.message}`, 'red');
+                console.error("Login query error:", error);
+            } else if (data && data.length > 0) {
+                setStatus(`Success! Welcome back, ${data[0].email}!`, 'green');
+            } else {
+                setStatus('Invalid email or password.', 'red');
+            }
+        });
+
+        // Load the recent sign-ups on page load
+        loadRecentSignUps();
+    </script>
+</body>
+</html>
