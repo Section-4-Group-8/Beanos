@@ -1,13 +1,13 @@
--- Beanos: one current survey response per Supabase Auth user.
+-- Beanos: one current survey response per existing USER.user_id (int8).
 -- Run this entire file once in the Supabase SQL Editor as the project owner.
 -- If survey_responses already exists, this transaction stops without replacing it.
--- Prerequisite for app access: sign in with Supabase Auth (not just SIGN_IN).
+-- Browser roles are denied access. Use a trusted backend that verifies the custom login/session.
 
 begin;
 
 create table public.survey_responses (
-  user_id uuid primary key default auth.uid()
-    references auth.users (id) on delete cascade,
+  user_id bigint primary key
+    references public."USER" (user_id) on delete cascade,
   answers jsonb not null,
   created_at timestamptz not null default statement_timestamp(),
   updated_at timestamptz not null default statement_timestamp(),
@@ -16,7 +16,7 @@ create table public.survey_responses (
 );
 
 comment on table public.survey_responses is
-  'One current survey answer object per Supabase Auth user; retakes update the same row.';
+  'One current survey response per public.USER.user_id (int8). A trusted backend must enforce user ownership; browser roles have no access.';
 comment on column public.survey_responses.answers is
   'The object from BeanosSurvey.getAnswers(): schemaVersion, background, skills, mainGoal, lessonPriorities, completedAt.';
 
@@ -45,25 +45,14 @@ for each row execute function public.set_survey_responses_timestamps();
 
 alter table public.survey_responses enable row level security;
 
--- Remove inherited/default client grants, then allow only the required operations.
--- No anonymous access, and no client-side deletion of saved responses.
+-- An int8 foreign key links data but does not identify the browser's user.
+-- Keep all direct browser access closed until a verified identity mechanism exists.
+-- The backend must derive user_id from its verified session, never from a client claim.
 revoke all on table public.survey_responses from public, anon, authenticated;
-grant select, insert, update on table public.survey_responses to authenticated;
+grant select, insert, update on table public.survey_responses to service_role;
 
-create policy survey_responses_select_own
-on public.survey_responses
-for select to authenticated
-using ((select auth.uid()) = user_id);
-
-create policy survey_responses_insert_own
-on public.survey_responses
-for insert to authenticated
-with check ((select auth.uid()) = user_id);
-
-create policy survey_responses_update_own
-on public.survey_responses
-for update to authenticated
-using ((select auth.uid()) = user_id)
-with check ((select auth.uid()) = user_id);
+-- RLS stays enabled with no client policies. The server's service role bypasses
+-- RLS, so per-user authorization must be enforced by the backend before each query.
+-- Keep the service-role key on the server.
 
 commit;
