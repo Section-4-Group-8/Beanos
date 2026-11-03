@@ -3,7 +3,7 @@
 
 **Survey planning:** [Survey questions and screen flow](docs/survey-questions.md) — Draft wording, answer choices, and interaction rules.
 
-**Standalone survey:** Open [survey.html](survey.html) directly in a browser. Its styles and behavior live in `survey.css` and `survey.js`, using the colors, typography, and components from [the team style guide](men_s_dating_mastery_style_guide.html). No setup or Supabase connection is needed. Answers stay in memory while the page is open; refreshing starts a new survey. The survey does not navigate to the existing index or home pages.
+**Standalone survey:** Open [survey.html](survey.html) directly in a browser. Its styles and behavior live in `survey.css` and `survey.js`, using the colors, typography, and components from [the team style guide](Beanos_style_guide.html). No setup or Supabase connection is needed. Answers stay in memory while the page is open; refreshing starts a new survey. The survey does not navigate to the existing index or home pages.
 
 For future integration, `window.BeanosSurvey.getAnswers()` returns a copy of the current answers with stable choice IDs. Completing the survey also dispatches a `beanos:survey-completed` event on `document`, with the answers in `event.detail`.
 
