@@ -9,6 +9,8 @@ For future integration, `window.BeanosSurvey.getAnswers()` returns a copy of the
 
 **Survey database setup:** [SQL and teammate setup instructions](docs/supabase-survey-setup.md) — Creates one survey response per existing `USER.user_id` (`int8`), with browser access restricted until the custom-login backend is connected.
 
+**Account signup:** [Shared user IDs and foreign-key fix](docs/account-signup.md) — Creates the matching `USER` record atomically when the existing registration page inserts into `SIGN_IN`.
+
 **ERD:** ![ERD](images/erd2.png)
 
 **Tech Stack:** HTML/CSS/JavaScript, Node.Js, Supabase. This fits our team because our product is going to be web-based, and our group is most comfortable with the HTML/JS platform. Supabase is a free and easy to use tool so we went with that over other options.
