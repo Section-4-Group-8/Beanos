@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Find your starting point with the Beanos dating skills survey.">
+  <title>Your starting point | Beanos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="survey.css">
+  <script src="survey.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#survey-main">Skip to survey</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand" aria-label="Beanos">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="6" fill="currentColor"/>
+          <path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/>
+          <path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Beanos<span class="brand-dot">.</span></span>
+      </div>
+      <span class="header-note">A little progress, every day.</span>
+    </div>
+  </header>
+
+  <div class="survey-layout">
+    <aside class="journey" aria-label="Survey progress">
+      <span class="eyebrow">YOUR STARTING POINT</span>
+      <h2>Good things start<br>with knowing you.</h2>
+      <p>A few small steps to find what matters to you.</p>
+      <ol class="step-list" id="step-list">
+        <li aria-current="step"><span class="step-number">01</span><span><strong>About you</strong><small>Your experience so far</small></span></li>
+        <li><span class="step-number">02</span><span><strong>Your skills</strong><small>Strengths &amp; room to grow</small></span></li>
+        <li><span class="step-number">03</span><span><strong>Your goal</strong><small>What you’re working toward</small></span></li>
+        <li><span class="step-number">04</span><span><strong>Your priorities</strong><small>Where you’d like to begin</small></span></li>
+      </ol>
+      <div class="journey-note"><span aria-hidden="true">✦</span><div><strong>Go at your own pace.</strong><p>There are no right or wrong answers. Just your starting point.</p></div></div>
+    </aside>
+
+    <main id="survey-main" tabindex="-1">
+      <div class="progress-heading"><span id="progress-label">Step 1 of 4</span><span id="progress-percent">0% complete</span></div>
+      <div class="progress-track" id="survey-progress" role="progressbar" aria-label="Survey completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
+      <noscript><p class="notice">Please enable JavaScript to complete the survey.</p></noscript>
+
+      <form id="survey-form" class="survey-card" novalidate hidden>
+        <section class="survey-screen" data-step="0" aria-labelledby="about-title">
+          <div class="screen-heading"><span class="eyebrow">01 / ABOUT YOU</span><h1 id="about-title" tabindex="-1">Let’s get to know you.</h1><p>Tell us a little about yourself so we can help you choose where to start. There are no right or wrong answers.</p></div>
+          <div id="background-questions" class="question-list"></div>
+        </section>
+
+        <section class="survey-screen" data-step="1" aria-labelledby="skills-title" hidden>
+          <div class="screen-heading"><span class="eyebrow">02 / YOUR SKILLS</span><h1 id="skills-title" tabindex="-1">What feels comfortable?</h1><p>Which skills feel like strengths, and which would you like to practice?</p></div>
+          <div class="section-content">
+            <div class="instruction-note"><strong>Choose six actions. Any split is fine.</strong><p>Something you haven’t tried yet can go under “Want to practice.”</p></div>
+            <p class="interaction-help" id="skills-help">Drag an action into a column, or select an action and choose a column.</p>
+            <div class="mobile-placement" id="mobile-placement" hidden><div class="mobile-placement-heading"><strong id="mobile-selected-label"></strong><button type="button" id="clear-skill-selection" aria-label="Clear action selection">×</button></div><div class="mobile-placement-buttons"><button type="button" data-place-mobile="strengths">Strengths <span aria-hidden="true">+</span></button><button type="button" data-place-mobile="practice">Want to practice <span aria-hidden="true">+</span></button></div></div>
+            <div class="bank-heading"><h2>Action bank</h2><span id="skills-count" class="count-badge">0 / 6 placed</span></div>
+            <div class="skill-bank drop-zone" data-zone="bank" aria-label="Available actions" aria-describedby="skills-help"><div id="skill-bank" class="skill-list"></div></div>
+            <div class="skill-columns">
+              <section class="skill-column drop-zone" data-zone="strengths" aria-labelledby="strengths-title">
+                <div class="column-heading"><h2 id="strengths-title">Strengths <span id="strengths-count">0</span></h2><p>Things that feel comfortable.</p><button type="button" class="place-button" data-place="strengths" disabled>Place selected action here <span aria-hidden="true">+</span></button></div>
+                <div id="strengths-list" class="skill-list placed-list"></div>
+              </section>
+              <section class="skill-column drop-zone practice-column" data-zone="practice" aria-labelledby="practice-title">
+                <div class="column-heading"><h2 id="practice-title">Want to practice <span id="practice-count">0</span></h2><p>Skills you’d like to work on.</p><button type="button" class="place-button" data-place="practice" disabled>Place selected action here <span aria-hidden="true">+</span></button></div>
+                <div id="practice-list" class="skill-list placed-list"></div>
+              </section>
+            </div>
+            <p class="interaction-feedback" id="skill-feedback" role="status" aria-live="polite">Select an action to get started.</p>
+          </div>
+        </section>
+
+        <section class="survey-screen" data-step="2" aria-labelledby="goal-title" hidden>
+          <div class="screen-heading"><span class="eyebrow">03 / YOUR GOAL</span><h1 id="goal-title" tabindex="-1">What are you working toward?</h1><p>Choose the one that matters most to you today. You can change it later.</p></div>
+          <fieldset class="goal-fieldset"><legend class="visually-hidden">What’s your main goal right now?</legend><div id="goal-options" class="goal-options"></div></fieldset>
+        </section>
+
+        <section class="survey-screen" data-step="3" aria-labelledby="priorities-title" hidden>
+          <div class="screen-heading"><span class="eyebrow">04 / YOUR PRIORITIES</span><h1 id="priorities-title" tabindex="-1">Choose where to start.</h1><p>What would you like to learn first? Put these topics in order, with the topic you’re most interested in at the top.</p></div>
+          <div class="section-content"><div class="ranking-labels"><span>LEARN FIRST</span><span>6 TOPICS</span></div><p class="interaction-help" id="ranking-help">Drag to reorder, or use the up and down buttons. Happy with the order? You can keep it.</p><ol id="lesson-list" class="lesson-list" aria-describedby="ranking-help"></ol><span class="ranking-end">A LITTLE LATER</span><p id="ranking-feedback" class="visually-hidden" role="status" aria-live="polite"></p></div>
+        </section>
+
+        <section class="survey-screen completion-screen" data-step="4" aria-labelledby="complete-title" hidden>
+          <div class="completion-art" aria-hidden="true"><span class="completion-ring"></span><span class="completion-check">✓</span><span class="spark spark-one">✦</span><span class="spark spark-two">✧</span></div>
+          <span class="eyebrow">ONE GOOD STEP FORWARD</span><h1 id="complete-title" tabindex="-1">You’re ready to begin!</h1><p>Thanks for sharing a little about yourself. Explore the lessons and take your next step at your own pace.</p><div class="completion-summary"><span>YOUR MAIN GOAL</span><strong id="complete-goal"></strong><span>FIRST ON YOUR LIST</span><strong id="complete-priority"></strong></div><button class="btn btn-secondary" type="button" id="review-answers">Review my answers <span aria-hidden="true">↗</span></button>
+        </section>
+
+        <footer class="survey-footer" id="survey-footer"><div class="footer-navigation"><button class="btn back-button" type="button" id="back-button" hidden><span aria-hidden="true">←</span> Back</button><span class="footer-note" id="first-step-note">A starting point, at your pace.</span><button class="btn btn-primary" type="submit" id="next-button" disabled><span id="next-label">Continue</span><span aria-hidden="true">→</span></button></div><p id="continue-hint" class="continue-hint" role="status" aria-live="polite">Answer all three questions to continue.</p></footer>
+      </form>
+      <p class="below-card">Small steps. Real connections.</p>
+    </main>
+  </div>
+</body>
+</html>
