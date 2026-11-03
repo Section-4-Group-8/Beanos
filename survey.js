@@ -230,7 +230,7 @@
     answers.lessonPriorities.forEach((id, index) => {
       const item = element('li', 'lesson-item');
       item.dataset.lesson = id;
-      item.draggable = true;
+      item.draggable = false;
       const grip = element('span', 'lesson-grip', '⠿');
       const number = element('span', 'lesson-number', String(index + 1).padStart(2, '0'));
       grip.setAttribute('aria-hidden', 'true');
@@ -400,10 +400,10 @@
 
   form.addEventListener('pointerdown', event => {
     suppressDragClick = false;
-    if (event.button !== 0 || !event.isPrimary || event.target.closest('[data-remove-skill]')) return;
+    if (event.button !== 0 || !event.isPrimary || event.target.closest('[data-remove-skill], [data-move-lesson]')) return;
     const skill = event.target.closest('[data-drag-skill]');
     const handle = event.target.closest('.skill-grip, .lesson-grip');
-    const lesson = handle?.closest('[data-lesson]');
+    const lesson = event.target.closest('[data-lesson]');
     if (!skill && !lesson) return;
     // Touch users can scroll or tap the label; its handle starts a touch drag.
     if (event.pointerType === 'touch' && !handle) return;
