@@ -151,16 +151,6 @@
         }
         .btn-primary:hover { background-color: #8C4D40; }
 
-        .btn-secondary {
-            background-color: transparent;
-            border-color: var(--color-primary-navy);
-            color: var(--color-primary-navy);
-        }
-        .btn-secondary:hover {
-            background-color: var(--color-primary-navy);
-            color: var(--color-white);
-        }
-
         .card {
             background-color: var(--color-white);
             border: 1px solid var(--color-gray-200);
@@ -198,12 +188,6 @@
         }
 
         .card-body { padding: calc(3 * var(--spacing-unit)); }
-
-        .caption-text {
-            font-size: var(--size-font-xs);
-            color: var(--color-gray-700);
-            font-family: var(--font-headings);
-        }
     </style>
 </head>
 <body>
@@ -221,7 +205,7 @@
         <header class="hero">
             <span class="badge">Account Settings</span>
             <h1>My Dating Mastery Profile</h1>
-            <p>View your active profile details, update your username, email, and manage your secure password.</p>
+            <p>View your active profile email, update your email address, and manage your password.</p>
         </header>
 
         <!-- 1. Current Profile Overview Card -->
@@ -231,48 +215,20 @@
                 <span class="module-badge">Active Session</span>
             </div>
             <div class="card-body">
-                <div id="profile-details" style="margin-bottom: 16px;">
-                    <p style="font-family: var(--font-headings); margin-bottom: 6px;">
-                        <strong>Username:</strong> 
-                        <span id="current-username" style="color: var(--color-primary-rust); font-weight: 600;">Not set</span>
-                    </p>
+                <div id="profile-details">
                     <p style="font-family: var(--font-headings); margin-bottom: 6px;">
                         <strong>Email Address:</strong> 
-                        <span id="current-email" style="color: var(--color-primary-navy); font-weight: 600;">Not set</span>
+                        <span id="current-email" style="color: var(--color-primary-rust); font-weight: 600;">Loading...</span>
                     </p>
                     <p style="font-family: var(--font-headings);">
                         <strong>Database User ID:</strong> 
                         <span id="current-user-id" style="color: var(--color-gray-700);">—</span>
                     </p>
                 </div>
-
-                <p class="caption-text" style="margin-bottom: 10px;">Simulate or set your active signed-in identifier for local testing:</p>
-                <div style="display: flex; gap: 10px;">
-                    <input type="email" id="session-email-input" class="form-input" placeholder="Enter active user email">
-                    <button onclick="setSessionUser()" class="btn btn-secondary" style="white-space: nowrap;">Set Session</button>
-                </div>
             </div>
         </div>
 
-        <!-- 2. Update Username Card -->
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fa-solid fa-user-pen"></i> Change Username</h3>
-            </div>
-            <div class="card-body">
-                <form id="update-username-form">
-                    <div class="form-group">
-                        <label for="new-username" class="form-label">New Username:</label>
-                        <input type="text" id="new-username" class="form-input" required placeholder="Enter new username">
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-check"></i> Update Username
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- 3. Update Email Card -->
+        <!-- 2. Update Email Card -->
         <div class="card">
             <div class="card-header">
                 <h3><i class="fa-solid fa-envelope"></i> Change Email Address</h3>
@@ -290,7 +246,7 @@
             </div>
         </div>
 
-        <!-- 4. Change Password Card -->
+        <!-- 3. Change Password Card -->
         <div class="card">
             <div class="card-header">
                 <h3><i class="fa-solid fa-lock"></i> Change Password</h3>
@@ -319,45 +275,36 @@
         const SUPABASE_KEY = 'sb_publishable_VbXs3R4Y6H4bVS63j2KkoA_g0trAUp5';
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Fetch full profile info from Supabase for the signed-in user
-        async function fetchUserProfile(email) {
-            if (!email) return;
+        // Fetch user profile info from Supabase based on localStorage session
+        async function fetchUserProfile() {
+            const currentEmail = localStorage.getItem('active_user_email');
+            
+            if (!currentEmail) {
+                document.getElementById('current-email').innerText = 'No active session found';
+                document.getElementById('current-user-id').innerText = '—';
+                return;
+            }
 
             const { data, error } = await client
                 .from('SIGN_IN')
                 .select('*')
-                .eq('email', email)
+                .eq('email', currentEmail)
                 .single();
 
             if (error) {
                 console.error('Error fetching user profile:', error);
-                document.getElementById('current-username').innerText = 'Not found';
-                document.getElementById('current-email').innerText = email;
-                document.getElementById('current-user-id').innerText = 'N/A';
+                document.getElementById('current-email').innerText = currentEmail;
+                document.getElementById('current-user-id').innerText = 'Not found in DB';
             } else if (data) {
-                document.getElementById('current-username').innerText = data.username || data.email.split('@')[0];
                 document.getElementById('current-email').innerText = data.email;
                 document.getElementById('current-user-id').innerText = data.user_id || data.id || 'N/A';
             }
         }
 
-        // Load active user session from localStorage on page load
+        // Load active user session on page load
         document.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('active_user_email');
-            if (savedUser) {
-                document.getElementById('session-email-input').value = savedUser;
-                fetchUserProfile(savedUser);
-            }
+            fetchUserProfile();
         });
-
-        // Set active user for testing session
-        function setSessionUser() {
-            const email = document.getElementById('session-email-input').value.trim();
-            if (!email) return alert('Please enter a valid email.');
-            localStorage.setItem('active_user_email', email);
-            fetchUserProfile(email);
-            showStatus('Active user session updated!', 'success');
-        }
 
         // Helper to display status messages
         function showStatus(message, type) {
@@ -376,41 +323,14 @@
             box.innerText = message;
         }
 
-        // 1. Handle Username Update
-        document.getElementById('update-username-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const currentEmail = localStorage.getItem('active_user_email');
-            const newUsername = document.getElementById('new-username').value.trim();
-
-            if (!currentEmail) {
-                alert('Please set your active user session first.');
-                return;
-            }
-
-            showStatus('Updating username in database...', 'success');
-
-            const { error } = await client
-                .from('SIGN_IN')
-                .update({ username: newUsername })
-                .eq('email', currentEmail);
-
-            if (error) {
-                showStatus(`Error updating username: ${error.message}`, 'error');
-            } else {
-                fetchUserProfile(currentEmail);
-                showStatus('Username successfully updated in Supabase!', 'success');
-                document.getElementById('update-username-form').reset();
-            }
-        });
-
-        // 2. Handle Email Update
+        // 1. Handle Email Update
         document.getElementById('update-email-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const currentEmail = localStorage.getItem('active_user_email');
             const newEmail = document.getElementById('new-email').value.trim();
 
             if (!currentEmail) {
-                alert('Please set your active user session first.');
+                alert('No active user session found. Please sign in first.');
                 return;
             }
 
@@ -425,20 +345,20 @@
                 showStatus(`Error updating email: ${error.message}`, 'error');
             } else {
                 localStorage.setItem('active_user_email', newEmail);
-                fetchUserProfile(newEmail);
+                fetchUserProfile();
                 showStatus('Email successfully updated in Supabase!', 'success');
                 document.getElementById('update-email-form').reset();
             }
         });
 
-        // 3. Handle Password Update
+        // 2. Handle Password Update
         document.getElementById('update-password-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const currentEmail = localStorage.getItem('active_user_email');
             const newPassword = document.getElementById('new-password').value;
 
             if (!currentEmail) {
-                alert('Please set your active user session first.');
+                alert('No active user session found. Please sign in first.');
                 return;
             }
 
