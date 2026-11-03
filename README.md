@@ -7,7 +7,7 @@
 
 For future integration, `window.BeanosSurvey.getAnswers()` returns a copy of the current answers with stable choice IDs. Completing the survey also dispatches a `beanos:survey-completed` event on `document`, with the answers in `event.detail`.
 
-**Survey database setup:** [SQL and teammate setup instructions](docs/supabase-survey-setup.md) — Creates one survey response per Supabase Auth user with owner-only access rules.
+**Survey database setup:** [SQL and teammate setup instructions](docs/supabase-survey-setup.md) — Creates one survey response per existing `USER.user_id` (`int8`), with browser access restricted until the custom-login backend is connected.
 
 **ERD:** ![ERD](images/erd2.png)
 
