@@ -92,6 +92,8 @@
   let draggedItem = null;
   let pointerDrag = null;
   let dragPreview = null;
+  let dragFrame = null;
+  let suppressDragClick = false;
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
@@ -168,7 +170,8 @@
     for (const [id, label] of skills) {
       const zone = skillZone(id);
       const item = element('div', 'skill-item');
-      item.draggable = true;
+      // Pointer dragging works across the whole tile, including its button.
+      item.draggable = false;
       item.dataset.dragSkill = id;
       const button = element('button', 'skill-chip');
       const grip = element('span', 'skill-grip', '⠿');
@@ -322,6 +325,11 @@
   });
 
   form.addEventListener('click', event => {
+    if (suppressDragClick && event.detail !== 0) {
+      suppressDragClick = false;
+      event.preventDefault();
+      return;
+    }
     const remove = event.target.closest('[data-remove-skill]');
     if (remove) return placeSkill(remove.dataset.removeSkill, 'bank');
     const skill = event.target.closest('[data-skill]');
@@ -345,6 +353,8 @@
   });
 
   function clearDrag() {
+    if (dragFrame !== null) cancelAnimationFrame(dragFrame);
+    dragFrame = null;
     draggedItem = null;
     pointerDrag = null;
     dragPreview?.remove();
@@ -368,21 +378,44 @@
     }
   }
 
-  // Pointer handles also support touch and browsers without native HTML drag-and-drop.
+  function updatePointerDrag() {
+    if (!pointerDrag?.active) return;
+    const { clientX, clientY, type } = pointerDrag;
+    dragPreview.style.left = `${Math.max(8, Math.min(clientX + 12, window.innerWidth - 250))}px`;
+    dragPreview.style.top = `${clientY + 12}px`;
+    const selector = type === 'skill' ? '[data-zone]' : '[data-lesson]';
+    const target = document.elementFromPoint(clientX, clientY)?.closest(selector);
+    document.querySelectorAll('.drag-over').forEach(node => {
+      if (node !== target) node.classList.remove('drag-over');
+    });
+    target?.classList.add('drag-over');
+
+    // Keep scrolling while the pointer is held near an edge, even without movement.
+    const edge = 64;
+    const scrollSpeed = clientY < edge ? -Math.ceil((edge - clientY) / 4)
+      : clientY > window.innerHeight - edge ? Math.ceil((clientY - window.innerHeight + edge) / 4) : 0;
+    if (scrollSpeed) window.scrollBy(0, scrollSpeed);
+    dragFrame = requestAnimationFrame(updatePointerDrag);
+  }
+
   form.addEventListener('pointerdown', event => {
+    suppressDragClick = false;
+    if (event.button !== 0 || !event.isPrimary || event.target.closest('[data-remove-skill]')) return;
+    const skill = event.target.closest('[data-drag-skill]');
     const handle = event.target.closest('.skill-grip, .lesson-grip');
-    if (!handle || event.button !== 0) return;
-    const skill = handle.closest('[data-drag-skill]');
-    const lesson = handle.closest('[data-lesson]');
+    const lesson = handle?.closest('[data-lesson]');
     if (!skill && !lesson) return;
-    event.preventDefault();
-    form.setPointerCapture(event.pointerId);
+    // Touch users can scroll or tap the label; its handle starts a touch drag.
+    if (event.pointerType === 'touch' && !handle) return;
+    if (handle) event.preventDefault();
     pointerDrag = {
       type: skill ? 'skill' : 'lesson',
       id: skill ? skill.dataset.dragSkill : lesson.dataset.lesson,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
+      clientX: event.clientX,
+      clientY: event.clientY,
       source: skill || lesson,
       active: false
     };
@@ -390,22 +423,20 @@
 
   form.addEventListener('pointermove', event => {
     if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+    pointerDrag.clientX = event.clientX;
+    pointerDrag.clientY = event.clientY;
     if (!pointerDrag.active) {
       if (Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY) < 6) return;
       pointerDrag.active = true;
+      // Delay capture until a drag starts so an ordinary click still selects the action.
+      form.setPointerCapture(event.pointerId);
       pointerDrag.source.classList.add('dragging');
       dragPreview = element('div', 'drag-preview', (pointerDrag.type === 'skill' ? skillLabels : lessonLabels).get(pointerDrag.id));
       dragPreview.setAttribute('aria-hidden', 'true');
       document.body.append(dragPreview);
+      updatePointerDrag();
     }
-    dragPreview.style.left = `${Math.min(event.clientX + 12, window.innerWidth - 250)}px`;
-    dragPreview.style.top = `${event.clientY + 12}px`;
-    const selector = pointerDrag.type === 'skill' ? '[data-zone]' : '[data-lesson]';
-    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(selector);
-    document.querySelectorAll('.drag-over').forEach(node => { if (node !== target) node.classList.remove('drag-over'); });
-    target?.classList.add('drag-over');
-    if (event.clientY < 55) window.scrollBy(0, -14);
-    else if (event.clientY > window.innerHeight - 55) window.scrollBy(0, 14);
+    event.preventDefault();
   });
 
   form.addEventListener('pointerup', event => {
@@ -414,9 +445,14 @@
     const target = document.elementFromPoint(event.clientX, event.clientY);
     if (form.hasPointerCapture(event.pointerId)) form.releasePointerCapture(event.pointerId);
     clearDrag();
-    if (item.active) dropItemAt(item, target, event.clientY);
+    if (item.active) {
+      suppressDragClick = true;
+      event.preventDefault();
+      dropItemAt(item, target, event.clientY);
+    }
   });
   form.addEventListener('pointercancel', clearDrag);
+  form.addEventListener('lostpointercapture', clearDrag);
 
   form.addEventListener('dragstart', event => {
     const skill = event.target.closest('[data-drag-skill]');
