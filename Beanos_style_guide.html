@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Men's Dating Mastery — Visual Style Guide Showcase</title>
+    <title>Beanos — Visual Style Guide Showcase</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -144,6 +144,21 @@
             letter-spacing: 0.8px;
             margin-bottom: 12px;
         }
+
+        /* Beanos identity, matching the standalone survey logo. */
+        .guide-brand { display: flex; align-items: center; gap: 12px; color: var(--color-primary-navy); font: 700 2rem/1.2 var(--font-headings); letter-spacing: -0.8px; }
+        .guide-brand-mark { width: 48px; height: 48px; flex-shrink: 0; color: var(--color-primary-navy); border-radius: var(--border-radius); }
+        .guide-brand-dot { color: var(--color-primary-rust); }
+        .hero .guide-brand { margin: 8px 0 16px; position: relative; z-index: 1; }
+        .hero .guide-brand h1 { margin: 0; font-weight: 700; }
+        .hero .guide-brand-mark, .logo-sample-dark .guide-brand-mark { box-shadow: 0 0 0 1px #ffffff40; }
+        .logo-samples { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+        .logo-sample { min-width: 0; padding: 28px 20px; border: 1px solid var(--color-gray-200); border-radius: var(--border-radius); display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+        .logo-sample .caption-text { margin: 0; }
+        .logo-sample-dark { background: var(--color-primary-navy); border-color: var(--color-primary-navy); }
+        .logo-sample-dark .guide-brand { color: white; }
+        .logo-sample-dark .caption-text { color: var(--color-secondary-tan); }
+        .logo-mark-only { width: 64px; height: 64px; }
 
         /* Guide Sections */
         .guide-section {
@@ -617,9 +632,36 @@
         <!-- Header Hero Section -->
         <header class="hero">
             <span class="badge">Official Design System</span>
-            <h1>Men's Dating Mastery</h1>
+            <div class="guide-brand"><svg class="guide-brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="6" fill="currentColor"/>
+          <path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/>
+          <path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/>
+        </svg><h1>Beanos<span class="guide-brand-dot">.</span></h1></div>
             <p>Visual Style Guide & Interactive Component Library. Crafted with approachable warm tones, clear typography, and action-oriented controls.</p>
         </header>
+
+        <!-- BEANOS LOGO AND WORDMARK -->
+        <section class="guide-section" aria-labelledby="logo-heading">
+            <div class="section-header"><h2 id="logo-heading">Beanos Logo &amp; Wordmark</h2></div>
+            <p class="section-desc">The Beanos identity pairs a tan bean with a rust-colored seam inside a navy square. The Poppins wordmark finishes with a rust dot, using the same colors and typography as the survey.</p>
+            <div class="logo-samples">
+                <div class="logo-sample"><div class="guide-brand"><svg class="guide-brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="6" fill="currentColor"/>
+          <path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/>
+          <path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/>
+        </svg><span>Beanos<span class="guide-brand-dot">.</span></span></div><p class="caption-text">Primary wordmark · light backgrounds</p></div>
+                <div class="logo-sample logo-sample-dark"><div class="guide-brand"><svg class="guide-brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="6" fill="currentColor"/>
+          <path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/>
+          <path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/>
+        </svg><span>Beanos<span class="guide-brand-dot">.</span></span></div><p class="caption-text">Light wordmark · navy backgrounds</p></div>
+                <div class="logo-sample"><svg class="guide-brand-mark logo-mark-only" viewBox="0 0 40 40" role="img" aria-label="Beanos bean icon">
+          <rect width="40" height="40" rx="6" fill="currentColor"/>
+          <path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/>
+          <path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/>
+        </svg><p class="caption-text">Standalone bean icon</p></div>
+            </div>
+        </section>
 
         <!-- 1. COLOR PALETTE SECTION -->
         <section class="guide-section">
