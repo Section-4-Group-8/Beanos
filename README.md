@@ -7,6 +7,8 @@
 
 For future integration, `window.BeanosSurvey.getAnswers()` returns a copy of the current answers with stable choice IDs. Completing the survey also dispatches a `beanos:survey-completed` event on `document`, with the answers in `event.detail`.
 
+**Survey database setup:** [SQL and teammate setup instructions](docs/supabase-survey-setup.md) — Creates one survey response per Supabase Auth user with owner-only access rules.
+
 **ERD:** ![ERD](images/erd2.png)
 
 **Tech Stack:** HTML/CSS/JavaScript, Node.Js, Supabase. This fits our team because our product is going to be web-based, and our group is most comfortable with the HTML/JS platform. Supabase is a free and easy to use tool so we went with that over other options.
