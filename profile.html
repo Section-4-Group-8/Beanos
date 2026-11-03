@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — Men's Dating Mastery</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Your Style Guide CSS Sheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Supabase JavaScript Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Navigation Menu -->
+        <nav style="margin-bottom: 30px; display: flex; gap: 15px; font-family: var(--font-headings);">
+            <a href="index.html" style="color: var(--color-primary-navy); text-decoration: none; font-weight: 600;"><i class="fa-solid fa-house"></i> Home</a>
+            <span style="color: var(--color-gray-400);">/</span>
+            <a href="profile.html" style="color: var(--color-primary-rust); text-decoration: none; font-weight: 600;"><i class="fa-solid fa-user"></i> Profile</a>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <span class="badge">Account Settings</span>
+            <h1>My Dating Mastery Profile</h1>
+            <p>Manage your account credentials, update your username, and secure your password.</p>
+        </header>
+
+        <!-- Current Profile Overview Card -->
+        <div class="card" style="margin-top: 0;">
+            <div class="card-header">
+                <h3><i class="fa-solid id-card"></i> Current User Details</h3>
+                <span class="module-badge">Active Session</span>
+            </div>
+            <div class="card-body">
+                <p style="margin-bottom: 12px; font-family: var(--font-headings);">
+                    <strong>Signed-in Username / Email:</strong> 
+                    <span id="current-username" style="color: var(--color-primary-rust); font-weight: 600;">Not set</span>
+                </p>
+                <p class="caption-text" style="color: var(--color-gray-700);">
+                    To test this locally, enter your active email below so the browser can track your session.
+                </p>
+                
+                <!-- Quick Session Selector for Testing -->
+                <div style="margin-top: 16px; display: flex; gap: 10px;">
+                    <input type="email" id="session-email-input" placeholder="Enter your active email to view/edit" style="flex: 1; padding: 10px; border: 1px solid var(--color-gray-200); border-radius: var(--border-radius); font-family: inherit;">
+                    <button onclick="setSessionUser()" class="btn btn-secondary" style="padding: 10px 16px; font-size: 0.85rem;">Set Active User</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Username Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Change Username (Email)</h3>
+            </div>
+            <div class="card-body">
+                <form id="update-username-form">
+                    <div style="margin-bottom: 16px;">
+                        <label for="new-username" style="display: block; font-family: var(--font-headings); font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">New Username / Email:</label>
+                        <input type="email" id="new-username" required style="width: 100%; padding: 12px; border: 1px solid var(--color-gray-200); border-radius: var(--border-radius); font-family: inherit;">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Update Username
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-lock"></i> Change Password</h3>
+            </div>
+            <div class="card-body">
+                <form id="update-password-form">
+                    <div style="margin-bottom: 16px;">
+                        <label for="new-password" style="display: block; font-family: var(--font-headings); font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">New Password / Hash:</label>
+                        <input type="password" id="new-password" required style="width: 100%; padding: 12px; border: 1px solid var(--color-gray-200); border-radius: var(--border-radius); font-family: inherit;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--color-primary-navy);">
+                        <i class="fa-solid fa-shield"></i> Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Status Notification Box -->
+        <div id="status-box" style="margin-top: 20px; display: none; padding: 14px; border-radius: var(--border-radius); font-family: var(--font-headings); font-size: 0.9rem;"></div>
+
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        const SUPABASE_URL = 'https://bzqepyhnvvrwzafydeqp.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_VbXs3R4Y6H4bVS63j2KkoA_g0trAUp5';
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Load active user session from localStorage on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('active_user_email');
+            if (savedUser) {
+                document.getElementById('current-username').innerText = savedUser;
+                document.getElementById('session-email-input').value = savedUser;
+            }
+        });
+
+        // Set active user for testing session
+        function setSessionUser() {
+            const email = document.getElementById('session-email-input').value.trim();
+            if (!email) return alert('Please enter a valid email.');
+            localStorage.setItem('active_user_email', email);
+            document.getElementById('current-username').innerText = email;
+            showStatus('Active user session updated!', 'success');
+        }
+
+        // Helper to display status messages
+        function showStatus(message, type) {
+            const box = document.getElementById('status-box');
+            box.style.display = 'block';
+            box.style.backgroundColor = 'var(--color-gray-100)';
+            
+            if (type === 'success') {
+                box.style.borderLeft = '4px solid var(--color-success)';
+                box.style.color = 'var(--color-primary-navy)';
+            } else {
+                box.style.borderLeft = '4px solid var(--color-primary-rust)';
+                box.style.color = 'var(--color-primary-rust)';
+            }
+            box.innerText = message;
+        }
+
+        // 1. Handle Username (Email) Update
+        document.getElementById('update-username-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentEmail = localStorage.getItem('active_user_email');
+            const newEmail = document.getElementById('new-username').value.trim();
+
+            if (!currentEmail) {
+                alert('Please set your active user session first.');
+                return;
+            }
+
+            showStatus('Updating username in database...', 'success');
+
+            const { error } = await client
+                .from('SIGN_IN')
+                .update({ email: newEmail })
+                .eq('email', currentEmail);
+
+            if (error) {
+                showStatus(`Error updating username: ${error.message}`, 'error');
+            } else {
+                localStorage.setItem('active_user_email', newEmail);
+                document.getElementById('current-username').innerText = newEmail;
+                showStatus('Username successfully updated!', 'success');
+                document.getElementById('update-username-form').reset();
+            }
+        });
+
+        // 2. Handle Password Update
+        document.getElementById('update-password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentEmail = localStorage.getItem('active_user_email');
+            const newPassword = document.getElementById('new-password').value;
+
+            if (!currentEmail) {
+                alert('Please set your active user session first.');
+                return;
+            }
+
+            showStatus('Updating password in database...', 'success');
+
+            const { error } = await client
+                .from('SIGN_IN')
+                .update({ password_hash: newPassword })
+                .eq('email', currentEmail);
+
+            if (error) {
+                showStatus(`Error updating password: ${error.message}`, 'error');
+            } else {
+                showStatus('Password successfully updated!', 'success');
+                document.getElementById('update-password-form').reset();
+            }
+        });
+    </script>
+</body>
+</html>
