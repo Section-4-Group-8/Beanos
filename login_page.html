@@ -385,7 +385,7 @@
             const { data, error } = await testDatabase
                 .from('SIGN_IN')
                 .insert([{ email: email, password_hash: password }])
-                .select(); // Ensures Supabase returns the newly created row data
+                .select();
 
             if (error) {
                 if (error.code === '23505' || (error.message && error.message.toLowerCase().includes('duplicate key'))) {
@@ -397,7 +397,6 @@
             } else {
                 setStatus('Account created successfully! Redirecting to survey...', 'green');
                 
-                // Pull row data returned from Supabase and save it to localStorage
                 if (data && data.length > 0) {
                     const newUserRow = data[0];
                     localStorage.setItem('active_user_email', newUserRow.email);
@@ -407,7 +406,6 @@
                 emailInput.value = '';
                 passwordInput.value = '';
                 
-                // Route the user to the survey page after a brief delay
                 setTimeout(() => {
                     window.location.href = 'survey.html';
                 }, 1000);
@@ -437,11 +435,16 @@
                 setStatus(`Database error: ${error.message}`, 'red');
                 console.error("Login query error:", error);
             } else if (data && data.length > 0) {
-                setStatus(`Success! Welcome back, ${data[0].email}!`, 'green');
+                setStatus(`Success! Redirecting to profile page...`, 'green');
                 
-                // Save session for logging in as well
+                // Save session for logging in
                 localStorage.setItem('active_user_email', data[0].email);
                 localStorage.setItem('active_user_id', data[0].user_id || '');
+
+                // Redirect user to the profile page
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 1000);
             } else {
                 setStatus('Invalid email or password.', 'red');
             }

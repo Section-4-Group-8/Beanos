@@ -17,9 +17,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* ==========================================================================
-           1. CSS Custom Properties / Design Tokens
-           ========================================================================== */
         :root {
             --color-primary-rust:    #A65E4F;
             --color-primary-navy:    #1A2A40;
@@ -196,7 +193,7 @@
         
         <!-- Navigation Menu -->
         <nav style="margin-bottom: 25px; display: flex; gap: 10px; font-family: var(--font-headings); font-size: 0.9rem;">
-            <a href="index.html" style="color: var(--color-primary-navy); text-decoration: none; font-weight: 600;"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="login_page.html" style="color: var(--color-primary-navy); text-decoration: none; font-weight: 600;"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
             <span style="color: var(--color-gray-400);">/</span>
             <span style="color: var(--color-primary-rust); font-weight: 600;"><i class="fa-solid fa-user"></i> Profile Settings</span>
         </nav>
@@ -207,6 +204,9 @@
             <h1>My Dating Mastery Profile</h1>
             <p>View your active profile email, update your email address, and manage your password.</p>
         </header>
+
+        <!-- Status Notification Box -->
+        <div id="status-box" style="display: none; margin-bottom: 20px; padding: 14px; border-radius: var(--border-radius); font-family: var(--font-headings); font-size: 0.9rem;"></div>
 
         <!-- 1. Current Profile Overview Card -->
         <div class="card">
@@ -254,7 +254,7 @@
             <div class="card-body">
                 <form id="update-password-form">
                     <div class="form-group">
-                        <label for="new-password" class="form-label">New Password / Hash:</label>
+                        <label for="new-password" class="form-label">New Password:</label>
                         <input type="password" id="new-password" class="form-input" required placeholder="Enter new password">
                     </div>
                     <button type="submit" class="btn btn-primary" style="background-color: var(--color-primary-navy);">
@@ -263,9 +263,6 @@
                 </form>
             </div>
         </div>
-
-        <!-- Status Notification Box -->
-        <div id="status-box" style="display: none; padding: 14px; border-radius: var(--border-radius); font-family: var(--font-headings); font-size: 0.9rem;"></div>
 
     </div>
 
@@ -280,7 +277,7 @@
             const currentEmail = localStorage.getItem('active_user_email');
             
             if (!currentEmail) {
-                document.getElementById('current-email').innerText = 'No active session found';
+                document.getElementById('current-email').innerText = 'No active session found. Please log in.';
                 document.getElementById('current-user-id').innerText = '—';
                 return;
             }
@@ -323,14 +320,14 @@
             box.innerText = message;
         }
 
-        // 1. Handle Email Update
+        // Handle Email Update
         document.getElementById('update-email-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const currentEmail = localStorage.getItem('active_user_email');
             const newEmail = document.getElementById('new-email').value.trim();
 
             if (!currentEmail) {
-                alert('No active user session found. Please sign in first.');
+                showStatus('No active user session found. Please log in first.', 'error');
                 return;
             }
 
@@ -344,6 +341,7 @@
             if (error) {
                 showStatus(`Error updating email: ${error.message}`, 'error');
             } else {
+                // Update local storage session key to reflect the new email
                 localStorage.setItem('active_user_email', newEmail);
                 fetchUserProfile();
                 showStatus('Email successfully updated in Supabase!', 'success');
@@ -351,14 +349,14 @@
             }
         });
 
-        // 2. Handle Password Update
+        // Handle Password Update
         document.getElementById('update-password-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const currentEmail = localStorage.getItem('active_user_email');
             const newPassword = document.getElementById('new-password').value;
 
             if (!currentEmail) {
-                alert('No active user session found. Please sign in first.');
+                showStatus('No active user session found. Please log in first.', 'error');
                 return;
             }
 
