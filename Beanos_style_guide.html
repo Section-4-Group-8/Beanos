@@ -160,6 +160,21 @@
         .logo-sample-dark .caption-text { color: var(--color-secondary-tan); }
         .logo-mark-only { width: 64px; height: 64px; }
 
+        /* Match the survey page's light Beanos header and wordmark. */
+        .hero {
+            background: var(--color-white);
+            color: var(--color-gray-900);
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            padding: 28px 32px;
+        }
+        .hero::after { display: none; }
+        .hero .guide-brand { margin: 8px 0 16px; color: var(--color-primary-navy); }
+        .hero .guide-brand-mark { width: 40px; height: 40px; }
+        .hero .guide-brand h1 { color: var(--color-primary-navy); }
+        .hero p { color: var(--color-gray-700); }
+
         /* Guide Sections */
         .guide-section {
             background-color: var(--color-white);
@@ -633,10 +648,11 @@
         <header class="hero">
             <span class="badge">Official Design System</span>
             <div class="guide-brand"><svg class="guide-brand-mark" viewBox="0 0 40 40" aria-hidden="true">
-          <rect width="40" height="40" rx="6" fill="currentColor"/>
+          <rect width="40" height="40" rx="6" fill="#1A2A40"/>
           <path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/>
           <path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/>
         </svg><h1>Beanos<span class="guide-brand-dot">.</span></h1></div>
+            <span class="header-note">A little progress, every day.</span>
             <p>Visual Style Guide & Interactive Component Library. Crafted with approachable warm tones, clear typography, and action-oriented controls.</p>
         </header>
 
