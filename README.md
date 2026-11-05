@@ -1,27 +1,28 @@
-# Beanos
-**App Summary:** The problem we are trying to solve is that men are struggling to get a girlfriend. This is because men don’t feel comfortable talking to women, struggle to plan fun dates, and act awkward on those dates. This prevents the relationship from growing into a second date and onward. This creates a negative-feedback loop where even if a guy talks himself into approaching a girl, he has built-up anxiety that prevents him from getting anything other than a rejection, further feeding into his anxiety and reluctance to try again. The men experiencing this problem are typically young men that have low confidence and are inexperienced with women. The app has a lesson format to teach these skills that men lack, leading to men finding a girlfriend.
+# Beanos (Dating Confidence App)
 
-**Survey planning:** [Survey questions and screen flow](docs/survey-questions.md) — Draft wording, answer choices, and interaction rules.
+**App Summary**
+This app is designed to help young men overcome the anxiety and lack of confidence that prevents them from finding a girlfriend. Many men struggle to talk to women, plan dates, or act naturally, creating a negative feedback loop of rejection and reluctance. This app uses a lesson format to teach relationship and dating skills, helping users break this cycle and build confidence.
 
-**Standalone survey:** Open [survey.html](survey.html) directly in a browser. Its styles and behavior live in `survey.css` and `survey.js`, using the colors, typography, and components from [the team style guide](Beanos_style_guide.html). No setup or Supabase connection is needed. Answers stay in memory while the page is open; refreshing starts a new survey. The survey does not navigate to the existing index or home pages.
+**Tech Stack**
+* **Frontend:** HTML/CSS/JavaScript
+* **Backend:** Node.js, Supabase
+* **Why this stack:** The product is web-based, and our group is most comfortable with the HTML/JS platform. Supabase provides a free, easy-to-use alternative to heavier database options.
 
-For future integration, `window.BeanosSurvey.getAnswers()` returns a copy of the current answers with stable choice IDs. Completing the survey also dispatches a `beanos:survey-completed` event on `document`, with the answers in `event.detail`.
+**User Flow & Features**
+* **Sign Up Routing:** New users register and are immediately routed to the standalone Survey Page (`survey.html`). Upon survey completion (which dispatches a `beanos:survey-completed` event), users are routed to their Profile Page.
+* **Log In Routing:** Returning users who log in are routed directly to the Profile Page.
+* **Profile Page:** Users can view and update their personal account information and settings.
+* **Data Architecture:** 
+  * Account signup creates a matching `USER` record atomically when the registration page inserts into `SIGN_IN`.
+  * Survey responses generate one record per `USER.user_id` (int8).
 
-**Survey database setup:** [SQL and teammate setup instructions](docs/supabase-survey-setup.md) — Creates one survey response per existing `USER.user_id` (`int8`), with browser access restricted until the custom-login backend is connected.
+**How to Get It Running**
+1. In this GitHub repository, click the green "Code" button.
+2. Select "Download Zip" from the drop-down menu.
+3. Extract the `.zip` file and open `index.html` in your browser. (If it does not open automatically, right-click the file -> "Open with" -> select your preferred web browser).
 
-**Account signup:** [Shared user IDs and foreign-key fix](docs/account-signup.md) — Creates the matching `USER` record atomically when the existing registration page inserts into `SIGN_IN`.
-
-**ERD:** ![ERD](images/erd2.png)
-
-**Tech Stack:** HTML/CSS/JavaScript, Node.Js, Supabase. This fits our team because our product is going to be web-based, and our group is most comfortable with the HTML/JS platform. Supabase is a free and easy to use tool so we went with that over other options.
-
-**How to Get It Running:**
-1. In this GitHub repository, navigate to the green "Code" button
-2. In the drop down menu, select "Download Zip"
-3. Open the .zip file and click on "Index.html" to open the file in your browser
-    a. If this doesn't work, right-click the file and select "Open with" and select your browser
-
-**Verifying the Vertical Slice:**x  
-1. **Action & Input:** Enter `testemail@gmail.com` into the email field, and ‘testpassword’ and click the “Register” button. 
-2. **Check Immediate Feedback:** Ensure the UI updates dynamically to show `"User saved to database successfully!"`. 
-3. **Verify Persistence:** Refresh the browser (`Command/Control + r`). Verify that `"testemail@gmai.com"` is still displayed after the reload.
+**Verifying the Vertical Slice**
+1. **Action & Input (Registration):** Enter `testemail@gmail.com` into the email field, enter `testpassword`, and click the "Register" button.
+2. **Survey Flow:** Verify that registration routes you directly to the Survey Page. Complete the survey steps.
+3. **Profile Routing & Persistence:** Verify that completing the survey lands you on the Profile Page. Change a piece of account info, refresh the browser (Command/Control + R), and ensure the changes persist.
+4. **Log In Flow:** Log out of the test account, then log back in with `testemail@gmail.com` and `testpassword`. Verify that the app bypasses the survey and takes you directly to the Profile Page.
