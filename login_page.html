@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beanos Login Page</title>
     <!-- Load Supabase JS Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="beanos-api.js" defer></script>
+    <script src="login.js" defer></script>
     
     <!-- Google Fonts & FontAwesome Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="style.css">
+
 
     <style>
         /* Design Tokens from Beanos Style Guide */
@@ -216,6 +218,8 @@
             outline: none;
         }
 
+        [hidden] { display: none !important; }
+
         .btn-primary {
             background-color: var(--color-primary-rust);
             color: var(--color-white);
@@ -307,151 +311,26 @@
             <form id="auth-form">
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" required placeholder="your@email.com">
+                    <input type="email" id="email" autocomplete="email" required placeholder="your@email.com">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" required placeholder="••••••••">
+                    <input type="password" id="password" autocomplete="current-password" required placeholder="••••••••">
                 </div>
                 <!-- Two distinct submit buttons -->
                 <div class="button-group">
                     <button type="button" id="signup-btn" class="btn btn-secondary"><i class="fa-solid fa-user-plus"></i> Create Account</button>
+                    <button type="button" id="save-password-btn" class="btn btn-primary" hidden>Save new password</button>
                     <button type="button" id="login-btn" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Log In</button>
                 </div>
+                <button type="button" id="reset-password-btn" class="btn btn-secondary" style="margin-top: 16px;">Forgot password?</button>
             </form>
 
-            <p id="status-message"></p>
+            <p id="status-message" role="status" aria-live="polite"></p>
 
-            <!-- Recent sign-ups section -->
-            <div class="recent-section">
-                <h3><i class="fa-solid fa-users" style="color: var(--color-primary-rust);"></i> Recent sign-ups because privacy doesn't matter lol</h3>
-                <ul id="recent-list">
-                    <!-- Emails will be injected here -->
-                </ul>
-            </div>
+            <p class="recent-section" style="font-family: var(--font-headings); font-size: .85rem;">Create an account once, then log in whenever you return. Older Beanos accounts need a one-time account link from your team.</p>
         </section>
     </div>
 
- <script>
-        const SUPABASE_URL = 'https://bzqepyhnvvrwzafydeqp.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_VbXs3R4Y6H4bVS63j2KkoA_g0trAUp5';
-
-        const testDatabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const statusMessage = document.getElementById('status-message');
-        const recentList = document.getElementById('recent-list');
-
-        // Function to fetch and display the last 3 sign-ups
-        async function loadRecentSignUps() {
-            const { data, error } = await testDatabase
-                .from('SIGN_IN')
-                .select('email')
-                .order('user_id', { ascending: false })
-                .limit(3);
-
-            if (error) {
-                console.error("Error fetching recent signups:", error);
-                return;
-            }
-
-            recentList.innerHTML = '';
-            data.forEach(user => {
-                const li = document.createElement('li');
-                li.textContent = user.email;
-                recentList.appendChild(li);
-            });
-        }
-
-        // Helper to update status message UI
-        function setStatus(message, color) {
-            statusMessage.textContent = message;
-            statusMessage.style.color = color;
-        }
-
-        // Handle Create Account
-        document.getElementById('signup-btn').addEventListener('click', async () => {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            if (!email || !password) {
-                setStatus("Please enter both email and password.", "red");
-                return;
-            }
-
-            setStatus("Creating account...", "blue");
-
-            const { data, error } = await testDatabase
-                .from('SIGN_IN')
-                .insert([{ email: email, password_hash: password }])
-                .select();
-
-            if (error) {
-                if (error.code === '23505' || (error.message && error.message.toLowerCase().includes('duplicate key'))) {
-                    setStatus("An account with this email already exists!", "red");
-                } else {
-                    setStatus(`Error: ${error.message}`, "red");
-                }
-                console.error("Insert error:", error);
-            } else {
-                setStatus('Account created successfully! Redirecting to survey...', 'green');
-                
-                if (data && data.length > 0) {
-                    const newUserRow = data[0];
-                    localStorage.setItem('active_user_email', newUserRow.email);
-                    localStorage.setItem('active_user_id', newUserRow.user_id || newUserRow.id || '');
-                }
-
-                emailInput.value = '';
-                passwordInput.value = '';
-                
-                setTimeout(() => {
-                    window.location.href = 'survey.html';
-                }, 1000);
-            }
-        });
-
-        // Handle Log In
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            if (!email || !password) {
-                setStatus("Please enter both email and password.", "red");
-                return;
-            }
-
-            setStatus("Verifying credentials...", "blue");
-
-            // Query database for matching email and password combination
-            const { data, error } = await testDatabase
-                .from('SIGN_IN')
-                .select('user_id, email')
-                .eq('email', email)
-                .eq('password_hash', password);
-
-            if (error) {
-                setStatus(`Database error: ${error.message}`, 'red');
-                console.error("Login query error:", error);
-            } else if (data && data.length > 0) {
-                setStatus(`Success! Redirecting to profile page...`, 'green');
-                
-                // Save session for logging in
-                localStorage.setItem('active_user_email', data[0].email);
-                localStorage.setItem('active_user_id', data[0].user_id || '');
-
-                // Redirect user to the profile page
-                setTimeout(() => {
-                    window.location.href = 'profile.html';
-                }, 1000);
-            } else {
-                setStatus('Invalid email or password.', 'red');
-            }
-        });
-
-        // Load the recent sign-ups on page load
-        loadRecentSignUps();
-    </script>
 </body>
 </html>

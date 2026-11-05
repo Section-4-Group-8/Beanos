@@ -71,7 +71,7 @@
     ['following-up', 'Following up after a date.']
   ];
 
-  // In-memory only: no accounts, browser storage, database calls, or redirects.
+  // Edit in memory; save the completed survey through the signed-in account RPC.
   const answers = {
     schemaVersion: 1,
     background: { experience: null, conversationStyle: null, comfort: null },
@@ -94,6 +94,11 @@
   let dragPreview = null;
   let dragFrame = null;
   let suppressDragClick = false;
+  let saving = false;
+  let initialAuthId = null;
+  let loginChanged = false;
+  const api = window.BeanosAPI;
+  const saveStatus = document.getElementById('survey-save-status');
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
@@ -108,6 +113,7 @@
     input.type = 'radio';
     input.name = name;
     input.value = id;
+    input.checked = (name === 'mainGoal' ? answers.mainGoal : answers.background[name]) === id;
     input.required = true;
     label.append(input);
     if (icon) {
@@ -275,10 +281,11 @@
   }
 
   function updateNavigation() {
-    nextButton.disabled = !stepIsComplete(currentStep);
+    nextButton.disabled = saving || !stepIsComplete(currentStep);
+    document.getElementById('back-button').disabled = saving;
     document.getElementById('back-button').hidden = currentStep === 0;
     document.getElementById('first-step-note').hidden = currentStep !== 0;
-    document.getElementById('next-label').textContent = currentStep === 3 ? 'Finish survey' : 'Continue';
+    document.getElementById('next-label').textContent = saving ? 'Saving…' : currentStep === 3 ? 'Finish survey' : 'Continue';
     const answered = Object.values(answers.background).filter(Boolean).length;
     const hints = [
       answered === 3 ? 'All three answered. Ready when you are.' : `${answered} of 3 answered. Answer all three to continue.`,
@@ -316,6 +323,7 @@
   }
 
   form.addEventListener('change', event => {
+    if (saving) return;
     const input = event.target;
     if (!input.matches('input[type="radio"]')) return;
     if (Object.hasOwn(answers.background, input.name)) answers.background[input.name] = input.value;
@@ -325,6 +333,7 @@
   });
 
   form.addEventListener('click', event => {
+    if (saving) return;
     if (suppressDragClick && event.detail !== 0) {
       suppressDragClick = false;
       event.preventDefault();
@@ -399,6 +408,7 @@
   }
 
   form.addEventListener('pointerdown', event => {
+    if (saving) return;
     suppressDragClick = false;
     if (event.button !== 0 || !event.isPrimary || event.target.closest('[data-remove-skill], [data-move-lesson]')) return;
     const skill = event.target.closest('[data-drag-skill]');
@@ -487,16 +497,38 @@
   });
   form.addEventListener('dragend', clearDrag);
 
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
-    if (currentStep >= 4 || !stepIsComplete(currentStep)) return;
+    if (saving || currentStep >= 4 || !stepIsComplete(currentStep)) return;
     if (currentStep === 3) {
       const incompleteStep = [0, 1, 2, 3].find(step => !stepIsComplete(step));
       if (incompleteStep !== undefined) return showStep(incompleteStep);
       answers.completedAt = new Date().toISOString();
+      saving = true;
+      form.inert = true;
+      form.setAttribute('aria-busy', 'true');
+      saveStatus.hidden = false;
+      saveStatus.textContent = 'Saving your answers…';
+      updateNavigation();
+      try {
+        const user = await api.currentUser();
+        if (user.id !== initialAuthId) throw new Error('Your login changed. Return to login before continuing. Your answers have not been saved.');
+        const saved = await api.saveSurvey(getAnswers());
+        answers.completedAt = saved.completedAt;
+      } catch (error) {
+        answers.completedAt = null;
+        saveStatus.textContent = `${api.explain(error)} Your answers are still here. Press Finish survey to try again.`;
+        return;
+      } finally {
+        saving = false;
+        form.inert = loginChanged;
+        form.removeAttribute('aria-busy');
+        updateNavigation();
+      }
+      saveStatus.textContent = 'Your survey has been saved to your account.';
       document.getElementById('complete-goal').textContent = goals.find(([id]) => id === answers.mainGoal)[1];
       document.getElementById('complete-priority').textContent = lessonLabels.get(answers.lessonPriorities[0]);
-      // Future Supabase integration can listen here. No saving is performed now.
+      // Consumers are notified only after the database confirms persistence.
       document.dispatchEvent(new CustomEvent('beanos:survey-completed', { detail: getAnswers() }));
     }
     showStep(currentStep + 1);
@@ -513,9 +545,57 @@
   document.getElementById('review-answers').addEventListener('click', () => showStep(0));
   window.BeanosSurvey = Object.freeze({ getAnswers });
 
-  renderQuestions();
-  renderSkills();
-  renderLessons();
-  showStep(0, false);
-  form.hidden = false;
+  async function initialize() {
+    const notice = document.getElementById('survey-account-notice');
+    const message = document.getElementById('survey-account-message');
+    const retry = document.getElementById('survey-load-retry');
+    retry.hidden = true;
+    retry.disabled = true;
+    message.textContent = 'Loading your account…';
+    try {
+      const account = await api.requireAccount();
+      if (!account) return;
+      initialAuthId = (await api.currentUser()).id;
+      const saved = await api.loadSurvey();
+      if (saved) {
+        // Refuse unknown/corrupt formats instead of silently overwriting them.
+        const previous = getAnswers();
+        if (saved.schemaVersion !== 1 || !saved.background || !saved.skills ||
+          !Array.isArray(saved.skills.strengths) || !Array.isArray(saved.skills.practice) ||
+          !Array.isArray(saved.lessonPriorities)) throw new Error('Your saved survey format could not be loaded. Ask your team for help.');
+        Object.assign(answers, JSON.parse(JSON.stringify(saved)));
+        const allSkills = [...answers.skills.strengths, ...answers.skills.practice];
+        if (![0, 1, 2, 3].every(stepIsComplete) || new Set(allSkills).size !== 6 ||
+          !allSkills.every(id => skillLabels.has(id))) {
+          Object.assign(answers, previous);
+          throw new Error('Your saved survey format could not be loaded. Ask your team for help.');
+        }
+        saveStatus.hidden = false;
+        saveStatus.textContent = 'Your saved answers are loaded. You can review them and save any changes.';
+      }
+      renderQuestions();
+      renderSkills();
+      renderLessons();
+      showStep(0, false);
+      notice.hidden = true;
+      form.hidden = false;
+      api.client.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || (session && session.user.id !== initialAuthId)) {
+          loginChanged = true;
+          form.inert = true;
+          saveStatus.hidden = false;
+          saveStatus.textContent = 'Your login changed. Return to login before continuing.';
+          document.getElementById('survey-login-link').hidden = false;
+          notice.hidden = false;
+          message.textContent = 'Please return to login to continue with the current account.';
+        }
+      });
+    } catch (error) {
+      message.textContent = api.explain(error);
+      retry.hidden = false;
+      document.getElementById('survey-login-link').hidden = false;
+    } finally { retry.disabled = false; }
+  }
+  document.getElementById('survey-load-retry').addEventListener('click', initialize);
+  initialize();
 })();

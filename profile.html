@@ -14,7 +14,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Supabase JavaScript Client CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="beanos-api.js" defer></script>
+    <script src="profile.js" defer></script>
 
     <style>
         :root {
@@ -185,6 +187,7 @@
         }
 
         .card-body { padding: calc(3 * var(--spacing-unit)); }
+        [hidden] { display: none !important; }
     </style>
 </head>
 <body>
@@ -193,7 +196,7 @@
         
         <!-- Navigation Menu -->
         <nav style="margin-bottom: 25px; display: flex; gap: 10px; font-family: var(--font-headings); font-size: 0.9rem;">
-            <a href="login_page.html" style="color: var(--color-primary-navy); text-decoration: none; font-weight: 600;"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            <button type="button" id="signout-button" class="btn btn-primary">Log out</button>
             <span style="color: var(--color-gray-400);">/</span>
             <span style="color: var(--color-primary-rust); font-weight: 600;"><i class="fa-solid fa-user"></i> Profile Settings</span>
         </nav>
@@ -201,13 +204,14 @@
         <!-- Header Hero Section -->
         <header class="hero">
             <span class="badge">Account Settings</span>
-            <h1>My Dating Mastery Profile</h1>
+            <h1>My Beanos Profile</h1>
             <p>View your active profile email, update your email address, and manage your password.</p>
         </header>
 
         <!-- Status Notification Box -->
-        <div id="status-box" style="display: none; margin-bottom: 20px; padding: 14px; border-radius: var(--border-radius); font-family: var(--font-headings); font-size: 0.9rem;"></div>
+        <div id="status-box" role="status" aria-live="polite" style="display: none; margin-bottom: 20px; padding: 14px; border-radius: var(--border-radius); font-family: var(--font-headings); font-size: 0.9rem;"></div>
 
+        <div id="account-content" hidden>
         <!-- 1. Current Profile Overview Card -->
         <div class="card">
             <div class="card-header">
@@ -228,6 +232,7 @@
             </div>
         </div>
 
+        <p style="margin-bottom: 24px;"><a href="survey.html">Review or update my survey answers</a></p>
         <!-- 2. Update Email Card -->
         <div class="card">
             <div class="card-header">
@@ -237,7 +242,7 @@
                 <form id="update-email-form">
                     <div class="form-group">
                         <label for="new-email" class="form-label">New Email Address:</label>
-                        <input type="email" id="new-email" class="form-input" required placeholder="Enter new email address">
+                        <input type="email" id="new-email" autocomplete="email" class="form-input" required placeholder="Enter new email address">
                     </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="fa-solid fa-check"></i> Update Email
@@ -255,7 +260,7 @@
                 <form id="update-password-form">
                     <div class="form-group">
                         <label for="new-password" class="form-label">New Password:</label>
-                        <input type="password" id="new-password" class="form-input" required placeholder="Enter new password">
+                        <input type="password" id="new-password" minlength="8" autocomplete="new-password" class="form-input" required placeholder="Enter new password">
                     </div>
                     <button type="submit" class="btn btn-primary" style="background-color: var(--color-primary-navy);">
                         <i class="fa-solid fa-shield"></i> Update Password
@@ -264,116 +269,9 @@
             </div>
         </div>
 
+        </div>
     </div>
 
-    <!-- Script Logic -->
-    <script>
-        const SUPABASE_URL = 'https://bzqepyhnvvrwzafydeqp.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_VbXs3R4Y6H4bVS63j2KkoA_g0trAUp5';
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Fetch user profile info from Supabase based on localStorage session
-        async function fetchUserProfile() {
-            const currentEmail = localStorage.getItem('active_user_email');
-            
-            if (!currentEmail) {
-                document.getElementById('current-email').innerText = 'No active session found. Please log in.';
-                document.getElementById('current-user-id').innerText = '—';
-                return;
-            }
-
-            const { data, error } = await client
-                .from('SIGN_IN')
-                .select('*')
-                .eq('email', currentEmail)
-                .single();
-
-            if (error) {
-                console.error('Error fetching user profile:', error);
-                document.getElementById('current-email').innerText = currentEmail;
-                document.getElementById('current-user-id').innerText = 'Not found in DB';
-            } else if (data) {
-                document.getElementById('current-email').innerText = data.email;
-                document.getElementById('current-user-id').innerText = data.user_id || data.id || 'N/A';
-            }
-        }
-
-        // Load active user session on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchUserProfile();
-        });
-
-        // Helper to display status messages
-        function showStatus(message, type) {
-            const box = document.getElementById('status-box');
-            box.style.display = 'block';
-            box.style.backgroundColor = 'var(--color-white)';
-            box.style.border = '1px solid var(--color-gray-200)';
-            
-            if (type === 'success') {
-                box.style.borderLeft = '5px solid var(--color-success)';
-                box.style.color = 'var(--color-primary-navy)';
-            } else {
-                box.style.borderLeft = '5px solid var(--color-primary-rust)';
-                box.style.color = 'var(--color-primary-rust)';
-            }
-            box.innerText = message;
-        }
-
-        // Handle Email Update
-        document.getElementById('update-email-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const currentEmail = localStorage.getItem('active_user_email');
-            const newEmail = document.getElementById('new-email').value.trim();
-
-            if (!currentEmail) {
-                showStatus('No active user session found. Please log in first.', 'error');
-                return;
-            }
-
-            showStatus('Updating email in database...', 'success');
-
-            const { error } = await client
-                .from('SIGN_IN')
-                .update({ email: newEmail })
-                .eq('email', currentEmail);
-
-            if (error) {
-                showStatus(`Error updating email: ${error.message}`, 'error');
-            } else {
-                // Update local storage session key to reflect the new email
-                localStorage.setItem('active_user_email', newEmail);
-                fetchUserProfile();
-                showStatus('Email successfully updated in Supabase!', 'success');
-                document.getElementById('update-email-form').reset();
-            }
-        });
-
-        // Handle Password Update
-        document.getElementById('update-password-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const currentEmail = localStorage.getItem('active_user_email');
-            const newPassword = document.getElementById('new-password').value;
-
-            if (!currentEmail) {
-                showStatus('No active user session found. Please log in first.', 'error');
-                return;
-            }
-
-            showStatus('Updating password in database...', 'success');
-
-            const { error } = await client
-                .from('SIGN_IN')
-                .update({ password_hash: newPassword })
-                .eq('email', currentEmail);
-
-            if (error) {
-                showStatus(`Error updating password: ${error.message}`, 'error');
-            } else {
-                showStatus('Password successfully updated in Supabase!', 'success');
-                document.getElementById('update-password-form').reset();
-            }
-        });
-    </script>
 </body>
 </html>
