@@ -23,7 +23,7 @@ Survey responses belong to the existing integer USER.user_id. USER.auth_user_id
 links that ID to the Auth account. The browser never chooses another user's ID.
 Home shows the saved survey goal and simple Lessons/Tasks links. It uses the team
 style guide and includes no lesson lists, task details, or progress totals. Lessons
-opens the existing lesson template; Tasks opens the task picker.
+opens a simple coming-soon page; Tasks opens the task picker.
 
 Legacy-only accounts require a one-time reviewed account link; see the setup guide.
 Email confirmation is optional and can be enabled later without changing the code.

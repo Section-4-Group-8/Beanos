@@ -157,7 +157,7 @@ test('home gates content on a completed account and shows only the saved focus',
   assert.equal(h.d.getElementById('home-content').hidden,false);
   assert.equal(h.d.getElementById('home-goal').textContent,'Ask someone on a date.');
   assert.equal(h.d.querySelector('a[href="tasks.html"]').textContent.trim(),'Go to tasks →');
-  assert.equal(h.d.querySelector('a[href="beanos_lesson_template.html"]').textContent.trim(),'Go to lessons →');
+  assert.equal(h.d.querySelector('a[href="lessons.html"]').textContent.trim(),'Go to lessons →');
   h.d.getElementById('home-signout').click();await tick();
   assert.equal(h.d.getElementById('home-signout').disabled,false);
   assert.match(h.d.getElementById('home-account-status').textContent,/Could not log out/);

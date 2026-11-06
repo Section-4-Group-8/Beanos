@@ -59,7 +59,7 @@ still require an inbox link independently of the signup confirmation setting.
 - Retakes update the same response, preserving creation time and changing update
   time. Profile requires a completed saved survey. A successful save redirects to Home (`index.html`); completed users also land
   there after login. Home requires a completed survey and provides links to the
-  existing lesson template, task picker, Profile, and the survey.
+  Lessons placeholder, task picker, Profile, and the survey.
 - Unsaved edits stay in memory. Refreshing before finishing loses those edits;
   draft saving is not included.
 
