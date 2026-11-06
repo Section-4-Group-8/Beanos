@@ -53,7 +53,7 @@
 
   async function destination() {
     const account = await rpc('beanos_account');
-    return account.surveyCompleted ? 'profile.html' : 'survey.html';
+    return account.surveyCompleted ? 'index.html' : 'survey.html';
   }
 
   async function signOut() {
@@ -68,6 +68,7 @@
   window.BeanosAPI = Object.freeze({
     get client() { return ready(); }, callbackUrl, explain, currentUser,
     requireAccount, destination, signOut,
+    goHome: () => window.location.assign('index.html'),
     loadSurvey: () => rpc('beanos_get_survey'),
     // Ownership comes exclusively from auth.uid() inside the database function.
     saveSurvey: answers => rpc('beanos_save_survey', { p_answers: answers })

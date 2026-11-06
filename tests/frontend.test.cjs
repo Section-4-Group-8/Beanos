@@ -15,11 +15,13 @@ async function survey(saved = null) {
   const calls=[];
   let currentId='auth-one';
   let nextSave=deferred();
+  let homeVisits=0;
   w.BeanosAPI={
     requireAccount:async()=>({userId:'9007199254740994'}),
     currentUser:async()=>({id:currentId}),
     loadSurvey:async()=>saved,
     saveSurvey:answers=>{calls.push(answers);return nextSave.promise;},
+    goHome:()=>{homeVisits++;},
     explain:error=>error.message,
     client:{auth:{onAuthStateChange:()=>{}}}
   };
@@ -41,7 +43,7 @@ async function survey(saved = null) {
     submit();choose('mainGoal','find-girlfriend');submit();
     assert.equal(d.querySelector('[data-step="3"]').hidden,false);
   }
-  return {dom,w,d,calls,fill,submit,setAuth:id=>{currentId=id;},next:()=>{nextSave=deferred();return nextSave;},get pending(){return nextSave;}};
+  return {dom,w,d,calls,fill,submit,setAuth:id=>{currentId=id;},next:()=>{nextSave=deferred();return nextSave;},get pending(){return nextSave;},get homeVisits(){return homeVisits;}};
 }
 
 test('Finish waits for saving, preserves answers on failure, retries once, and restores persisted answers',async()=>{
@@ -51,6 +53,7 @@ test('Finish waits for saving, preserves answers on failure, retries once, and r
   s.fill();s.submit();s.submit();await tick();
   assert.equal(s.calls.length,1,'duplicate submit started a second save');
   assert.equal(completed,0);
+  assert.equal(s.homeVisits,0);
   assert.equal(s.d.querySelector('[data-step="4"]').hidden,true);
   assert.equal(s.d.getElementById('next-button').disabled,true);
   s.pending.reject(new Error('Network unavailable'));await tick();
@@ -58,10 +61,12 @@ test('Finish waits for saving, preserves answers on failure, retries once, and r
   assert.equal(s.d.querySelector('[data-step="3"]').hidden,false);
   assert.match(s.d.getElementById('survey-save-status').textContent,/still here/);
   assert.equal(s.d.getElementById('next-button').disabled,false);
+  assert.equal(s.homeVisits,0,'failed saves must stay on the survey');
   const retry=s.next();s.submit();await tick();
   const stored={...s.calls[1],completedAt:'2026-11-05T22:00:00Z'};
   retry.resolve(stored);await tick();
   assert.equal(completed,1);
+  assert.equal(s.homeVisits,1,'successful completion should go home exactly once');
   assert.equal(s.d.querySelector('[data-step="4"]').hidden,false);
   const restored=await survey(stored);
   assert.equal(restored.d.querySelector('input[name="mainGoal"]:checked').value,'find-girlfriend');
@@ -120,4 +125,56 @@ test('login and profile code use Supabase Auth without direct credential-table a
   }
   assert.match(read('login.js'),/signInWithPassword/);
   assert.match(read('profile.js'),/auth\.updateUser/);
+});
+
+test('login destinations require a saved survey before going home',async()=>{
+  const dom=page('login_page.html');const w=dom.window;let complete=false;
+  w.supabase={createClient:()=>({rpc:async()=>({data:{surveyCompleted:complete}})})};
+  w.eval(read('beanos-api.js'));
+  assert.equal(await w.BeanosAPI.destination(),'survey.html');
+  complete=true;
+  assert.equal(await w.BeanosAPI.destination(),'index.html');
+  dom.window.close();
+});
+
+async function home({allowed=true,focusError=false,accountError=false}={}) {
+  const dom=page('index.html');const w=dom.window;const calls=[];let authChanged;
+  w.BeanosAPI={
+    requireAccount:async options=>{calls.push(options);if(accountError)throw new Error('Account service unavailable');return allowed?{userId:'9007199254740994'}:null;},
+    currentUser:async()=>({id:'auth-one'}),
+    loadSurvey:async()=>{if(focusError)throw new Error('Offline');return {mainGoal:'ask-on-date'};},
+    explain:e=>e.message,
+    signOut:async()=>{throw new Error('Could not log out. Try again.');},
+    client:{auth:{onAuthStateChange:callback=>{authChanged=callback;return {data:{subscription:{unsubscribe(){}}}};}}}
+  };
+  w.eval(read('home.js'));await tick();
+  return {dom,w,d:w.document,calls,authChanged};
+}
+
+test('home gates content on a completed account and shows only the saved focus',async()=>{
+  const h=await home();
+  assert.equal(h.calls[0].completed,true);
+  assert.equal(h.d.getElementById('home-content').hidden,false);
+  assert.equal(h.d.getElementById('home-goal').textContent,'Ask someone on a date.');
+  assert.equal(h.d.querySelector('a[href="tasks.html"]').textContent.trim(),'Go to tasks →');
+  assert.equal(h.d.querySelector('a[href="beanos_lesson_template.html"]').textContent.trim(),'Go to lessons →');
+  h.d.getElementById('home-signout').click();await tick();
+  assert.equal(h.d.getElementById('home-signout').disabled,false);
+  assert.match(h.d.getElementById('home-account-status').textContent,/Could not log out/);
+  h.dom.window.close();
+  const denied=await home({allowed:false});
+  assert.equal(denied.d.getElementById('home-content').hidden,true);
+  denied.dom.window.close();
+});
+
+test('home fails closed on account errors but can show navigation if only focus loading fails',async()=>{
+  const failure=await home({accountError:true});
+  assert.equal(failure.d.getElementById('home-content').hidden,true);
+  assert.equal(failure.d.getElementById('home-retry-actions').hidden,false);
+  assert.match(failure.d.getElementById('home-loading-message').textContent,/Account service unavailable/);
+  failure.dom.window.close();
+  const partial=await home({focusError:true});
+  assert.equal(partial.d.getElementById('home-content').hidden,false);
+  assert.match(partial.d.getElementById('home-account-status').textContent,/focus couldn’t load/);
+  partial.dom.window.close();
 });

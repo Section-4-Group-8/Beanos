@@ -532,6 +532,7 @@
       document.dispatchEvent(new CustomEvent('beanos:survey-completed', { detail: getAnswers() }));
     }
     showStep(currentStep + 1);
+    if (currentStep === 4) api.goHome();
   });
 
   document.getElementById('back-button').addEventListener('click', () => showStep(currentStep - 1));

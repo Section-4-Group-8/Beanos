@@ -10,17 +10,21 @@ through lessons and practical tasks.
 Serve this folder with a local web server, for example `python3 -m http.server 8080`,
 then open `http://localhost:8080/login_page.html`. Account and survey features need
 an internet connection and the matching Supabase migration. Do not open the pages
-as file URLs. There is no index/home page yet.
+as file URLs. The signed-in home page is `index.html`.
 
 ## Account and survey flow
 
 Create an account once, then log in normally. Supabase Auth handles passwords and
 signed sessions. Incomplete surveys route to Survey; completed surveys route to
-Profile. Survey Finish waits for a successful database save, and saved answers
-reload on return. Retakes update the same row. The completion screen links to Profile.
+Home. Survey Finish waits for a successful database save, and saved answers
+reload on return. Retakes update the same row. After a successful survey save, the app opens Home.
 
 Survey responses belong to the existing integer USER.user_id. USER.auth_user_id
 links that ID to the Auth account. The browser never chooses another user's ID.
+Home shows the saved survey goal and simple Lessons/Tasks links. It uses the team
+style guide and includes no lesson lists, task details, or progress totals. Lessons
+opens the existing lesson template; Tasks opens the task picker.
+
 Legacy-only accounts require a one-time reviewed account link; see the setup guide.
 Email confirmation is optional and can be enabled later without changing the code.
 
@@ -38,7 +42,7 @@ show survey steps; lesson-unlock progress is separate future work.
 Run `npm ci && npm test` for browser-behavior tests. The website itself needs no
 build step. Database tests and live verification steps are in the setup guide.
 
-After deployment: sign up, finish Survey, open Profile, reload Survey and confirm
+After deployment: sign up, finish Survey, arrive at Home, then reload Survey and confirm
 the answers remain. Retake and confirm only one response exists under your integer
 ID. Log out, log in again, and repeat with a second account to check separation.
 

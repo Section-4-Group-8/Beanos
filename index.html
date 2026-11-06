@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your Beanos home. Find your focus and take your next step with lessons and practice.">
+  <title>Home | Beanos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="beanos-api.js" defer></script>
+  <script src="home.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#home-main">Skip to home</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html" aria-label="Beanos home">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="6" fill="currentColor"/><path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/><path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Beanos<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-nav" aria-label="Main navigation">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="profile.html">Profile</a>
+        <button class="logout" id="home-signout" type="button" disabled>Log out</button>
+      </nav>
+    </div>
+  </header>
+  <main id="home-main" tabindex="-1">
+    <section class="status-panel" id="home-loading" aria-live="polite">
+      <p id="home-loading-message">Loading your home…</p>
+      <div class="status-actions" id="home-retry-actions" hidden><button type="button" class="button button-secondary" id="home-retry">Try again</button><a href="login_page.html">Return to login</a></div>
+    </section>
+    <div id="home-content" hidden>
+      <section class="welcome" aria-labelledby="welcome-title">
+        <span class="eyebrow">YOUR HOME BASE</span>
+        <h1 id="welcome-title">Your next step starts here.</h1>
+        <p>Build confidence, one small step at a time.</p>
+      </section>
+      <section class="focus-card" aria-labelledby="focus-title">
+        <svg class="focus-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="5"/><path d="m16 16 11-11m-5 0h5v5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="focus-copy"><h2 id="focus-title">YOUR FOCUS</h2><p id="home-goal">Your next step, at your pace.</p></div>
+        <a class="quiet-link" href="survey.html">Review survey <span aria-hidden="true">↗</span></a>
+      </section>
+      <div class="path-grid">
+        <section class="path-card" aria-labelledby="lessons-title">
+          <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Z"/><path d="M12 6v14M6 9h3m-3 4h3m6-4h3m-3 4h3"/></svg></span>
+          <h2 id="lessons-title">Lessons</h2>
+          <p>A fresh perspective for your next step.</p>
+          <a class="button button-primary" href="beanos_lesson_template.html">Go to lessons <span aria-hidden="true">→</span></a>
+        </section>
+        <section class="path-card" aria-labelledby="tasks-title">
+          <span class="path-icon practice" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 11l2 2 4-4M9 17h6"/></svg></span>
+          <h2 id="tasks-title">Tasks</h2>
+          <p>Put what you learn into everyday practice.</p>
+          <a class="button button-secondary" href="tasks.html">Go to tasks <span aria-hidden="true">→</span></a>
+        </section>
+      </div>
+      <p class="account-status" id="home-account-status" role="status" hidden></p>
+      <footer class="home-footer">A little progress, every day.</footer>
+    </div>
+    <noscript><p class="status-panel">Please enable JavaScript to open your home page.</p></noscript>
+  </main>
+</body>
+</html>
