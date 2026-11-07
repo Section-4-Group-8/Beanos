@@ -404,6 +404,7 @@
             text-align: center;
             padding: 20px;
         }
+        .video-container iframe { display: block; padding: 0; background: #000; }
 
         .video-placeholder i {
             font-size: 3.5rem;
@@ -709,12 +710,45 @@
         .badge { font-size: .68rem; padding: 5px 12px; letter-spacing: 1px; }
         .btn { text-transform: none; letter-spacing: 0; font-size: .82rem; padding: 11px 18px; }
         .btn-primary { background: var(--color-primary-rust); }
-        .step-footer-actions { margin-top: 28px; padding-top: 20px; }
+        .step-footer-actions { margin-top: 28px; padding-top: 20px; justify-content: space-between; align-items: center; gap: 12px; }
+        .step-back-button { flex: 0 0 auto; }
         .note-box { border-left-width: 4px; box-shadow: none; }
         .diagnostic-card, .chat-card, .feedback-card, .task-select-card {
             border-radius: var(--border-radius);
             box-shadow: none;
         }
+        /* Lesson task cards echo the colored difficulty cards on tasks.html. */
+        .task-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 24px 0; }
+        .task-select-card {
+            --task-accent: var(--color-success);
+            min-height: 166px;
+            padding: 18px;
+            border: 1px solid var(--color-gray-200);
+            border-top: 4px solid var(--task-accent);
+            border-radius: var(--border-radius);
+            background: white;
+            color: var(--color-gray-900);
+            text-align: left;
+            position: relative;
+            transition: var(--transition-fast);
+        }
+        .task-select-card.task-level-two { --task-accent: var(--color-info); }
+        .task-select-card.task-level-three { --task-accent: var(--color-warning); }
+        .task-select-card:hover { border-color: var(--task-accent); }
+        .task-select-card.selected { border-color: var(--task-accent); background: white; box-shadow: var(--shadow-md); }
+        .task-stars { display: block; margin-bottom: 10px; color: var(--task-accent); font: 1rem var(--font-headings); letter-spacing: 2px; }
+        .task-title { display: block; margin: 0; color: var(--color-primary-navy); font: 600 1rem/1.4 var(--font-headings); }
+        .task-desc { display: block; margin-top: 7px; color: var(--color-gray-700); font: 400 .8rem/1.5 var(--font-headings); }
+        .task-select-card::after {
+            content: "\f00c";
+            display: none;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: var(--task-accent);
+            font: 900 .9rem "Font Awesome 6 Free";
+        }
+        .task-select-card.selected::after { display: block; }
         .chat-header, .feedback-header { background: var(--color-primary-navy); }
         .top-progress-bar-fill { transition: width .3s ease; }
         @media (max-width: 768px) {
@@ -722,6 +756,8 @@
             .header-note { display: none; }
             .main-container { padding: 24px 16px 36px; }
             .lesson-step { padding: 24px 20px; }
+            .task-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+            .task-select-card { min-height: 150px; padding: 14px; }
         }
     </style>
 </head>
@@ -851,13 +887,9 @@
                 When initiating in casual settings, employ the <strong>Observation + Opinion</strong> formula. Rather than complimenting personal appearance right away (which creates high pressure), comment on something in the immediate surroundings.
             </p>
 
-            <!-- Video Player Component -->
+            <!-- Replace the video ID in this embed URL to use another YouTube video. -->
             <div class="video-container">
-                <div class="video-placeholder" id="videoOverlay">
-                    <i class="fa-solid fa-circle-play" onclick="playMockVideo()"></i>
-                    <h3 style="color: var(--color-white); font-size: 1.2rem;">Watch Lesson Breakdown (4:15)</h3>
-                    <p style="color: var(--color-secondary-tan); font-size: 0.85rem; margin-top: 4px;">Click to simulate video playback</p>
-                </div>
+                <iframe src="https://www.youtube-nocookie.com/embed/kzFqhxP2W1k" title="Beanos lesson video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
 
             <!-- Callout Note Boxes -->
@@ -993,44 +1025,46 @@
              =================================================================== -->
         <section class="lesson-step" id="step-6">
             <span class="badge badge-navy">Real-World Execution</span>
-            <h2>Select Your Challenges for Today</h2>
+            <h2>Tasks for this lesson</h2>
             <p style="color: var(--color-gray-700);">
-                To lock in this lesson's muscle memory, pick at least two tasks to attach to your personal Beanos dashboard.
+                These three tasks go with the lesson. They’ll be added to your current tasks when you return home.
             </p>
 
             <!-- Task Selector Grid (Populated / Synced with Supabase) -->
-            <div class="task-grid" id="taskGridContainer">
+            <div class="task-grid" id="taskGridContainer" aria-label="Tasks included with this lesson">
                 <!-- Task Card 1 -->
-                <div class="task-select-card selected" onclick="toggleTaskSelection(this, 'task_1')">
-                    <div class="task-title"><i class="fa-solid fa-mug-hot" style="color: var(--color-primary-rust);"></i> The Barista Greeting</div>
-                    <div class="task-desc">Make eye contact, smile, and ask your barista how their morning is going before ordering.</div>
+                <div class="task-select-card task-level-one selected">
+                    <span class="task-stars" aria-label="1 out of 5 stars">★☆☆☆☆</span>
+                    <span class="task-title">The Barista Greeting</span>
+                    <span class="task-desc">Make eye contact, smile, and ask your barista how their morning is going before ordering.</span>
                 </div>
 
                 <!-- Task Card 2 -->
-                <div class="task-select-card selected" onclick="toggleTaskSelection(this, 'task_2')">
-                    <div class="task-title"><i class="fa-solid fa-comment-dots" style="color: var(--color-info);"></i> 1 Environmental Opener</div>
-                    <div class="task-desc">Deliver 1 situational comment to someone in line at a shop or bus stop today.</div>
+                <div class="task-select-card task-level-two selected">
+                    <span class="task-stars" aria-label="2 out of 5 stars">★★☆☆☆</span>
+                    <span class="task-title">1 Environmental Opener</span>
+                    <span class="task-desc">Deliver 1 situational comment to someone in line at a shop or bus stop today.</span>
                 </div>
 
                 <!-- Task Card 3 -->
-                <div class="task-select-card" onclick="toggleTaskSelection(this, 'task_3')">
-                    <div class="task-title"><i class="fa-solid fa-book-open" style="color: var(--color-warning);"></i> Observation Practice</div>
-                    <div class="task-desc">Notice 3 interesting details or items people around you are carrying without initiating.</div>
+                <div class="task-select-card task-level-three selected">
+                    <span class="task-stars" aria-label="3 out of 5 stars">★★★☆☆</span>
+                    <span class="task-title">Observation Practice</span>
+                    <span class="task-desc">Notice 3 interesting details or items people around you are carrying without initiating.</span>
                 </div>
             </div>
 
-            <!-- Interactive Widget Summary -->
             <div class="note-box note-task">
-                <i class="fa-solid fa-circle-check"></i>
+                <i class="fa-solid fa-list-check"></i>
                 <div class="note-content">
-                    <div class="note-title">Tasks Selected</div>
-                    <div id="selectedTaskCountText">2 action items ready to sync to your profile dashboard.</div>
+                    <div class="note-title">Included with this lesson</div>
+                    <div>All three lesson tasks will be part of your current tasks.</div>
                 </div>
             </div>
 
             <div class="step-footer-actions">
-                <button class="btn btn-success btn-block" onclick="commitTasksAndReturnHome()">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Save Tasks to Profile & Return Home
+                <button class="btn btn-success" onclick="commitTasksAndReturnHome()">
+                    <i class="fa-solid fa-house"></i> Go to home page
                 </button>
             </div>
         </section>
@@ -1045,7 +1079,21 @@
         let currentStep = 1;
         const totalSteps = 6;
         let chatTurnCount = 0;
-        let selectedTaskIds = new Set(['task_1', 'task_2']);
+        document.querySelectorAll('.lesson-step').forEach((step) => {
+            let footer = step.querySelector('.step-footer-actions');
+            if (!footer) {
+                footer = document.createElement('div');
+                footer.className = 'step-footer-actions';
+                step.appendChild(footer);
+            }
+            const backButton = document.createElement('button');
+            backButton.type = 'button';
+            backButton.className = 'btn btn-secondary step-back-button';
+            backButton.innerHTML = '<i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Previous step';
+            backButton.setAttribute('aria-label', 'Go to previous lesson step');
+            backButton.addEventListener('click', () => goToStep(currentStep - 1));
+            footer.prepend(backButton);
+        });
 
         // Mock Supabase Client Placeholder Hook
         /*
@@ -1074,39 +1122,18 @@
 
             // Update UI Counters & Bar
             document.getElementById('stepIndicatorText').innerText = `${currentStep} of ${totalSteps}`;
+            document.querySelectorAll('.step-back-button').forEach((button) => {
+                button.disabled = currentStep === 1;
+            });
             const progressPercent = (currentStep / totalSteps) * 100;
             document.getElementById('topProgressBar').style.width = `${progressPercent}%`;
 
             // Scroll to top of step container gracefully
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            // Load Supabase tasks dynamically when entering step 6
-            if (currentStep === 6) {
-                fetchSupabaseTasksMock();
-            }
         }
 
-        // 2. Video Playback Mock
-        function playMockVideo() {
-            const container = document.getElementById('videoOverlay');
-            container.innerHTML = `
-                <div style="text-align: center; color: var(--color-white);">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.5rem; color: var(--color-secondary-tan);"></i>
-                    <p style="margin-top: 10px; font-family: var(--font-headings);">Simulating video stream connection...</p>
-                </div>
-            `;
-            setTimeout(() => {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: var(--color-success); margin-bottom: 10px;"></i>
-                        <h3 style="color: white;">Video Completed</h3>
-                        <p style="color: var(--color-secondary-tan); font-size: 0.9rem;">Proceed below to test your opener skills in the AI chat.</p>
-                    </div>
-                `;
-            }, 1800);
-        }
-
-        // 3. AI Roleplay Simulator Logic
+        // 2. AI Roleplay Simulator Logic
         function handleKeyPress(e) {
             if (e.key === 'Enter') {
                 sendMessage();
@@ -1159,49 +1186,8 @@
             }, 1400);
         }
 
-        // 4. Task Selection Logic
-        function toggleTaskSelection(cardElement, taskId) {
-            cardElement.classList.toggle('selected');
-            if (selectedTaskIds.has(taskId)) {
-                selectedTaskIds.delete(taskId);
-            } else {
-                selectedTaskIds.add(taskId);
-            }
-
-            document.getElementById('selectedTaskCountText').innerText = 
-                `${selectedTaskIds.size} action items ready to sync to your profile dashboard.`;
-        }
-
-        // 5. Supabase Integration Mock Functions
-        async function fetchSupabaseTasksMock() {
-            console.log("Supabase DB Query: supabase.from('lesson_tasks').select('*').eq('lesson_id', 'm1_l3')");
-            /* 
-               In production with Supabase:
-               const { data: tasks, error } = await supabase
-                 .from('lesson_tasks')
-                 .select('*')
-                 .eq('lesson_id', 'm1_l3');
-            */
-        }
-
-        async function commitTasksAndReturnHome() {
-            console.log("Supabase DB Insert: supabase.from('user_tasks').insert([...selectedTaskIds])");
-            /*
-               In production with Supabase:
-               const user = supabase.auth.user();
-               const updates = Array.from(selectedTaskIds).map(taskId => ({
-                   user_id: user.id,
-                   task_id: taskId,
-                   status: 'pending',
-                   created_at: new Date()
-               }));
-
-               const { data, error } = await supabase
-                   .from('user_tasks')
-                   .insert(updates);
-            */
-
-            // Redirect back to home
+        // Home page placeholder until the Beanos home page is available.
+        function commitTasksAndReturnHome() {
             window.location.href = 'index.html';
         }
     </script>
