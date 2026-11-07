@@ -1,57 +1,89 @@
-# Supabase survey setup
+# Survey saving and login
 
-The survey uses the existing `public."USER".user_id` key. Its PostgreSQL type is `bigint`, which Supabase displays as `int8`. It does not reference `auth.users` or require a UUID.
+Survey answers save under the existing integer `USER.user_id`. The new nullable
+`USER.auth_user_id` links that profile to a Supabase Auth login. UUIDs do not replace
+any existing integer foreign keys.
 
-## Choose the appropriate SQL file
+## Deploy the database and frontend together
 
-- **New setup:** run [survey_responses.sql](../supabase/survey_responses.sql) once after the existing `USER` table is available.
-- **Original UUID table already created:** run [migrate_survey_user_id_to_bigint.sql](../supabase/migrate_survey_user_id_to_bigint.sql) once. This migration only accepts the original, empty UUID table and refuses populated tables. Existing responses would need an explicit mapping to the integer user IDs.
+1. Review and run [connect_survey_auth.sql](../supabase/connect_survey_auth.sql) once
+   as the project owner, while signup email confirmation is still enabled. Existing
+   IDs/rows remain intact. Already-confirmed Auth accounts are linked only where
+   the legacy account emails agree. No passwords are imported or reset.
+2. Publish the frontend files from the same change. Old site versions querying
+   `SIGN_IN` directly stop working after the database permissions are closed.
+3. In Authentication → URL Configuration, use Site URL
+   `https://section-4-group-8.github.io/Beanos/login_page.html`. Allow that URL and
+   `https://section-4-group-8.github.io/Beanos/login_page.html?recovery=1` as redirects.
+   Local development needs equivalent localhost URLs added separately.
+4. The team requested signup without an email confirmation link. After the SQL
+   cutover, disable **Confirm email** in Sign In / Providers. Keep email/password
+   login enabled and anonymous login disabled. Re-enabling Confirm email later
+   requires no page-code changes.
 
-Run an entire file together in Supabase's SQL Editor as the project owner. Do not run both files on the same installation. The migration preserves the answer and timestamp columns and the timestamp trigger.
+Review these live permission/login changes before applying. The migration runs
+once; do not rerun it or run `tests/database.sql` in the live project.
 
-## Table structure
+## Existing accounts
 
-| Column | Purpose |
-| --- | --- |
-| `user_id` | `bigint`/`int8` primary key referencing `public."USER" (user_id)`; one current response per user. Supply the existing user's ID; it has no generated default. |
-| `answers` | JSONB object matching `window.BeanosSurvey.getAnswers()`. |
-| `created_at` | Database-managed time of the first save. |
-| `updated_at` | Database-managed time of the latest save. |
+New users register once and then log in normally. Existing Supabase Auth users can
+log in normally too. Old accounts that exist only in `SIGN_IN` need a one-time Auth
+registration and an administrator-reviewed link to their original integer ID.
+New registrations never claim old data solely because an email matches: signup
+email confirmation is optional, so email equality cannot prove ownership.
 
-The payload contains `schemaVersion`, `background`, `skills.strengths`, `skills.practice`, `mainGoal`, `lessonPriorities`, and `completedAt`. Keep stable choice IDs and preserve the lesson array's order. The database requires an object but does not validate individual answers or require completion, allowing future draft saving.
+For a legacy link, independently verify the person, their original USER/SIGN_IN
+records, and their Auth account. An owner can then set only the reviewed USER row's
+`auth_user_id` in the Dashboard, leaving `user_id` intact. The unique constraint
+prevents one Auth identity being attached to multiple profiles. Conflicting legacy
+emails need team review. Do not create a client endpoint accepting a target ID.
 
-Retakes update the existing row. Deleting a `USER` record cascades to its survey response. Deleting a `SIGN_IN` record alone does not delete the response.
+`SIGN_IN` rows remain intact for reconciliation, but all browser access is removed.
+The new app never reads/writes those old password fields. Retiring those records
+is separate cleanup. Password hashing, signed sessions, email changes, and password
+changes now use Supabase Auth. Email changes and forgotten-password emails can
+still require an inbox link independently of the signup confirmation setting.
 
-## Access model for the custom login
+## Saving and ownership
 
-An integer user ID is a relationship key, not proof of identity. The current browser-based `SIGN_IN` lookup does not give PostgreSQL a verified custom-user session. The original `auth.uid()` ownership policies therefore do not apply to this schema.
+- `beanos_account()` resolves the authenticated identity to the integer ID. IDs are
+  returned as strings to preserve full int8 precision. Browser localStorage IDs
+  are never trusted.
+- `beanos_save_survey(p_answers)` accepts only answers, derives ownership from
+  `auth.uid()`, validates the complete questionnaire, and upserts that user's row.
+  It requires six distinct skills, all six ordered lesson topics, valid background
+  and goal choices, and schema version 1. Server time replaces the completion time.
+- `beanos_get_survey()` returns only that user's answers. Saved answers load when
+  reopening the survey. Finish waits for saving; failures preserve the current
+  answers for Retry. Completion events fire only after database success.
+- Retakes update the same response, preserving creation time and changing update
+  time. Profile requires a completed saved survey. A successful save redirects to Home (`index.html`); completed users also land
+  there after login. Home requires a completed survey and provides links to the
+  Lessons placeholder, task picker, Profile, and the survey.
+- Unsaved edits stay in memory. Refreshing before finishing loses those edits;
+  draft saving is not included.
 
-RLS remains enabled, all grants to `PUBLIC`, `anon`, and `authenticated` are revoked, and no browser policies are created. Direct browser reads and writes are denied. This also applies to a Supabase Auth session until the team adds an explicit identity-to-USER mapping and corresponding policies.
+RLS is enabled on USER, SIGN_IN, and survey_responses. Browser table/column and
+sequence privileges are revoked. Only the three scoped account/survey RPCs are
+executable by authenticated users; anonymous users cannot call them. These
+security-definer functions have an empty search path, check the Auth record, and
+never accept a target user ID. Their owners must remain trusted. Only the
+publishable key belongs in the browser; never add a secret/service-role key.
 
-The scripts grant `service_role` SELECT, INSERT, and UPDATE for a trusted backend. That role bypasses RLS, so the backend must enforce ownership on every read and write. Keep its secret key on the server, never in `survey.js` or other frontend files.
+## Tests
 
-## Future saving flow
+`npm ci && npm test` checks pending saves, retry, persisted answers, changed logins,
+Auth signup modes, and save requests without an ownership ID.
 
-1. Establish a verified custom login/session on a backend.
-2. Send survey answers to that backend; derive `user_id` from the verified session instead of trusting an ID supplied by the browser.
-3. Use a parameterized upsert with the existing integer ID:
+`tests/database.sql` is an isolated local fixture that checks two-user separation,
+anonymous denial, malformed answers, retakes/timestamps, exact int8 IDs, and legacy
+link protection. Run with `psql -v ON_ERROR_STOP=1 -f tests/database.sql` only in an
+empty disposable local database whose test cluster has anon/authenticated roles.
 
-```sql
-insert into public.survey_responses (user_id, answers)
-values ($1::bigint, $2::jsonb)
-on conflict (user_id) do update set answers = excluded.answers;
-```
+After deployment, create a disposable account, finish the survey, refresh, and
+confirm one response under its integer ID. Retake and verify the same row updates.
+Log out and check that a second account sees only its own answers.
 
-4. Return only the current user's response when loading answers.
-5. Make Finish wait for the save to succeed before showing completion; keep answers available for Retry on failure.
-
-The SQL does not implement the backend or connect the survey frontend. Avoid converting large int8 identifiers to JavaScript Number; preserve their exact decimal representation when passing them between browser and backend.
-
-## Verification
-
-- Confirm `survey_responses.user_id` is `int8`, references `public."USER" (user_id)`, and has no `auth.uid()` default or policies.
-- Confirm public/browser roles cannot read or write any response.
-- Through the trusted backend, save twice for one existing USER and verify there is one row, with an unchanged creation time and an updated modification time.
-- Reject unknown user IDs through the foreign key, preserve lesson order, and verify the backend cannot expose another user's response through a supplied request parameter.
-
-References: [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [PostgreSQL integer types](https://www.postgresql.org/docs/current/datatype-numeric.html#DATATYPE-INT).
+References: [Supabase password login](https://supabase.com/docs/guides/auth/passwords),
+[database access](https://supabase.com/docs/guides/database/postgres/row-level-security),
+[redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
