@@ -41,17 +41,19 @@ Screen numbers follow the original onboarding outline: the survey runs from Scre
 
 **Button:** Continue.
 
+Each answer reveals the next question on the same screen. Previous questions stay visible and editable.
+
 **Continue requirement:** Select one answer for each of the three questions. “I’d prefer not to answer” and “I’m not sure yet” count as answers.
 
 ## Screen 3 — What feels comfortable?
 
 ### Which skills feel like strengths, and which would you like to practice?
 
-*Choose six actions from the bank. Place each under “Strengths” or “Want to practice.” Any split is fine. Something you haven’t tried yet can go under “Want to practice.”*
+*Place each action under “Strengths” or “Want to practice.” Any split is fine. Something you haven’t tried yet can go under “Want to practice.”*
 
 **Columns:** Strengths | Want to practice.
 
-**Action bank:**
+**Actions (shown one at a time):**
 
 - Starting a conversation.
 - Keeping a conversation going.
@@ -66,11 +68,11 @@ Screen numbers follow the original onboarding outline: the survey runs from Scre
 - Communicating my boundaries.
 - Checking whether interest is mutual.
 
-**Interaction:** Drag and drop six distinct actions into the two columns.
+**Interaction:** Drag the current action into a column, use its Place here button, or skip the action. The next action then appears. You can move placed actions between columns and review skipped actions after the last card.
 
 **Button:** Continue.
 
-**Continue requirement:** Exactly six actions total have been placed across both columns. There is no required split between strengths and practice areas; all six may go in either column. Each action can appear in only one column.
+**Continue requirement:** All 12 actions have been placed or skipped. Each placed action can appear in only one column.
 
 ## Screen 4 — What are you working toward?
 
@@ -120,7 +122,6 @@ For the standalone survey version, show the completion message and defer the hom
 ## Current decisions and scope
 
 - Use “Want to practice” instead of “Weaknesses.”
-- Screen 3 requires six actions total, not six strengths.
 - The main goal describes what the user wants to work toward. Lesson priorities describe what the user wants to learn first.
 - Build the survey as a standalone flow first. Supabase saving, signed-in user association, and connections to index/home pages will be added later.
 - Keep answers together in one JavaScript object so saving can be added later without rebuilding the screens.

@@ -28,6 +28,7 @@ insert into auth.users(id,email) values
  ('22222222-2222-4222-8222-222222222222','two@example.invalid'),
  ('33333333-3333-4333-8333-333333333333','legacy@example.invalid');
 \ir ../supabase/connect_survey_auth.sql
+\ir ../supabase/allow_skipped_survey_skills.sql
 
 create function pg_temp.assert_error(statement text, expected text) returns void language plpgsql as $$
 begin
@@ -62,7 +63,8 @@ end $$;
 select pg_temp.assert_error('select * from public."USER"','permission denied');
 select pg_temp.assert_error('update public.survey_responses set answers=''{}''','permission denied');
 select pg_temp.assert_error('select public.beanos_save_survey(''{}'')','complete all survey');
-select pg_temp.assert_error('select public.beanos_save_survey(jsonb_set(value,''{skills,strengths}'',''[]'')) from payload','complete all survey');
+select public.beanos_save_survey(jsonb_set(value,'{skills}','{"strengths":[],"practice":[]}')) from payload;
+select pg_temp.assert_error('select public.beanos_save_survey(jsonb_set(value,''{skills,strengths}'',''["plan-date"]'')) from payload','complete all survey');
 select pg_temp.assert_error('select public.beanos_save_survey(jsonb_set(value,''{lessonPriorities}'',''["confidence","confidence","confidence","confidence","confidence","confidence"]'')) from payload','complete all survey');
 select pg_temp.assert_error('select public.beanos_save_survey(jsonb_set(value,''{mainGoal}'',''"invalid"'')) from payload','complete all survey');
 select pg_temp.assert_error('select public.beanos_save_survey(jsonb_set(value,''{completedAt}'',''"bad date"'')) from payload','complete all survey');

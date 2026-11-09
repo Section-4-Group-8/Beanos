@@ -10,7 +10,7 @@ any existing integer foreign keys.
    as the project owner, while signup email confirmation is still enabled. Existing
    IDs/rows remain intact. Already-confirmed Auth accounts are linked only where
    the legacy account emails agree. No passwords are imported or reset.
-2. Publish the frontend files from the same change. Old site versions querying
+2. Run [allow_skipped_survey_skills.sql](../supabase/allow_skipped_survey_skills.sql) before publishing the survey with Skip. Then publish the frontend files. Old site versions querying
    `SIGN_IN` directly stop working after the database permissions are closed.
 3. In Authentication → URL Configuration, use Site URL
    `https://section-4-group-8.github.io/Beanos/login_page.html`. Allow that URL and
@@ -51,7 +51,7 @@ still require an inbox link independently of the signup confirmation setting.
   are never trusted.
 - `beanos_save_survey(p_answers)` accepts only answers, derives ownership from
   `auth.uid()`, validates the complete questionnaire, and upserts that user's row.
-  It requires six distinct skills, all six ordered lesson topics, valid background
+  It accepts up to 12 distinct skills, all six ordered lesson topics, valid background
   and goal choices, and schema version 1. Server time replaces the completion time.
 - `beanos_get_survey()` returns only that user's answers. Saved answers load when
   reopening the survey. Finish waits for saving; failures preserve the current

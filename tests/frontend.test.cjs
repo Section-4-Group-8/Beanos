@@ -35,11 +35,17 @@ async function survey(saved = null) {
     input.checked=true; input.dispatchEvent(new w.Event('change',{bubbles:true}));
   }
   function fill() {
-    choose('experience','no-dates');choose('conversationStyle','start');choose('comfort','neutral');submit();
-    for(const id of ['start-conversation','keep-conversation','follow-up-questions','plan-date','handle-rejection','check-mutual-interest']) {
-      d.querySelector(`[data-skill="${id}"]`).click();
-      d.querySelector('[data-place="strengths"]').click();
+    const visibleQuestions=()=>d.querySelectorAll('.question:not([hidden])').length;
+    assert.equal(visibleQuestions(),1);
+    choose('experience','no-dates');assert.equal(visibleQuestions(),2);
+    choose('conversationStyle','start');assert.equal(visibleQuestions(),3);
+    choose('comfort','neutral');submit();
+    for(let index=0;index<12;index++) {
+      assert.equal(d.querySelectorAll('#current-action [data-drag-skill]').length,1);
+      assert.equal(d.getElementById('next-button').disabled,true);
+      d.querySelector(index<6 ? '[data-place="strengths"]' : '#skip-skill').click();
     }
+    assert.equal(d.querySelectorAll('#current-action [data-drag-skill]').length,0);
     submit();choose('mainGoal','find-girlfriend');submit();
     assert.equal(d.querySelector('[data-step="3"]').hidden,false);
   }
@@ -69,6 +75,7 @@ test('Finish waits for saving, preserves answers on failure, retries once, and r
   assert.equal(s.homeVisits,1,'successful completion should go home exactly once');
   assert.equal(s.d.querySelector('[data-step="4"]').hidden,false);
   const restored=await survey(stored);
+  assert.equal(restored.d.querySelectorAll('.question:not([hidden])').length,3);
   assert.equal(restored.d.querySelector('input[name="mainGoal"]:checked').value,'find-girlfriend');
   assert.equal(restored.w.BeanosSurvey.getAnswers().skills.strengths.length,6);
   assert.deepEqual(JSON.parse(JSON.stringify(restored.w.BeanosSurvey.getAnswers().lessonPriorities)),JSON.parse(JSON.stringify(stored.lessonPriorities)));

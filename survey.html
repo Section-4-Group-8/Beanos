@@ -59,22 +59,24 @@
         <section class="survey-screen" data-step="1" aria-labelledby="skills-title" hidden>
           <div class="screen-heading"><span class="eyebrow">02 / YOUR SKILLS</span><h1 id="skills-title" tabindex="-1">What feels comfortable?</h1><p>Which skills feel like strengths, and which would you like to practice?</p></div>
           <div class="section-content">
-            <div class="instruction-note"><strong>Choose six actions. Any split is fine.</strong><p>Something you haven’t tried yet can go under “Want to practice.”</p></div>
-            <p class="interaction-help" id="skills-help">Drag an action into a column, or select an action and choose a column.</p>
-            <div class="mobile-placement" id="mobile-placement" hidden><div class="mobile-placement-heading"><strong id="mobile-selected-label"></strong><button type="button" id="clear-skill-selection" aria-label="Clear action selection">×</button></div><div class="mobile-placement-buttons"><button type="button" data-place-mobile="strengths">Strengths <span aria-hidden="true">+</span></button><button type="button" data-place-mobile="practice">Want to practice <span aria-hidden="true">+</span></button></div></div>
-            <div class="bank-heading"><h2>Action bank</h2><span id="skills-count" class="count-badge">0 / 6 placed</span></div>
-            <div class="skill-bank drop-zone" data-zone="bank" aria-label="Available actions" aria-describedby="skills-help"><div id="skill-bank" class="skill-list"></div></div>
+            <p class="interaction-help" id="skills-help">Drag the action into a column, tap Place here, or skip it. You can move placed actions between columns.</p>
+            <div class="action-heading"><h2 id="current-action-title" tabindex="-1">Current action</h2><span id="skills-count" class="count-badge"></span></div>
+            <div id="current-action" aria-labelledby="current-action-title"></div>
+            <div class="action-controls">
+              <button type="button" id="skip-skill">Skip action</button>
+              <button type="button" id="review-skipped" hidden>Review skipped actions</button>
+            </div>
             <div class="skill-columns">
               <section class="skill-column drop-zone" data-zone="strengths" aria-labelledby="strengths-title">
-                <div class="column-heading"><h2 id="strengths-title">Strengths <span id="strengths-count">0</span></h2><p>Things that feel comfortable.</p><button type="button" class="place-button" data-place="strengths" disabled>Place selected action here <span aria-hidden="true">+</span></button></div>
-                <div id="strengths-list" class="skill-list placed-list"></div>
+                <div class="column-heading"><h2 id="strengths-title">Strengths</h2><button type="button" class="place-button" data-place="strengths" aria-label="Place action under Strengths">Place here</button></div>
+                <div id="strengths-list" class="skill-list"></div>
               </section>
-              <section class="skill-column drop-zone practice-column" data-zone="practice" aria-labelledby="practice-title">
-                <div class="column-heading"><h2 id="practice-title">Want to practice <span id="practice-count">0</span></h2><p>Skills you’d like to work on.</p><button type="button" class="place-button" data-place="practice" disabled>Place selected action here <span aria-hidden="true">+</span></button></div>
-                <div id="practice-list" class="skill-list placed-list"></div>
+              <section class="skill-column drop-zone" data-zone="practice" aria-labelledby="practice-title">
+                <div class="column-heading"><h2 id="practice-title">Want to practice</h2><button type="button" class="place-button" data-place="practice" aria-label="Place action under Want to practice">Place here</button></div>
+                <div id="practice-list" class="skill-list"></div>
               </section>
             </div>
-            <p class="interaction-feedback" id="skill-feedback" role="status" aria-live="polite">Select an action to get started.</p>
+            <p class="interaction-feedback" id="skill-feedback" role="status" aria-live="polite"></p>
           </div>
         </section>
 
@@ -85,7 +87,7 @@
 
         <section class="survey-screen" data-step="3" aria-labelledby="priorities-title" hidden>
           <div class="screen-heading"><span class="eyebrow">04 / YOUR PRIORITIES</span><h1 id="priorities-title" tabindex="-1">Choose where to start.</h1><p>What would you like to learn first? Put these topics in order, with the topic you’re most interested in at the top.</p></div>
-          <div class="section-content"><div class="ranking-labels"><span>LEARN FIRST</span><span>6 TOPICS</span></div><p class="interaction-help" id="ranking-help">Drag to reorder, or use the up and down buttons. Happy with the order? You can keep it.</p><ol id="lesson-list" class="lesson-list" aria-describedby="ranking-help"></ol><span class="ranking-end">A LITTLE LATER</span><p id="ranking-feedback" class="visually-hidden" role="status" aria-live="polite"></p></div>
+          <div class="section-content"><div class="ranking-labels"><span>LEARN FIRST</span><span>6 TOPICS</span></div><p class="interaction-help" id="ranking-help">Drag the handle to reorder, or use the up and down buttons. Happy with the order? You can keep it.</p><ol id="lesson-list" class="lesson-list" aria-describedby="ranking-help"></ol><span class="ranking-end">A LITTLE LATER</span><p id="ranking-feedback" class="visually-hidden" role="status" aria-live="polite"></p></div>
         </section>
 
         <section class="survey-screen completion-screen" data-step="4" aria-labelledby="complete-title" hidden>

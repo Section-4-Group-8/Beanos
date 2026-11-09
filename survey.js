@@ -88,17 +88,17 @@
   const skillLabels = new Map(skills);
   const lessonLabels = new Map(lessons);
   let currentStep = 0;
-  let selectedSkill = null;
-  let draggedItem = null;
+  let currentSkill = null;
   let pointerDrag = null;
   let dragPreview = null;
-  let dragFrame = null;
-  let suppressDragClick = false;
+  let scrollFrame = 0;
   let saving = false;
   let initialAuthId = null;
   let loginChanged = false;
   const api = window.BeanosAPI;
   const saveStatus = document.getElementById('survey-save-status');
+  const skippedSkills = new Set();
+
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
@@ -129,6 +129,7 @@
     const container = document.getElementById('background-questions');
     questions.forEach((question, index) => {
       const fieldset = element('fieldset', 'question');
+      fieldset.hidden = index > 0 && !answers.background[questions[index - 1].id];
       const legend = element('legend');
       const number = element('span', 'question-number', `0${index + 1}`);
       number.setAttribute('aria-hidden', 'true');
@@ -143,91 +144,68 @@
     });
   }
 
-  function skillZone(id) {
-    if (answers.skills.strengths.includes(id)) return 'strengths';
-    if (answers.skills.practice.includes(id)) return 'practice';
-    return 'bank';
-  }
-
   function placedCount() {
     return answers.skills.strengths.length + answers.skills.practice.length;
   }
 
-  function updateSkillSelection() {
-    document.querySelectorAll('[data-skill]').forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.skill === selectedSkill));
-    });
-    document.querySelectorAll('[data-place], [data-place-mobile]').forEach(button => {
-      button.disabled = !selectedSkill ||
-        (placedCount() === 6 && skillZone(selectedSkill) === 'bank') ||
-        skillZone(selectedSkill) === (button.dataset.place || button.dataset.placeMobile);
-    });
-    document.getElementById('mobile-placement').hidden = !selectedSkill || currentStep !== 1;
-    document.getElementById('mobile-selected-label').textContent = skillLabels.get(selectedSkill) || '';
+  function skillCard(id, destination) {
+    const card = element('div', 'skill-item');
+    card.dataset.dragSkill = id;
+    const grip = element('span', 'skill-grip', '⠿');
+    grip.setAttribute('aria-hidden', 'true');
+    card.append(grip, element('span', 'skill-label', skillLabels.get(id)));
+    if (destination) {
+      const move = element('button', 'skill-move', 'Move');
+      move.type = 'button';
+      move.dataset.moveSkill = id;
+      move.dataset.destination = destination;
+      move.setAttribute('aria-label', `Move ${skillLabels.get(id)} to ${destination === 'strengths' ? 'Strengths' : 'Want to practice'}`);
+      card.append(move);
+    }
+    return card;
   }
 
   function renderSkills() {
-    const lists = {
-      bank: document.getElementById('skill-bank'),
-      strengths: document.getElementById('strengths-list'),
-      practice: document.getElementById('practice-list')
-    };
-    Object.values(lists).forEach(list => list.replaceChildren());
-    for (const [id, label] of skills) {
-      const zone = skillZone(id);
-      const item = element('div', 'skill-item');
-      // Pointer dragging works across the whole tile, including its button.
-      item.draggable = false;
-      item.dataset.dragSkill = id;
-      const button = element('button', 'skill-chip');
-      const grip = element('span', 'skill-grip', '⠿');
-      grip.setAttribute('aria-hidden', 'true');
-      item.append(grip);
-      button.append(document.createTextNode(label));
-      button.type = 'button';
-      button.dataset.skill = id;
-      button.setAttribute('aria-pressed', 'false');
-      button.setAttribute('aria-label', `Select ${label}`);
-      item.append(button);
-      if (zone !== 'bank') {
-        const remove = element('button', 'skill-remove', '×');
-        remove.type = 'button';
-        remove.dataset.removeSkill = id;
-        remove.setAttribute('aria-label', `Remove ${label}`);
-        item.append(remove);
-      }
-      lists[zone].append(item);
-    }
+    const { strengths, practice } = answers.skills;
+    currentSkill = skills.find(([id]) => !strengths.includes(id) && !practice.includes(id) && !skippedSkills.has(id))?.[0];
+    const action = document.getElementById('current-action');
+    action.replaceChildren(currentSkill
+      ? skillCard(currentSkill)
+      : element('p', 'empty-list', 'All actions reviewed.'));
+    document.getElementById('skills-count').textContent = `${placedCount() + skippedSkills.size} / ${skills.length} reviewed`;
+    document.getElementById('skip-skill').hidden = !currentSkill;
+    document.getElementById('review-skipped').hidden = Boolean(currentSkill) || !skippedSkills.size;
+
     for (const zone of ['strengths', 'practice']) {
-      const count = answers.skills[zone].length;
-      document.getElementById(`${zone}-count`).textContent = count;
-      if (!count) lists[zone].append(element('p', 'empty-list', 'Drop an action here, or use the button above.'));
+      const list = document.getElementById(`${zone}-list`);
+      const otherZone = zone === 'strengths' ? 'practice' : 'strengths';
+      list.replaceChildren(...answers.skills[zone].map(id => skillCard(id, otherZone)));
+      if (!list.children.length) list.append(element('p', 'empty-list', 'Drop an action here.'));
+      document.querySelector(`[data-place="${zone}"]`).disabled = !currentSkill;
     }
-    document.getElementById('skills-count').textContent = `${placedCount()} / 6 placed`;
-    updateSkillSelection();
     updateNavigation();
   }
 
-  function focusSkill(id) {
-    document.querySelector(`[data-skill="${id}"]`)?.focus();
-  }
-
-  function placeSkill(id, destination) {
-    if (!skillLabels.has(id) || !['bank', 'strengths', 'practice'].includes(destination)) return;
-    const source = skillZone(id);
-    if (source === 'bank' && destination !== 'bank' && placedCount() >= 6) {
-      skillFeedback.textContent = 'You’ve placed six actions. Remove one before adding another.';
-      return;
+  function placeSkill(id, destination, focusTarget = false) {
+    if (!skillLabels.has(id) || !Object.hasOwn(answers.skills, destination) ||
+        answers.skills[destination].includes(id)) return;
+    const isCurrent = id === currentSkill;
+    if (!isCurrent && !Object.values(answers.skills).some(list => list.includes(id))) return;
+    for (const zone of ['strengths', 'practice']) {
+      answers.skills[zone] = answers.skills[zone].filter(value => value !== id);
     }
-    answers.skills.strengths = answers.skills.strengths.filter(value => value !== id);
-    answers.skills.practice = answers.skills.practice.filter(value => value !== id);
-    if (destination !== 'bank') answers.skills[destination].push(id);
+    answers.skills[destination].push(id);
     answers.completedAt = null;
-    selectedSkill = null;
     renderSkills();
-    const destinationLabel = { bank: 'the action bank', strengths: 'Strengths', practice: 'Want to practice' }[destination];
-    skillFeedback.textContent = `${skillLabels.get(id)} Moved to ${destinationLabel}. ${placedCount()} of 6 actions placed.`;
-    focusSkill(id);
+    const label = destination === 'strengths' ? 'Strengths' : 'Want to practice';
+    const nextAction = isCurrent && currentSkill ? ` Next action: ${skillLabels.get(currentSkill)}` : '';
+    skillFeedback.textContent = `${skillLabels.get(id)} Placed under ${label}.${nextAction}`;
+    if (focusTarget) {
+      const target = isCurrent
+        ? (currentSkill ? document.querySelector(`[data-place="${destination}"]`) : nextButton)
+        : document.querySelector(`[data-move-skill="${id}"]`);
+      target.focus({ preventScroll: Boolean(currentSkill) && isCurrent });
+    }
   }
 
   function renderLessons(focusId, direction) {
@@ -236,7 +214,6 @@
     answers.lessonPriorities.forEach((id, index) => {
       const item = element('li', 'lesson-item');
       item.dataset.lesson = id;
-      item.draggable = false;
       const grip = element('span', 'lesson-grip', '⠿');
       const number = element('span', 'lesson-number', String(index + 1).padStart(2, '0'));
       grip.setAttribute('aria-hidden', 'true');
@@ -268,13 +245,13 @@
     answers.lessonPriorities.splice(oldIndex, 1);
     answers.lessonPriorities.splice(targetIndex, 0, id);
     answers.completedAt = null;
-    renderLessons(id, direction);
+    renderLessons(direction ? id : null, direction);
     document.getElementById('ranking-feedback').textContent = `${lessonLabels.get(id)} Moved to position ${targetIndex + 1} of ${lessons.length}.`;
   }
 
   function stepIsComplete(step) {
     if (step === 0) return questions.every(question => question.options.some(([id]) => id === answers.background[question.id]));
-    if (step === 1) return placedCount() === 6;
+    if (step === 1) return placedCount() + skippedSkills.size === skills.length;
     if (step === 2) return goals.some(([id]) => id === answers.mainGoal);
     if (step === 3) return answers.lessonPriorities.length === lessons.length && new Set(answers.lessonPriorities).size === lessons.length && answers.lessonPriorities.every(id => lessonLabels.has(id));
     return true;
@@ -289,7 +266,7 @@
     const answered = Object.values(answers.background).filter(Boolean).length;
     const hints = [
       answered === 3 ? 'All three answered. Ready when you are.' : `${answered} of 3 answered. Answer all three to continue.`,
-      placedCount() === 6 ? 'Six actions placed. Ready to continue.' : `${placedCount()} of 6 actions placed. Choose six in total to continue.`,
+      stepIsComplete(1) ? 'All actions reviewed. Ready to continue.' : 'Place or skip each action to continue.',
       answers.mainGoal ? 'Goal selected. Ready to continue.' : 'Choose one main goal to continue.',
       'Reorder the topics, or keep this order and finish.'
     ];
@@ -313,7 +290,6 @@
     document.getElementById('progress-fill').style.width = `${percent}%`;
     document.title = currentStep === 4 ? 'Survey complete | Beanos' : `${['About you', 'Your skills', 'Your goal', 'Your priorities'][currentStep]} | Beanos`;
     updateNavigation();
-    updateSkillSelection();
     if (focusHeading) screens[currentStep].querySelector('h1').focus();
   }
 
@@ -326,34 +302,40 @@
     if (saving) return;
     const input = event.target;
     if (!input.matches('input[type="radio"]')) return;
-    if (Object.hasOwn(answers.background, input.name)) answers.background[input.name] = input.value;
-    else if (input.name === 'mainGoal') answers.mainGoal = input.value;
+    if (Object.hasOwn(answers.background, input.name)) {
+      answers.background[input.name] = input.value;
+      const nextQuestion = input.closest('.question').nextElementSibling;
+      if (nextQuestion?.hidden) {
+        nextQuestion.hidden = false;
+        if (!input.matches(':focus-visible') && nextQuestion.querySelector('legend').scrollIntoView) {
+          nextQuestion.querySelector('legend').scrollIntoView({ block: 'nearest' });
+        }
+      }
+    } else if (input.name === 'mainGoal') answers.mainGoal = input.value;
     answers.completedAt = null;
     updateNavigation();
   });
 
   form.addEventListener('click', event => {
     if (saving) return;
-    if (suppressDragClick && event.detail !== 0) {
-      suppressDragClick = false;
-      event.preventDefault();
+    if (event.target.closest('#skip-skill') && currentSkill) {
+      skippedSkills.add(currentSkill);
+      renderSkills();
+      skillFeedback.textContent = currentSkill ? `Skipped. Next action: ${skillLabels.get(currentSkill)}` : 'All actions reviewed.';
+      if (!currentSkill) nextButton.focus();
       return;
     }
-    const remove = event.target.closest('[data-remove-skill]');
-    if (remove) return placeSkill(remove.dataset.removeSkill, 'bank');
-    const skill = event.target.closest('[data-skill]');
-    if (skill) {
-      selectedSkill = selectedSkill === skill.dataset.skill ? null : skill.dataset.skill;
-      updateSkillSelection();
-      skillFeedback.textContent = selectedSkill
-        ? (placedCount() === 6 && skillZone(selectedSkill) === 'bank'
-          ? 'You’ve placed six actions. Remove one before adding another.'
-          : `${skillLabels.get(selectedSkill)} Selected. Choose a column above its action list.`)
-        : 'Selection cleared. Select an action to place it.';
+    if (event.target.closest('#review-skipped')) {
+      skippedSkills.clear();
+      renderSkills();
+      document.getElementById('skip-skill').focus();
+      skillFeedback.textContent = `Next action: ${skillLabels.get(currentSkill)}`;
       return;
     }
-    const place = event.target.closest('[data-place], [data-place-mobile]');
-    if (place && selectedSkill) return placeSkill(selectedSkill, place.dataset.place || place.dataset.placeMobile);
+    const place = event.target.closest('[data-place]');
+    if (place && currentSkill) return placeSkill(currentSkill, place.dataset.place, true);
+    const moveSkill = event.target.closest('[data-move-skill]');
+    if (moveSkill) return placeSkill(moveSkill.dataset.moveSkill, moveSkill.dataset.destination, true);
     const move = event.target.closest('[data-move-lesson]');
     if (move) {
       const index = answers.lessonPriorities.indexOf(move.dataset.moveLesson);
@@ -362,140 +344,95 @@
   });
 
   function clearDrag() {
-    if (dragFrame !== null) cancelAnimationFrame(dragFrame);
-    dragFrame = null;
-    draggedItem = null;
     pointerDrag = null;
+    cancelAnimationFrame(scrollFrame);
+    scrollFrame = 0;
     dragPreview?.remove();
     dragPreview = null;
     document.querySelectorAll('.dragging, .drag-over').forEach(node => node.classList.remove('dragging', 'drag-over'));
   }
 
-  function dropItemAt(item, node, clientY) {
-    if (!node) return;
-    if (item.type === 'skill') {
-      const zone = node.closest('[data-zone]');
-      if (zone) placeSkill(item.id, zone.dataset.zone);
-    } else {
-      const target = node.closest('[data-lesson]');
-      if (target && target.dataset.lesson !== item.id) {
-        const rect = target.getBoundingClientRect();
-        const remaining = answers.lessonPriorities.filter(id => id !== item.id);
-        const index = remaining.indexOf(target.dataset.lesson) + (clientY > rect.top + rect.height / 2 ? 1 : 0);
-        moveLesson(item.id, index);
-      }
-    }
+  function dropTarget(item, x, y) {
+    const node = document.elementFromPoint(x, y);
+    if (item.type === 'skill') return node?.closest('[data-zone]');
+    const list = node?.closest('#lesson-list');
+    if (!list) return null;
+    return [...list.children].find(row => y <= row.getBoundingClientRect().bottom) || list.lastElementChild;
   }
 
-  function updatePointerDrag() {
-    if (!pointerDrag?.active) return;
-    const { clientX, clientY, type } = pointerDrag;
-    dragPreview.style.left = `${Math.max(8, Math.min(clientX + 12, window.innerWidth - 250))}px`;
-    dragPreview.style.top = `${clientY + 12}px`;
-    const selector = type === 'skill' ? '[data-zone]' : '[data-lesson]';
-    const target = document.elementFromPoint(clientX, clientY)?.closest(selector);
-    document.querySelectorAll('.drag-over').forEach(node => {
-      if (node !== target) node.classList.remove('drag-over');
-    });
-    target?.classList.add('drag-over');
+  function highlightDropTarget() {
+    const target = dropTarget(pointerDrag, pointerDrag.x, pointerDrag.y);
+    document.querySelector('.drag-over')?.classList.remove('drag-over');
+    if (target !== pointerDrag.source) target?.classList.add('drag-over');
+  }
 
-    // Keep scrolling while the pointer is held near an edge, even without movement.
-    const edge = 64;
-    const scrollSpeed = clientY < edge ? -Math.ceil((edge - clientY) / 4)
-      : clientY > window.innerHeight - edge ? Math.ceil((clientY - window.innerHeight + edge) / 4) : 0;
-    if (scrollSpeed) window.scrollBy(0, scrollSpeed);
-    dragFrame = requestAnimationFrame(updatePointerDrag);
+  function scrollWhileDragging() {
+    const y = pointerDrag.y;
+    const speed = y < 55 ? -12 : y > window.innerHeight - 55 ? 12 : 0;
+    if (speed) {
+      window.scrollBy(0, speed);
+      highlightDropTarget();
+    }
+    scrollFrame = requestAnimationFrame(scrollWhileDragging);
   }
 
   form.addEventListener('pointerdown', event => {
-    if (saving) return;
-    suppressDragClick = false;
-    if (event.button !== 0 || !event.isPrimary || event.target.closest('[data-remove-skill], [data-move-lesson]')) return;
-    const skill = event.target.closest('[data-drag-skill]');
-    const handle = event.target.closest('.skill-grip, .lesson-grip');
-    const lesson = event.target.closest('[data-lesson]');
+    if (saving || pointerDrag || !event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
+    const skill = event.target.closest(event.pointerType === 'mouse' ? '[data-drag-skill]' : '#current-action .skill-item, .skill-grip')?.closest('[data-drag-skill]');
+    const lesson = event.target.closest(event.pointerType === 'mouse' ? '[data-lesson]' : '.lesson-grip')?.closest('[data-lesson]');
     if (!skill && !lesson) return;
-    // Touch users can scroll or tap the label; its handle starts a touch drag.
-    if (event.pointerType === 'touch' && !handle) return;
-    if (handle) event.preventDefault();
+    event.preventDefault();
+    form.setPointerCapture(event.pointerId);
     pointerDrag = {
       type: skill ? 'skill' : 'lesson',
       id: skill ? skill.dataset.dragSkill : lesson.dataset.lesson,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      clientX: event.clientX,
-      clientY: event.clientY,
       source: skill || lesson,
       active: false
     };
   });
 
   form.addEventListener('pointermove', event => {
-    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
-    pointerDrag.clientX = event.clientX;
-    pointerDrag.clientY = event.clientY;
+    if (pointerDrag?.pointerId !== event.pointerId) return;
     if (!pointerDrag.active) {
       if (Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY) < 6) return;
       pointerDrag.active = true;
-      // Delay capture until a drag starts so an ordinary click still selects the action.
-      form.setPointerCapture(event.pointerId);
       pointerDrag.source.classList.add('dragging');
       dragPreview = element('div', 'drag-preview', (pointerDrag.type === 'skill' ? skillLabels : lessonLabels).get(pointerDrag.id));
       dragPreview.setAttribute('aria-hidden', 'true');
       document.body.append(dragPreview);
-      updatePointerDrag();
+      scrollFrame = requestAnimationFrame(scrollWhileDragging);
     }
-    event.preventDefault();
+    pointerDrag.x = event.clientX;
+    pointerDrag.y = event.clientY;
+    dragPreview.style.left = `${Math.min(event.clientX + 12, window.innerWidth - dragPreview.offsetWidth - 8)}px`;
+    dragPreview.style.top = `${event.clientY + 12}px`;
+    highlightDropTarget();
   });
 
   form.addEventListener('pointerup', event => {
-    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+    if (pointerDrag?.pointerId !== event.pointerId) return;
     const item = pointerDrag;
-    const target = document.elementFromPoint(event.clientX, event.clientY);
-    if (form.hasPointerCapture(event.pointerId)) form.releasePointerCapture(event.pointerId);
+    const target = item.active && dropTarget(item, event.clientX, event.clientY);
     clearDrag();
-    if (item.active) {
-      suppressDragClick = true;
-      event.preventDefault();
-      dropItemAt(item, target, event.clientY);
+    if (!target || target === item.source) return;
+    if (item.type === 'skill') {
+      placeSkill(item.id, target.dataset.zone);
+    } else {
+      const rect = target.getBoundingClientRect();
+      const remaining = answers.lessonPriorities.filter(id => id !== item.id);
+      const index = remaining.indexOf(target.dataset.lesson) + (event.clientY > rect.top + rect.height / 2 ? 1 : 0);
+      moveLesson(item.id, index);
     }
   });
-  form.addEventListener('pointercancel', clearDrag);
-  form.addEventListener('lostpointercapture', clearDrag);
-
-  form.addEventListener('dragstart', event => {
-    const skill = event.target.closest('[data-drag-skill]');
-    const lesson = event.target.closest('[data-lesson]');
-    if (!skill && !lesson) return;
-    draggedItem = skill ? { type: 'skill', id: skill.dataset.dragSkill } : { type: 'lesson', id: lesson.dataset.lesson };
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', draggedItem.id);
-    (skill || lesson).classList.add('dragging');
+  form.addEventListener('pointercancel', event => {
+    if (pointerDrag?.pointerId === event.pointerId) clearDrag();
   });
-
-  form.addEventListener('dragover', event => {
-    if (!draggedItem) return;
-    const target = event.target.closest(draggedItem.type === 'skill' ? '[data-zone]' : '[data-lesson]');
-    if (!target) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-    document.querySelectorAll('.drag-over').forEach(node => { if (node !== target) node.classList.remove('drag-over'); });
-    target.classList.add('drag-over');
+  form.addEventListener('lostpointercapture', event => {
+    if (pointerDrag?.pointerId === event.pointerId) clearDrag();
   });
-
-  form.addEventListener('dragleave', event => {
-    const target = event.target.closest('.drag-over');
-    if (target && !target.contains(event.relatedTarget)) target.classList.remove('drag-over');
-  });
-
-  form.addEventListener('drop', event => {
-    if (!draggedItem) return;
-    event.preventDefault();
-    dropItemAt(draggedItem, event.target, event.clientY);
-    clearDrag();
-  });
-  form.addEventListener('dragend', clearDrag);
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -536,13 +473,6 @@
   });
 
   document.getElementById('back-button').addEventListener('click', () => showStep(currentStep - 1));
-  document.getElementById('clear-skill-selection').addEventListener('click', () => {
-    const previous = selectedSkill;
-    selectedSkill = null;
-    updateSkillSelection();
-    skillFeedback.textContent = 'Selection cleared. Select an action to place it.';
-    if (previous) focusSkill(previous);
-  });
   document.getElementById('review-answers').addEventListener('click', () => showStep(0));
   window.BeanosSurvey = Object.freeze({ getAnswers });
 
@@ -566,10 +496,13 @@
           !Array.isArray(saved.lessonPriorities)) throw new Error('Your saved survey format could not be loaded. Ask your team for help.');
         Object.assign(answers, JSON.parse(JSON.stringify(saved)));
         const allSkills = [...answers.skills.strengths, ...answers.skills.practice];
-        if (![0, 1, 2, 3].every(stepIsComplete) || new Set(allSkills).size !== 6 ||
+        if (![0, 2, 3].every(stepIsComplete) || new Set(allSkills).size !== allSkills.length ||
           !allSkills.every(id => skillLabels.has(id))) {
           Object.assign(answers, previous);
           throw new Error('Your saved survey format could not be loaded. Ask your team for help.');
+        }
+        for (const [id] of skills) {
+          if (!allSkills.includes(id)) skippedSkills.add(id);
         }
         saveStatus.hidden = false;
         saveStatus.textContent = 'Your saved answers are loaded. You can review them and save any changes.';
