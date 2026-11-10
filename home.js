@@ -9,6 +9,15 @@
   const retry = document.getElementById('home-retry');
   const signout = document.getElementById('home-signout');
   const status = document.getElementById('home-account-status');
+  const lessonList = document.getElementById('home-lesson-list');
+  const lessons = [
+    ['Building confidence and handling nerves', 'confidence'],
+    ['Starting and continuing conversations', 'conversations'],
+    ['Showing interest and respecting boundaries', 'interest-and-boundaries'],
+    ['Asking someone on a date', 'asking-someone-out'],
+    ['Planning and enjoying a date', 'date-planning'],
+    ['Following up after a date', 'following-up']
+  ];
   const goals = new Map([
     ['conversation-confidence', 'Feel more confident talking to someone I’m interested in.'],
     ['ask-on-date', 'Ask someone on a date.'],
@@ -20,6 +29,30 @@
   ]);
   let subscription;
   let initializing = false;
+
+  function renderLessons(nextLessonId) {
+    lessonList.replaceChildren();
+    if (!nextLessonId) {
+      const done = document.createElement('p');
+      done.className = 'lesson-complete-message';
+      done.textContent = 'You’ve completed all six lessons. You can revisit them from the lesson list.';
+      lessonList.append(done);
+      return;
+    }
+    const index = nextLessonId - 1;
+    const [title] = lessons[index];
+    const link = document.createElement('a');
+    link.className = 'lesson-choice';
+    link.href = `beanos_lesson_template.html?lesson=${nextLessonId}`;
+    const number = document.createElement('span');
+    number.className = 'lesson-choice-number';
+    number.textContent = `LESSON ${nextLessonId}`;
+    const name = document.createElement('span');
+    name.className = 'lesson-choice-title';
+    name.textContent = title;
+    link.append(number, name);
+    lessonList.append(link);
+  }
 
   function loginChanged() {
     content.hidden = true;
@@ -53,8 +86,10 @@
       }
       // A second tab can switch accounts while the survey request is in flight.
       if ((await api.currentUser()).id !== user.id) return loginChanged();
+      const lessonProgress = await api.loadLessonProgress();
       loading.hidden = true;
       content.hidden = false;
+      renderLessons(lessonProgress.nextLessonId);
       signout.disabled = false;
     } catch (error) {
       content.hidden = true;

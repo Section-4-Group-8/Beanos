@@ -21,9 +21,17 @@ reload on return. Retakes update the same row. After a successful survey save, t
 
 Survey responses belong to the existing integer USER.user_id. USER.auth_user_id
 links that ID to the Auth account. The browser never chooses another user's ID.
-Home shows the saved survey goal and simple Lessons/Tasks links. It uses the team
-style guide and includes no lesson lists, task details, or progress totals. Lessons
-opens a simple coming-soon page; Tasks opens the task picker.
+Home shows the saved survey goal and the six lessons. Choosing a lesson opens the
+lesson template with its ordered article and video resources loaded from the
+Supabase `lesson_resources` table. The signed-in role needs `SELECT` access to
+that table (with row-level security enabled, allow authenticated users to read
+lesson resources). Tasks opens the task picker.
+
+Lesson unlocking is currently a signed-in-browser prototype: lesson task
+completion is stored in local storage, scoped by Supabase Auth user. The
+`loadLessonProgress` and `completeLessonTasks` methods in `beanos-api.js` are the
+integration seam for replacing that prototype storage with Supabase RPCs when
+task completion is implemented.
 
 Legacy-only accounts require a one-time reviewed account link; see the setup guide.
 Email confirmation is optional and can be enabled later without changing the code.

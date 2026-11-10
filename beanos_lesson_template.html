@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beanos — Lesson: Mastering the Warm Opener</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="beanos-api.js" defer></script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -157,6 +159,7 @@
             margin: 0 auto;
             padding: calc(4 * var(--spacing-unit)) calc(2 * var(--spacing-unit));
         }
+        main[hidden] { display: none !important; }
 
         /* Top Progress Line */
         .top-progress-bar-container {
@@ -405,6 +408,33 @@
             padding: 20px;
         }
         .video-container iframe { display: block; padding: 0; background: #000; }
+
+        .lesson-resource-viewer { margin-top: 28px; padding: 22px; border: 1px solid var(--color-gray-200); border-radius: var(--border-radius); background: var(--color-white); }
+        .lesson-resource-status { color: var(--color-gray-700); font-family: var(--font-headings); font-size: .85rem; }
+        .lesson-resource-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+        #lesson-resource-title { margin: 0 0 16px; }
+        .lesson-resource-content iframe { display: block; width: 100%; height: min(65vh, 680px); border: 1px solid var(--color-gray-200); border-radius: var(--border-radius); background: var(--color-white); }
+        .lesson-resource-content.is-video iframe { height: auto; aspect-ratio: 16 / 9; border: 0; background: #000; }
+        .lesson-resource-summary { margin-top: 12px; }
+        .lesson-resource-unavailable { margin: 12px 0; color: var(--color-gray-700); font: 400 .8rem/1.7 var(--font-headings); }
+        .lesson-resource-open { display: inline-block; margin-top: 8px; color: var(--color-primary-rust); font: 500 .8rem var(--font-headings); text-underline-offset: 3px; }
+        .lesson-resource-controls { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; }
+        .lesson-resource-controls .btn { cursor: pointer; }
+        .lesson-resource-controls .btn:disabled {
+            color: var(--color-gray-700);
+            background: var(--color-gray-200);
+            border-color: var(--color-gray-200);
+            opacity: .65;
+            cursor: not-allowed;
+        }
+        .lesson-resource-content .video-container { margin: 0; }
+        .lesson-resource-content .video-container iframe { height: 100%; }
+        @media (max-width: 620px) {
+            .lesson-resource-viewer { padding: 16px; }
+            .lesson-resource-content iframe { height: 60vh; }
+            .lesson-resource-controls { flex-direction: column-reverse; }
+            .lesson-resource-controls .btn { width: 100%; }
+        }
 
         .video-placeholder i {
             font-size: 3.5rem;
@@ -749,6 +779,9 @@
             font: 900 .9rem "Font Awesome 6 Free";
         }
         .task-select-card.selected::after { display: block; }
+        .task-complete-control { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--color-gray-700); font: 500 .72rem/1.4 var(--font-headings); cursor: pointer; }
+        .task-complete-control input { width: 18px; height: 18px; accent-color: var(--color-success); }
+        .task-complete-control input:disabled { cursor: not-allowed; }
         .chat-header, .feedback-header { background: var(--color-primary-navy); }
         .top-progress-bar-fill { transition: width .3s ease; }
         @media (max-width: 768px) {
@@ -795,7 +828,14 @@
         </div>
     </header>
 
-    <main class="main-container">
+    <main class="main-container" id="lesson-access-status">
+        <section class="note-box" style="display:block;">
+            <p id="lesson-access-message">Checking your lesson access…</p>
+            <a href="lessons.html">View available lessons</a>
+        </section>
+    </main>
+
+    <main class="main-container" id="lesson-content" hidden>
 
         <!-- ===================================================================
              STEP 1: LESSON INTRODUCTION (ARTICLE HEADER & BASE INFO)
@@ -815,6 +855,24 @@
             <p>
                 In this lesson, you will learn how to identify situational anchors in your environment, formulate zero-pressure questions, and practice transitioning into natural dialog using our real-time AI roleplay engine.
             </p>
+
+            <div class="lesson-resource-viewer" aria-label="Lesson resource slides">
+                <p class="lesson-resource-status" id="lesson-resource-status" role="status" aria-live="polite">Loading lesson resources…</p>
+                <div id="lesson-resource-slide" hidden>
+                    <div class="lesson-resource-heading">
+                        <span class="badge badge-navy" id="lesson-resource-type"></span>
+                        <span class="caption-text" id="lesson-resource-position"></span>
+                    </div>
+                    <h2 id="lesson-resource-title"></h2>
+                    <div id="lesson-resource-content" class="lesson-resource-content"></div>
+                    <p id="lesson-resource-summary" class="lesson-resource-summary"></p>
+                    <a id="lesson-resource-open" class="lesson-resource-open" target="_blank" rel="noopener noreferrer">Open this resource in a new tab ↗</a>
+                    <div class="lesson-resource-controls">
+                        <button class="btn btn-secondary" id="lesson-resource-previous" type="button">← Previous resource</button>
+                        <button class="btn btn-primary" id="lesson-resource-next" type="button">Next resource →</button>
+                    </div>
+                </div>
+            </div>
 
             <div class="step-footer-actions">
                 <button class="btn btn-primary" onclick="goToStep(2)">
@@ -880,17 +938,12 @@
              STEP 3: IN-DEPTH CONTEXT & VIDEO LESSON
              =================================================================== -->
         <section class="lesson-step" id="step-3">
-            <span class="badge">Core Concept & Video</span>
+            <span class="badge">Core Concept</span>
             <h2>The 3-Second Context Framework</h2>
             
             <p>
                 When initiating in casual settings, employ the <strong>Observation + Opinion</strong> formula. Rather than complimenting personal appearance right away (which creates high pressure), comment on something in the immediate surroundings.
             </p>
-
-            <!-- Replace the video ID in this embed URL to use another YouTube video. -->
-            <div class="video-container">
-                <iframe src="https://www.youtube-nocookie.com/embed/kzFqhxP2W1k" title="Beanos lesson video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-            </div>
 
             <!-- Callout Note Boxes -->
             <div class="note-box note-tip">
@@ -1027,7 +1080,7 @@
             <span class="badge badge-navy">Real-World Execution</span>
             <h2>Tasks for this lesson</h2>
             <p style="color: var(--color-gray-700);">
-                These three tasks go with the lesson. They’ll be added to your current tasks when you return home.
+                Complete all three practice tasks to unlock your next lesson. Task completion is a local prototype for now.
             </p>
 
             <!-- Task Selector Grid (Populated / Synced with Supabase) -->
@@ -1037,6 +1090,7 @@
                     <span class="task-stars" aria-label="1 out of 5 stars">★☆☆☆☆</span>
                     <span class="task-title">The Barista Greeting</span>
                     <span class="task-desc">Make eye contact, smile, and ask your barista how their morning is going before ordering.</span>
+                    <label class="task-complete-control"><input type="checkbox" class="lesson-task-complete"> Mark complete</label>
                 </div>
 
                 <!-- Task Card 2 -->
@@ -1044,6 +1098,7 @@
                     <span class="task-stars" aria-label="2 out of 5 stars">★★☆☆☆</span>
                     <span class="task-title">1 Environmental Opener</span>
                     <span class="task-desc">Deliver 1 situational comment to someone in line at a shop or bus stop today.</span>
+                    <label class="task-complete-control"><input type="checkbox" class="lesson-task-complete"> Mark complete</label>
                 </div>
 
                 <!-- Task Card 3 -->
@@ -1051,21 +1106,21 @@
                     <span class="task-stars" aria-label="3 out of 5 stars">★★★☆☆</span>
                     <span class="task-title">Observation Practice</span>
                     <span class="task-desc">Notice 3 interesting details or items people around you are carrying without initiating.</span>
+                    <label class="task-complete-control"><input type="checkbox" class="lesson-task-complete"> Mark complete</label>
                 </div>
             </div>
 
             <div class="note-box note-task">
                 <i class="fa-solid fa-list-check"></i>
                 <div class="note-content">
-                    <div class="note-title">Included with this lesson</div>
-                    <div>All three lesson tasks will be part of your current tasks.</div>
+                    <div class="note-title">Prototype task progress</div>
+                    <div id="lesson-task-completion-status" role="status" aria-live="polite">0 of 3 tasks complete.</div>
                 </div>
             </div>
 
             <div class="step-footer-actions">
-                <button class="btn btn-success" onclick="commitTasksAndReturnHome()">
-                    <i class="fa-solid fa-house"></i> Go to home page
-                </button>
+                <button class="btn btn-success" id="complete-lesson-tasks" type="button" disabled>Complete tasks to unlock next lesson</button>
+                <a class="btn btn-secondary" href="lessons.html">View lessons</a>
             </div>
         </section>
 
@@ -1095,13 +1150,188 @@
             footer.prepend(backButton);
         });
 
-        // Mock Supabase Client Placeholder Hook
-        /*
-        import { createClient } from '@supabase/supabase-js'
-        const supabaseUrl = 'https://YOUR_SUPABASE_PROJECT.supabase.co'
-        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'
-        const supabase = createClient(supabaseUrl, supabaseKey)
-        */
+        const lessonTopics = [
+            'Building confidence and handling nerves',
+            'Starting and continuing conversations',
+            'Showing interest and respecting boundaries',
+            'Asking someone on a date',
+            'Planning and enjoying a date',
+            'Following up after a date'
+        ];
+
+        function youtubeEmbed(url) {
+            try {
+                const parsed = new URL(url);
+                const hostname = parsed.hostname.toLowerCase();
+                if (hostname === 'youtu.be' || hostname === 'www.youtu.be') return parsed.pathname.slice(1).split('/')[0];
+                if (!['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtube-nocookie.com', 'www.youtube-nocookie.com'].includes(hostname)) return '';
+                if (parsed.pathname === '/watch') return parsed.searchParams.get('v') || '';
+                const parts = parsed.pathname.split('/').filter(Boolean);
+                if (parts[0] === 'v') return parts[1] || '';
+                return ['embed', 'shorts', 'live'].includes(parts[0]) ? parts[1] || '' : '';
+            } catch { return ''; }
+        }
+
+        function validYoutubeId(videoId) {
+            return /^[A-Za-z0-9_-]{11}$/.test(videoId);
+        }
+
+        function safeLink(url) {
+            try {
+                const parsed = new URL(url);
+                return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : '';
+            } catch { return ''; }
+        }
+
+        let lessonResources = [];
+        let lessonResourceIndex = 0;
+
+        function renderLessonResource() {
+            const resource = lessonResources[lessonResourceIndex];
+            if (!resource) return;
+            const slide = document.getElementById('lesson-resource-slide');
+            const content = document.getElementById('lesson-resource-content');
+            const openLink = document.getElementById('lesson-resource-open');
+            const safeUrl = safeLink(resource.url);
+            document.getElementById('lesson-resource-type').textContent = (resource.type || 'resource').toUpperCase();
+            document.getElementById('lesson-resource-position').textContent = `${lessonResourceIndex + 1} of ${lessonResources.length}`;
+            document.getElementById('lesson-resource-title').textContent = resource.title || 'Lesson resource';
+            document.getElementById('lesson-resource-summary').textContent = resource.focus_summary || '';
+            content.replaceChildren();
+            content.classList.toggle('is-video', resource.type === 'video');
+
+            if (safeUrl && resource.type === 'video') {
+                const videoId = youtubeEmbed(safeUrl);
+                if (validYoutubeId(videoId)) {
+                    const player = document.createElement('div');
+                    player.className = 'video-container';
+                    const frame = document.createElement('iframe');
+                    frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
+                    frame.title = resource.title || 'Lesson video';
+                    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+                    frame.allowFullscreen = true;
+                    player.appendChild(frame);
+                    content.appendChild(player);
+                } else {
+                    const message = document.createElement('p');
+                    message.className = 'lesson-resource-unavailable';
+                    message.textContent = 'This YouTube link could not be embedded. You can still open the original video below.';
+                    content.appendChild(message);
+                }
+            } else if (safeUrl && resource.type === 'article') {
+                const frame = document.createElement('iframe');
+                frame.src = safeUrl;
+                frame.title = resource.title || 'Lesson article';
+                frame.loading = 'lazy';
+                frame.referrerPolicy = 'strict-origin-when-cross-origin';
+                content.appendChild(frame);
+            }
+
+            openLink.hidden = !safeUrl;
+            if (safeUrl) openLink.href = safeUrl;
+            document.getElementById('lesson-resource-previous').disabled = lessonResourceIndex === 0;
+            document.getElementById('lesson-resource-next').disabled = lessonResourceIndex === lessonResources.length - 1;
+            slide.hidden = false;
+        }
+
+        document.getElementById('lesson-resource-previous').addEventListener('click', () => {
+            if (lessonResourceIndex > 0) {
+                lessonResourceIndex -= 1;
+                renderLessonResource();
+            }
+        });
+        document.getElementById('lesson-resource-next').addEventListener('click', () => {
+            if (lessonResourceIndex < lessonResources.length - 1) {
+                lessonResourceIndex += 1;
+                renderLessonResource();
+            }
+        });
+
+        const lessonTaskChecks = [...document.querySelectorAll('.lesson-task-complete')];
+        const completeTasksButton = document.getElementById('complete-lesson-tasks');
+        const taskCompletionStatus = document.getElementById('lesson-task-completion-status');
+        let activeLessonId = null;
+        let lessonAuthUserId = null;
+
+        function updateTaskCompletionControls(completed = false, progress = null) {
+            const completedCount = lessonTaskChecks.filter(check => check.checked).length;
+            lessonTaskChecks.forEach(check => {
+                if (completed) check.checked = true;
+                check.disabled = completed;
+            });
+            completeTasksButton.disabled = completed || completedCount !== lessonTaskChecks.length;
+            completeTasksButton.textContent = completed ? 'Tasks completed' : 'Complete tasks to unlock next lesson';
+            if (completed) {
+                taskCompletionStatus.textContent = progress?.nextLessonId
+                    ? `Lesson ${activeLessonId} is complete. Lesson ${progress.nextLessonId} is now unlocked.`
+                    : 'Lesson 6 is complete. You’ve finished all six lessons.';
+            } else {
+                taskCompletionStatus.textContent = `${completedCount} of ${lessonTaskChecks.length} tasks complete. Mark all tasks complete to unlock the next lesson.`;
+            }
+        }
+
+        lessonTaskChecks.forEach(check => check.addEventListener('change', () => updateTaskCompletionControls()));
+        completeTasksButton.addEventListener('click', async () => {
+            if (!activeLessonId || lessonTaskChecks.some(check => !check.checked)) return;
+            completeTasksButton.disabled = true;
+            taskCompletionStatus.textContent = 'Saving your lesson completion…';
+            try {
+                const progress = await window.BeanosAPI.completeLessonTasks(activeLessonId, lessonAuthUserId);
+                updateTaskCompletionControls(true, progress);
+            } catch (error) {
+                taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || error.message || 'Lesson completion could not be saved.';
+                completeTasksButton.disabled = false;
+            }
+        });
+
+        async function loadLesson() {
+            const lessonId = Number(new URLSearchParams(window.location.search).get('lesson'));
+            const status = document.getElementById('lesson-resource-status');
+            const accessMessage = document.getElementById('lesson-access-message');
+            if (!Number.isInteger(lessonId) || lessonId < 1 || lessonId > lessonTopics.length) {
+                accessMessage.textContent = 'Choose an available lesson to continue.';
+                return;
+            }
+
+            const title = lessonTopics[lessonId - 1];
+            activeLessonId = lessonId;
+            document.title = `Beanos — Lesson ${lessonId}: ${title}`;
+            document.querySelector('#step-1 h1').textContent = title;
+            document.querySelector('#step-1 .badge').textContent = `Lesson ${lessonId}`;
+            document.querySelector('.nav-actions .btn-nav-back').href = 'index.html';
+            document.querySelector('#stepIndicatorText').textContent = '1 of 6';
+
+            try {
+                const account = await window.BeanosAPI.requireAccount({ completed: true });
+                if (!account) return;
+                lessonAuthUserId = (await window.BeanosAPI.currentUser()).id;
+                const progress = await window.BeanosAPI.loadLessonProgress(lessonAuthUserId);
+                if (lessonId > progress.unlockedThrough) {
+                    accessMessage.textContent = `Lesson ${lessonId} is locked. Complete available lessons in order, starting with Lesson ${progress.unlockedThrough}, to unlock it.`;
+                    return;
+                }
+                updateTaskCompletionControls(progress.completedLessons.includes(lessonId), progress);
+                document.getElementById('lesson-access-status').hidden = true;
+                document.getElementById('lesson-content').hidden = false;
+                try {
+                    lessonResources = await window.BeanosAPI.loadLessonResources(lessonId);
+                } catch (error) {
+                    status.textContent = window.BeanosAPI?.explain(error) || 'Lesson resources could not load. Please try again later.';
+                    return;
+                }
+                if (!lessonResources.length) {
+                    status.textContent = 'No articles or videos have been added to this lesson yet.';
+                    return;
+                }
+                status.hidden = true;
+                lessonResourceIndex = 0;
+                renderLessonResource();
+            } catch (error) {
+                accessMessage.textContent = window.BeanosAPI?.explain(error) || 'Lesson access could not be checked. Please return home and try again.';
+            }
+        }
+        window.addEventListener('DOMContentLoaded', loadLesson, { once: true });
 
         // 1. Navigation & Progress Logic
         function goToStep(stepNumber) {

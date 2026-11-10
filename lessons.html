@@ -3,11 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Explore all six Beanos lessons and their articles and videos.">
   <title>Lessons | Beanos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="home.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="beanos-api.js" defer></script>
+  <script src="lessons.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#lessons-main">Skip to lessons</a>
@@ -21,11 +25,14 @@
     </div>
   </header>
   <main id="lessons-main" tabindex="-1">
-    <section class="path-card welcome" aria-labelledby="lessons-title">
-      <span class="eyebrow">LESSONS</span>
-      <h1 id="lessons-title">Lessons are coming soon.</h1>
-      <p>Check back soon for your next step.</p>
-      <a class="button button-primary" href="index.html">Back to home <span aria-hidden="true">→</span></a>
+    <section class="welcome" aria-labelledby="lessons-title">
+      <span class="eyebrow">YOUR LEARNING PATH</span>
+      <h1 id="lessons-title">Explore the lessons</h1>
+      <p>Complete each lesson’s tasks to unlock the next one.</p>
+    </section>
+    <section aria-label="All lessons">
+      <p class="lesson-list-status" id="lesson-list-status" role="status" aria-live="polite">Loading your lesson progress…</p>
+      <div class="lesson-page-grid" id="lesson-cards"></div>
     </section>
     <footer class="home-footer">A little progress, every day.</footer>
   </main>
