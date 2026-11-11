@@ -5,12 +5,9 @@ through lessons and practical tasks.
 
 **Frontend:** HTML, CSS, JavaScript. **Accounts/database:** Supabase Auth and PostgreSQL.
 
-## Run locally
+## Open URL in your browser
 
-Serve this folder with a local web server, for example `python3 -m http.server 8080`,
-then open `http://localhost:8080/login_page.html`. Account and survey features need
-an internet connection and the matching Supabase migration. Do not open the pages
-as file URLs. The signed-in home page is `index.html`.
+The current URL we have is posted through GitHub pages, open https://section-4-group-8.github.io/Beanos/login_page.html
 
 ## Account and survey flow
 
@@ -45,16 +42,19 @@ Email confirmation is optional and can be enabled later without changing the cod
 - [Survey page](survey.html) · [Team style guide](Beanos_style_guide.html)
 - [Database migration](supabase/connect_survey_auth.sql)
 
+<<<<<<< Updated upstream
 The standalone Tasks page remains a separate picker; its tasks are not yet part
 of the lesson-star unlock flow.
+=======
+## Home page
+>>>>>>> Stashed changes
 
-## Verify
+After the survey, you will redirected to the home page. From there you have a few options: Tasks, Lessons, or Profile
 
-Run `npm ci && npm test` for browser-behavior tests. The website itself needs no
-build step. Database tests and live verification steps are in the setup guide.
+From the profile page you can update your email or password
 
-After deployment: sign up, finish Survey, arrive at Home, then reload Survey and confirm
-the answers remain. Retake and confirm only one response exists under your integer
-ID. Log out, log in again, and repeat with a second account to check separation.
+From the Tasks page, you will see a list of tasks that are sorted by difficulty/length
+
+From the Lessons page, you will be able to browse lessons to learn from several media sources, including articles, videos, and an AI chatbot. 
 
 **ERD:** ![ERD](images/erd2.png)
