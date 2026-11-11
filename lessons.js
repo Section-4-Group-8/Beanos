@@ -32,12 +32,35 @@
       name.textContent = title;
       const detail = document.createElement('span');
       detail.className = 'lesson-page-detail';
-      detail.textContent = isComplete ? 'Completed · Available to revisit' : unlocked ? 'Available now' : `Locked · Complete Lesson ${lessonId - 1} tasks to unlock`;
+      const progressLessonId = unlocked ? lessonId : lessonId - 1;
+      const stars = Number(progress.starsByLesson[progressLessonId]) || 0;
+      const availableProgressLabel = lessonId === 6 ? 'toward completing this lesson' : 'toward the next lesson';
+      detail.textContent = isComplete
+        ? 'Completed · Available to revisit'
+        : unlocked
+          ? `Available now · ${stars} / 10 stars ${availableProgressLabel}`
+          : `Locked · ${stars} / 10 stars from Lesson ${progressLessonId} · ${Math.max(0, 10 - stars)} more needed`;
       const arrow = document.createElement('span');
       arrow.className = 'lesson-page-arrow';
       arrow.setAttribute('aria-hidden', 'true');
       arrow.textContent = isComplete ? '✓' : unlocked ? '→' : '•';
-      card.append(number, name, detail, arrow);
+      card.append(number, name, detail);
+      if (!isComplete) {
+        const meter = document.createElement('span');
+        meter.className = 'lesson-unlock-meter';
+        meter.setAttribute('role', 'progressbar');
+        meter.setAttribute('aria-label', unlocked
+          ? lessonId === 6 ? 'Progress toward completing the final lesson' : `Progress toward unlocking Lesson ${lessonId + 1}`
+          : `Progress from Lesson ${progressLessonId} toward unlocking Lesson ${lessonId}`);
+        meter.setAttribute('aria-valuemin', '0');
+        meter.setAttribute('aria-valuemax', '10');
+        meter.setAttribute('aria-valuenow', String(Math.min(10, stars)));
+        const fill = document.createElement('span');
+        fill.style.width = `${Math.min(100, stars * 10)}%`;
+        meter.appendChild(fill);
+        card.appendChild(meter);
+      }
+      card.appendChild(arrow);
       cards.appendChild(card);
     });
     status.textContent = progress.nextLessonId

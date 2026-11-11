@@ -21,17 +21,20 @@ reload on return. Retakes update the same row. After a successful survey save, t
 
 Survey responses belong to the existing integer USER.user_id. USER.auth_user_id
 links that ID to the Auth account. The browser never chooses another user's ID.
-Home shows the saved survey goal and the six lessons. Choosing a lesson opens the
-lesson template with its ordered article and video resources loaded from the
-Supabase `lesson_resources` table. The signed-in role needs `SELECT` access to
-that table (with row-level security enabled, allow authenticated users to read
-lesson resources). Tasks opens the task picker.
+Home shows the saved survey goal and the next available lesson. The Lessons page
+shows the full sequence and unlock progress. The lesson template loads ordered
+resources from `lesson_resources` and lesson-specific tasks from `task_bank`,
+using each row's `lesson_id`. The signed-in role needs `SELECT` access to both
+tables (with row-level security enabled, allow authenticated users to read the
+lesson and task catalogs).
 
-Lesson unlocking is currently a signed-in-browser prototype: lesson task
-completion is stored in local storage, scoped by Supabase Auth user. The
-`loadLessonProgress` and `completeLessonTasks` methods in `beanos-api.js` are the
-integration seam for replacing that prototype storage with Supabase RPCs when
-task completion is implemented.
+Lesson stars and task completion are currently a signed-in-browser prototype:
+each completed task awards stars equal to its difficulty, and 10 stars from a
+lesson unlock the next one. Stars do not carry between lessons. Progress is
+stored in local storage, scoped by Supabase Auth user. The `loadLessonTasks`,
+`loadLessonProgress`, and `completeLessonTask` methods in `beanos-api.js` are
+the integration seams for user-specific task assignments and completions in
+Supabase later.
 
 Legacy-only accounts require a one-time reviewed account link; see the setup guide.
 Email confirmation is optional and can be enabled later without changing the code.
@@ -42,8 +45,8 @@ Email confirmation is optional and can be enabled later without changing the cod
 - [Survey page](survey.html) · [Team style guide](Beanos_style_guide.html)
 - [Database migration](supabase/connect_survey_auth.sql)
 
-The task page is still a separate work in progress. Current survey progress bars
-show survey steps; lesson-unlock progress is separate future work.
+The standalone Tasks page remains a separate picker; its tasks are not yet part
+of the lesson-star unlock flow.
 
 ## Verify
 

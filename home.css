@@ -62,7 +62,9 @@ h1 { margin: 12px 0 12px; font: 600 clamp(28px, 4vw, 38px)/1.25 var(--headings);
 .lesson-page-card .lesson-choice-number { grid-column: 1; }
 .lesson-page-card .lesson-choice-title { grid-column: 1; font-size: 14px; }
 .lesson-page-detail { grid-column: 1; color: var(--muted); font: 400 10px/1.5 var(--headings); }
-.lesson-page-arrow { grid-column: 2; grid-row: 1 / span 3; color: var(--rust); font: 600 20px/1 var(--headings); }
+.lesson-unlock-meter { grid-column: 1; display: block; height: 7px; overflow: hidden; border-radius: 99px; background: var(--line); }
+.lesson-unlock-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--green); transition: width .3s ease; }
+.lesson-page-arrow { grid-column: 2; grid-row: 1 / span 4; color: var(--rust); font: 600 20px/1 var(--headings); }
 .lesson-page-card.locked { background: #F1F1F1; border-color: #E1E1E1; box-shadow: none; cursor: not-allowed; }
 .lesson-page-card.locked .lesson-choice-number, .lesson-page-card.locked .lesson-choice-title, .lesson-page-card.locked .lesson-page-detail, .lesson-page-card.locked .lesson-page-arrow { color: #858585; }
 .lesson-page-card.locked:hover { border-color: #E1E1E1; background: #F1F1F1; }

@@ -434,6 +434,8 @@
             .lesson-resource-content iframe { height: 60vh; }
             .lesson-resource-controls { flex-direction: column-reverse; }
             .lesson-resource-controls .btn { width: 100%; }
+            .lesson-task-grid { grid-template-columns: 1fr; }
+            .lesson-task-progress-head { align-items: flex-start; flex-direction: column; }
         }
 
         .video-placeholder i {
@@ -779,9 +781,23 @@
             font: 900 .9rem "Font Awesome 6 Free";
         }
         .task-select-card.selected::after { display: block; }
-        .task-complete-control { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--color-gray-700); font: 500 .72rem/1.4 var(--font-headings); cursor: pointer; }
-        .task-complete-control input { width: 18px; height: 18px; accent-color: var(--color-success); }
-        .task-complete-control input:disabled { cursor: not-allowed; }
+        .lesson-task-progress { margin: 20px 0; padding: 17px 18px; border: 1px solid var(--color-gray-200); border-radius: var(--border-radius); background: var(--color-white); }
+        .lesson-task-progress-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--color-primary-navy); font: 500 .78rem/1.5 var(--font-headings); }
+        #lesson-task-progress-label { font-weight: 600; }
+        .lesson-task-progress-track { height: 12px; margin-top: 12px; overflow: hidden; border-radius: 99px; background: var(--color-gray-200); }
+        .lesson-task-progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-success), #83B89B); transition: width .3s ease; }
+        #lesson-task-completion-status, .lesson-task-storage-note { margin: 9px 0 0; color: var(--color-gray-700); font: 400 .75rem/1.6 var(--font-headings); }
+        .lesson-task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+        .lesson-task-card { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 16px; border: 1px solid var(--color-gray-200); border-left: 4px solid var(--color-primary-rust); border-radius: var(--border-radius); background: var(--color-white); }
+        .lesson-task-card.is-complete { border-left-color: var(--color-success); }
+        .lesson-task-card.is-unavailable { opacity: .6; }
+        .lesson-task-card h3 { margin: 0; font: 600 .9rem/1.4 var(--font-headings); }
+        .lesson-task-card p { margin: 7px 0 0; font: 400 .76rem/1.6 var(--font-headings); }
+        .lesson-task-stars { display: block; margin-top: 8px; color: var(--color-primary-rust); font: 600 .72rem/1.5 var(--font-headings); }
+        .lesson-task-control { flex: 0 0 82px; display: grid; justify-items: center; gap: 6px; color: var(--color-gray-700); font: 500 .68rem/1.4 var(--font-headings); text-align: center; }
+        .lesson-task-control input { width: 21px; height: 21px; accent-color: var(--color-success); }
+        .lesson-task-control input:disabled { cursor: not-allowed; }
+        .lesson-task-empty { padding: 18px; border: 1px dashed var(--color-gray-400); border-radius: var(--border-radius); color: var(--color-gray-700); font: 400 .82rem/1.6 var(--font-headings); }
         .chat-header, .feedback-header { background: var(--color-primary-navy); }
         .top-progress-bar-fill { transition: width .3s ease; }
         @media (max-width: 768px) {
@@ -1080,43 +1096,19 @@
             <span class="badge badge-navy">Real-World Execution</span>
             <h2>Tasks for this lesson</h2>
             <p style="color: var(--color-gray-700);">
-                Complete all three practice tasks to unlock your next lesson. Task completion is a local prototype for now.
+                Complete tasks to earn stars equal to their difficulty. Ten stars unlock the next lesson.
             </p>
 
-            <!-- Task Selector Grid (Populated / Synced with Supabase) -->
-            <div class="task-grid" id="taskGridContainer" aria-label="Tasks included with this lesson">
-                <!-- Task Card 1 -->
-                <div class="task-select-card task-level-one selected">
-                    <span class="task-stars" aria-label="1 out of 5 stars">★☆☆☆☆</span>
-                    <span class="task-title">The Barista Greeting</span>
-                    <span class="task-desc">Make eye contact, smile, and ask your barista how their morning is going before ordering.</span>
-                    <label class="task-complete-control"><input type="checkbox" class="lesson-task-complete"> Mark complete</label>
+            <div class="lesson-task-progress" aria-live="polite">
+                <div class="lesson-task-progress-head">
+                    <strong id="lesson-task-progress-label">Loading this lesson’s tasks…</strong>
+                    <span>10 stars unlock the next lesson</span>
                 </div>
-
-                <!-- Task Card 2 -->
-                <div class="task-select-card task-level-two selected">
-                    <span class="task-stars" aria-label="2 out of 5 stars">★★☆☆☆</span>
-                    <span class="task-title">1 Environmental Opener</span>
-                    <span class="task-desc">Deliver 1 situational comment to someone in line at a shop or bus stop today.</span>
-                    <label class="task-complete-control"><input type="checkbox" class="lesson-task-complete"> Mark complete</label>
-                </div>
-
-                <!-- Task Card 3 -->
-                <div class="task-select-card task-level-three selected">
-                    <span class="task-stars" aria-label="3 out of 5 stars">★★★☆☆</span>
-                    <span class="task-title">Observation Practice</span>
-                    <span class="task-desc">Notice 3 interesting details or items people around you are carrying without initiating.</span>
-                    <label class="task-complete-control"><input type="checkbox" class="lesson-task-complete"> Mark complete</label>
-                </div>
+                <div class="lesson-task-progress-track" id="lesson-task-progress-track" role="progressbar" aria-label="Stars earned for this lesson" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="lesson-task-progress-fill" id="lesson-task-progress-fill"></div></div>
+                <p id="lesson-task-completion-status" role="status">Tasks completed in this lesson only count toward its next lesson.</p>
             </div>
-
-            <div class="note-box note-task">
-                <i class="fa-solid fa-list-check"></i>
-                <div class="note-content">
-                    <div class="note-title">Prototype task progress</div>
-                    <div id="lesson-task-completion-status" role="status" aria-live="polite">0 of 3 tasks complete.</div>
-                </div>
-            </div>
+            <div class="lesson-task-grid" id="taskGridContainer" aria-label="Tasks associated with this lesson"></div>
+            <p class="lesson-task-storage-note">Task completion is saved in this browser for now.</p>
 
             <div class="step-footer-actions">
                 <button class="btn btn-success" id="complete-lesson-tasks" type="button" disabled>Complete tasks to unlock next lesson</button>
@@ -1248,42 +1240,83 @@
             }
         });
 
-        const lessonTaskChecks = [...document.querySelectorAll('.lesson-task-complete')];
-        const completeTasksButton = document.getElementById('complete-lesson-tasks');
+        const lessonTaskGrid = document.getElementById('taskGridContainer');
         const taskCompletionStatus = document.getElementById('lesson-task-completion-status');
         let activeLessonId = null;
         let lessonAuthUserId = null;
 
-        function updateTaskCompletionControls(completed = false, progress = null) {
-            const completedCount = lessonTaskChecks.filter(check => check.checked).length;
-            lessonTaskChecks.forEach(check => {
-                if (completed) check.checked = true;
-                check.disabled = completed;
-            });
-            completeTasksButton.disabled = completed || completedCount !== lessonTaskChecks.length;
-            completeTasksButton.textContent = completed ? 'Tasks completed' : 'Complete tasks to unlock next lesson';
-            if (completed) {
-                taskCompletionStatus.textContent = progress?.nextLessonId
-                    ? `Lesson ${activeLessonId} is complete. Lesson ${progress.nextLessonId} is now unlocked.`
-                    : 'Lesson 6 is complete. You’ve finished all six lessons.';
+        function renderLessonTaskProgress(lessonId, progress) {
+            const stars = progress.starsByLesson[lessonId] || 0;
+            document.querySelector('.lesson-task-progress-head span').textContent = lessonId === 6 ? '10 stars complete the final lesson' : '10 stars unlock the next lesson';
+            document.getElementById('lesson-task-progress-label').textContent = `${stars} / 10 stars earned`;
+            document.getElementById('lesson-task-progress-fill').style.width = `${Math.min(100, stars * 10)}%`;
+            document.getElementById('lesson-task-progress-track').setAttribute('aria-valuenow', String(Math.min(10, stars)));
+            if (stars >= 10) {
+                taskCompletionStatus.textContent = lessonId === 6
+                    ? 'You’ve earned enough stars to complete all six lessons. Extra stars do not carry over.'
+                    : `Lesson ${lessonId + 1} is unlocked. Extra stars from this lesson do not carry over.`;
             } else {
-                taskCompletionStatus.textContent = `${completedCount} of ${lessonTaskChecks.length} tasks complete. Mark all tasks complete to unlock the next lesson.`;
+                const remaining = 10 - stars;
+                taskCompletionStatus.textContent = lessonId === 6
+                    ? `${remaining} more ${remaining === 1 ? 'star' : 'stars'} needed to complete the final lesson.`
+                    : `${remaining} more ${remaining === 1 ? 'star' : 'stars'} needed to unlock Lesson ${lessonId + 1}. Only this lesson’s stars count toward that unlock.`;
             }
         }
 
-        lessonTaskChecks.forEach(check => check.addEventListener('change', () => updateTaskCompletionControls()));
-        completeTasksButton.addEventListener('click', async () => {
-            if (!activeLessonId || lessonTaskChecks.some(check => !check.checked)) return;
-            completeTasksButton.disabled = true;
-            taskCompletionStatus.textContent = 'Saving your lesson completion…';
-            try {
-                const progress = await window.BeanosAPI.completeLessonTasks(activeLessonId, lessonAuthUserId);
-                updateTaskCompletionControls(true, progress);
-            } catch (error) {
-                taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || error.message || 'Lesson completion could not be saved.';
-                completeTasksButton.disabled = false;
+        function renderLessonTasks(lessonId, tasks, progress) {
+            renderLessonTaskProgress(lessonId, progress);
+            lessonTaskGrid.replaceChildren();
+            if (!tasks.length) {
+                const empty = document.createElement('p');
+                empty.className = 'lesson-task-empty';
+                empty.textContent = 'No tasks are currently associated with this lesson.';
+                lessonTaskGrid.appendChild(empty);
+                return;
             }
-        });
+            const completedIds = new Set(progress.completedTaskIdsByLesson[lessonId] || []);
+            const thresholdMet = (progress.starsByLesson[lessonId] || 0) >= 10;
+            tasks.forEach(task => {
+                const completed = completedIds.has(String(task.id));
+                const card = document.createElement('article');
+                card.className = `lesson-task-card${completed ? ' is-complete' : ''}${thresholdMet && !completed ? ' is-unavailable' : ''}`;
+                const details = document.createElement('div');
+                const title = document.createElement('h3');
+                title.textContent = task.title || 'Lesson task';
+                const description = document.createElement('p');
+                description.textContent = task.description || '';
+                const stars = document.createElement('span');
+                stars.className = 'lesson-task-stars';
+                stars.textContent = `Difficulty ${task.difficulty} · ${task.difficulty} ${Number(task.difficulty) === 1 ? 'star' : 'stars'}`;
+                details.append(title, description, stars);
+
+                const control = document.createElement('label');
+                control.className = 'lesson-task-control';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = completed;
+                checkbox.disabled = completed || thresholdMet;
+                checkbox.setAttribute('aria-label', `Mark ${task.title} complete for ${task.difficulty} stars`);
+                const controlLabel = document.createElement('span');
+                controlLabel.textContent = completed ? 'Completed' : thresholdMet ? 'Unlock earned' : 'Mark complete';
+                control.append(checkbox, controlLabel);
+                checkbox.addEventListener('change', async () => {
+                    if (!checkbox.checked) return;
+                    checkbox.disabled = true;
+                    controlLabel.textContent = 'Saving…';
+                    try {
+                        const updated = await window.BeanosAPI.completeLessonTask(lessonId, task, lessonAuthUserId);
+                        renderLessonTasks(lessonId, tasks, updated);
+                    } catch (error) {
+                        checkbox.checked = false;
+                        checkbox.disabled = false;
+                        controlLabel.textContent = 'Mark complete';
+                        taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || 'Task completion could not be saved.';
+                    }
+                });
+                card.append(details, control);
+                lessonTaskGrid.appendChild(card);
+            });
+        }
 
         async function loadLesson() {
             const lessonId = Number(new URLSearchParams(window.location.search).get('lesson'));
@@ -1311,22 +1344,30 @@
                     accessMessage.textContent = `Lesson ${lessonId} is locked. Complete available lessons in order, starting with Lesson ${progress.unlockedThrough}, to unlock it.`;
                     return;
                 }
-                updateTaskCompletionControls(progress.completedLessons.includes(lessonId), progress);
+                renderLessonTaskProgress(lessonId, progress);
                 document.getElementById('lesson-access-status').hidden = true;
                 document.getElementById('lesson-content').hidden = false;
+                let resourcesLoaded = false;
                 try {
                     lessonResources = await window.BeanosAPI.loadLessonResources(lessonId);
+                    resourcesLoaded = true;
                 } catch (error) {
                     status.textContent = window.BeanosAPI?.explain(error) || 'Lesson resources could not load. Please try again later.';
-                    return;
                 }
-                if (!lessonResources.length) {
+                if (resourcesLoaded && !lessonResources.length) {
                     status.textContent = 'No articles or videos have been added to this lesson yet.';
-                    return;
+                } else if (resourcesLoaded && lessonResources.length) {
+                    status.hidden = true;
+                    lessonResourceIndex = 0;
+                    renderLessonResource();
                 }
-                status.hidden = true;
-                lessonResourceIndex = 0;
-                renderLessonResource();
+                try {
+                    const tasks = await window.BeanosAPI.loadLessonTasks(lessonId);
+                    renderLessonTasks(lessonId, tasks, progress);
+                } catch (error) {
+                    lessonTaskGrid.replaceChildren();
+                    taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || 'Lesson tasks could not load. Please try again later.';
+                }
             } catch (error) {
                 accessMessage.textContent = window.BeanosAPI?.explain(error) || 'Lesson access could not be checked. Please return home and try again.';
             }
@@ -1416,10 +1457,6 @@
             }, 1400);
         }
 
-        // Home page placeholder until the Beanos home page is available.
-        function commitTasksAndReturnHome() {
-            window.location.href = 'index.html';
-        }
     </script>
 </body>
 </html>
