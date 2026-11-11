@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
       --color-primary-rust:#A65E4F;--color-primary-navy:#1A2A40;--color-secondary-tan:#EBD9C1;
@@ -62,21 +63,31 @@
   </main>
   <script>
     'use strict';
-    // Future Supabase wiring will replace this browser-only save/load layer.
+    // The publishable/anon key is safe for this school-project demo with the supplied public policies.
+    // Never use a service-role key in a browser page.
+    const SUPABASE_URL = 'https://bzqepyhnvvrwzafydeqp.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_VbXs3R4Y6H4bVS63j2KkoA_g0trAUp5';
     const STORAGE_KEY = 'beanos.tasks.v1';
+    const REFLECTIONS_TABLE = 'task_reflections';
     const query = new URLSearchParams(window.location.search);
     const taskId = query.get('task');
     const difficulty = Number(query.get('difficulty'));
     const viewOnly = query.get('view') === '1';
     const state = readState();
-    const task = findTask();
+    let task = findTask();
     const form = document.getElementById('reflection-form');
     const textarea = document.getElementById('reflection-text');
     const saveButton = document.getElementById('save-reflection');
     const status = document.getElementById('form-status');
     const pageError = document.getElementById('page-error');
-    const savedReflection = state.reflections[String(taskId)];
-    const showPastReflection = viewOnly || Boolean(savedReflection);
+    let savedReflection = state.reflections[String(taskId)];
+    let showPastReflection = viewOnly || Boolean(savedReflection);
+    const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    const userId = localStorage.getItem('active_user_id');
+    document.querySelector('.footer-note').textContent = client
+      ? 'Supabase is configured; the task_reflections table must exist for online saving.'
+      : 'Your reflection is saved in this browser until Supabase is connected.';
 
     function readState() {
       try {
@@ -113,13 +124,36 @@
       status.textContent = message;
       status.className = `form-status ${kind}`.trim();
     }
-    function initialize() {
+    async function initialize() {
       if (!taskId || !Number.isInteger(difficulty) || difficulty < 1 || difficulty > 5) {
         showError('This reflection link is missing a task. Return to the tasks page and open a task from your list.');
         return;
       }
+      if (client && userId) {
+        try {
+          const { data, error } = await client.from(REFLECTIONS_TABLE)
+            .select('task_id,difficulty,reflection,created_at')
+            .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
+          if (error) throw error;
+          if (data) {
+            savedReflection = { ...data, task:task || { id:data.task_id,difficulty:data.difficulty,title:'Completed task',description:'',estimated_minutes:0 } };
+            state.reflections[String(taskId)] = savedReflection;
+            state.completed[String(taskId)] = { difficulty:Number(data.difficulty), title:savedReflection.task.title, task:savedReflection.task, completed_at:data.created_at };
+            task = savedReflection.task;
+            showPastReflection = true;
+            saveState();
+          }
+        } catch (error) {
+          console.error('Could not load the saved reflection from Supabase:', error);
+          if (viewOnly && !savedReflection) announce('Could not load this past reflection from Supabase. Check the task_reflections table and read policy.','error');
+        }
+      }
       if (!task) {
         showError('The task details could not be found in this browser. Return to the tasks page and choose the task again.');
+        return;
+      }
+      if (viewOnly && !savedReflection) {
+        showError('No saved reflection was found for this task. Return to the tasks page to continue.');
         return;
       }
       document.getElementById('reflection-content').hidden = false;
@@ -143,7 +177,7 @@
         updateCounter();
       }
     }
-    function saveReflection(event) {
+    async function saveReflection(event) {
       event.preventDefault();
       const reflection = textarea.value.trim();
       if (reflection.length < 50) {
@@ -153,17 +187,43 @@
       }
       const key = String(taskId);
       const savedAt = new Date().toISOString();
+      if (client) {
+        if (!userId) {
+          announce('Please sign in before saving this reflection.','error');
+          return;
+        }
+        saveButton.disabled = true;
+        saveButton.innerHTML = 'Saving… <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
+        try {
+          const { error } = await client.from(REFLECTIONS_TABLE).upsert({
+            user_id:userId,
+            task_id:task.id,
+            difficulty,
+            reflection
+          }, { onConflict:'user_id,task_id' });
+          if (error) throw error;
+        } catch (error) {
+          console.error('Could not save the reflection to Supabase:', error);
+          saveButton.innerHTML = 'Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
+          updateCounter();
+          announce('Could not save to Supabase. Check your connection and the task_reflections table policies, then try again.','error');
+          return;
+        }
+      }
       state.reflections[key] = { task_id: task.id, difficulty, task, reflection, saved_at: savedAt };
       state.completed[key] = { difficulty, title: task.title, task, completed_at: savedAt };
       saveState();
+      showPastReflection = true;
       textarea.readOnly = true;
       saveButton.hidden = true;
       document.getElementById('completed-banner').hidden = false;
       document.getElementById('character-count').textContent = `${reflection.length} characters saved`;
       document.getElementById('character-count').classList.add('valid');
-      announce('Reflection saved. You can return to your tasks and continue with another one.','success');
+      announce(client ? 'Reflection saved to Supabase. You can return to your tasks and continue with another one.' : 'Reflection saved in this browser. Add your Supabase project details to save it online.','success');
     }
     initialize();
   </script>
 </body>
 </html>
+
+
