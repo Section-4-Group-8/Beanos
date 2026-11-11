@@ -81,11 +81,13 @@
     function readState() {
       try {
         const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        return { selected: value.selected || {}, completed: value.completed || {}, reflections: value.reflections || {} };
-      } catch { return { selected:{}, completed:{}, reflections:{} }; }
+        return { selected: value.selected || {}, completed: value.completed || {}, reflections: value.reflections || {}, taskCatalog: value.taskCatalog || {} };
+      } catch { return { selected:{}, completed:{}, reflections:{}, taskCatalog:{} }; }
     }
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function findTask() {
+      const catalogTask = state.taskCatalog[String(taskId)];
+      if (catalogTask) return catalogTask;
       const selected = state.selected[difficulty];
       if (selected && typeof selected === 'object' && String(selected.id) === String(taskId)) return selected;
       const past = state.reflections[String(taskId)];
