@@ -8,6 +8,7 @@
   const retryActions = document.getElementById('home-retry-actions');
   const retry = document.getElementById('home-retry');
   const signout = document.getElementById('home-signout');
+  const adminDashboardLink = document.getElementById('admin-dashboard-link');
   const status = document.getElementById('home-account-status');
   const lessonList = document.getElementById('home-lesson-list');
   const lessons = [
@@ -73,6 +74,16 @@
       const account = await api.requireAccount({ completed: true });
       if (!account) return;
       const user = await api.currentUser();
+      try {
+        const { data:adminEntry, error:adminCheckError } = await api.client
+          .from('admin_users')
+          .select('auth_user_id')
+          .eq('auth_user_id', user.id)
+          .maybeSingle();
+        adminDashboardLink.hidden = Boolean(adminCheckError || !adminEntry);
+      } catch {
+        adminDashboardLink.hidden = true;
+      }
       subscription?.unsubscribe();
       subscription = api.client.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT' || (session && session.user.id !== user.id)) loginChanged();

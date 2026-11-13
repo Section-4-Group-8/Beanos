@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Private Beanos team dashboard for aggregate OKR progress.">
+  <title>Team Dashboard | Beanos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{--navy:#1A2A40;--rust:#A65E4F;--tan:#EBD9C1;--green:#5D9B7B;--blue:#4F8EA6;--ink:#1F1F1F;--muted:#626a70;--line:#E5E5E5;--paper:#F8F8F8;--white:#fff;--head:'Poppins',sans-serif;--body:'Merriweather',Georgia,serif}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 var(--body)}h1,h2,h3,p{margin-top:0}h1,h2,h3{font-family:var(--head);line-height:1.25;color:var(--navy)}button{font:inherit}.skip{position:absolute;left:-10000px;top:10px;background:#fff;padding:8px}.skip:focus{left:10px}.topbar{background:#fff;border-bottom:1px solid var(--line)}.topbar-inner{max-width:1180px;margin:auto;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--navy);font:700 1.25rem var(--head)}.brand-mark{width:34px;height:34px;border-radius:6px;background:var(--navy);position:relative}.brand-mark:after{content:'';position:absolute;width:12px;height:17px;left:11px;top:8px;border:2px solid var(--tan);border-radius:65% 35% 60% 40%;transform:rotate(-20deg)}.brand-dot{color:var(--rust)}.top-actions{display:flex;align-items:center;gap:16px;font:500 .82rem var(--head);color:var(--muted)}.top-actions a{color:var(--navy);text-decoration:none}.logout{border:0;background:none;color:var(--rust);font:600 .82rem var(--head);cursor:pointer}.logout:disabled{opacity:.5;cursor:wait}main{max-width:1180px;margin:0 auto;padding:34px 24px 60px}.eyebrow{font:600 .74rem var(--head);letter-spacing:1.1px;text-transform:uppercase;color:var(--rust)}.intro{margin-bottom:26px}.intro h1{font-size:2rem;margin:7px 0}.intro p{margin-bottom:0;color:var(--muted);font:400 .92rem/1.6 var(--head)}.privacy{margin:0 0 24px;padding:12px 15px;border-left:4px solid var(--blue);background:#eef5f7;color:#405360;border-radius:0 6px 6px 0;font:500 .78rem/1.5 var(--head)}.section-title{font:600 1rem var(--head);margin:0 0 12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:30px}.stat,.okr{background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 2px 5px #00000008}.stat{padding:17px 18px}.stat-label{color:var(--muted);font:500 .73rem var(--head)}.stat-value{margin:6px 0 1px;font:700 1.8rem var(--head);color:var(--navy)}.stat-note{font:400 .68rem var(--head);color:var(--muted)}.okrs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.okr{padding:19px 20px;min-height:190px;border-top:3px solid var(--tan)}.okr h3{font-size:.98rem;margin:0 0 12px}.badge{display:inline-block;border-radius:20px;padding:4px 9px;background:#f4f1e9;color:#766544;font:600 .66rem var(--head);letter-spacing:.25px}.badge.ready{background:#eaf3ee;color:#426d55}.badge.partial{background:#eef5f7;color:#3d7386}.badge.missing{background:#faf0eb;color:#935745}.okr-metric{font:600 1.35rem var(--head);color:var(--navy);margin:10px 0 2px}.okr-copy{font:400 .78rem/1.55 var(--head);color:var(--muted);margin:5px 0 0}.status-panel{padding:26px;background:#fff;border:1px solid var(--line);border-radius:9px;color:var(--muted);font:500 .9rem var(--head)}.status-panel.error{border-left:4px solid var(--rust);color:#793c32}.status-actions{margin-top:12px}.status-actions a{color:var(--navy)}.footnote{margin-top:22px;color:var(--muted);font:400 .7rem/1.5 var(--head)}[hidden]{display:none!important}@media(max-width:820px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.topbar-inner{padding:12px 16px}.top-actions span{display:none}main{padding:25px 16px 44px}.intro h1{font-size:1.65rem}.okrs{grid-template-columns:1fr}.stat{padding:14px}.stat-value{font-size:1.5rem}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to dashboard</a>
+  <header class="topbar"><div class="topbar-inner"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Beanos<span class="brand-dot">.</span></span></a><div class="top-actions"><a href="index.html">Back to app</a><button class="logout" id="signout" type="button" disabled>Log out</button></div></div></header>
+  <main id="main">
+    <section class="intro"><span class="eyebrow">TEAM DASHBOARD</span><h1>OKR progress</h1><p>All-user totals and tracking readiness for the Beanos objectives.</p></section>
+    <p class="privacy">Aggregate view across users. This page does not display names, emails, or reflection text.</p>
+    <section id="loading" class="status-panel" role="status" aria-live="polite">Checking your admin access…</section>
+    <div id="dashboard" hidden>
+      <h2 class="section-title">Activity at a glance</h2>
+      <section class="stats" aria-label="Aggregate activity metrics">
+        <article class="stat"><div class="stat-label">Total users</div><div class="stat-value" id="total-users">—</div><div class="stat-note">Profiles in Beanos</div></article>
+        <article class="stat"><div class="stat-label">Survey completed</div><div class="stat-value" id="survey-users">—</div><div class="stat-note">Users with a saved survey</div></article>
+        <article class="stat"><div class="stat-label">Tasks completed</div><div class="stat-value" id="completed-tasks">—</div><div class="stat-note">Recorded completion events</div></article>
+        <article class="stat"><div class="stat-label">Users completing tasks</div><div class="stat-value" id="active-task-users">—</div><div class="stat-note">Users with at least one completed task</div></article>
+      </section>
+      <h2 class="section-title">Objectives and tracking status</h2>
+      <section class="okrs" aria-label="OKR metrics">
+        <article class="okr"><h3>OKR 1 · Users complete tasks assigned to them</h3><span class="badge missing" id="okr1-status">Tracking setup needed</span><p class="okr-copy" id="okr1-copy">Assignment records are not captured yet, so completion rate cannot be calculated.</p></article>
+        <article class="okr"><h3>OKR 2 · Users’ star rating rises on the same tasks over time</h3><span class="badge missing" id="okr2-status">Tracking setup needed</span><p class="okr-copy" id="okr2-copy">The app records task difficulty, not a user rating after each attempt.</p></article>
+        <article class="okr"><h3>OKR 3 · Users plan dates and go on dates</h3><span class="badge ready" id="okr3-status">Tasks available</span><div class="okr-metric" id="plan-date-completions">Plan a date: —</div><div class="okr-metric" id="go-date-completions">Go on a date: —</div><p class="okr-copy" id="okr3-copy">Counts marked-complete task records across all users.</p></article>
+        <article class="okr"><h3>OKR 4 · Users complete the “get a girlfriend” task</h3><span class="badge missing" id="okr4-status">Task not found</span><div class="okr-metric" id="girlfriend-completions">—</div><p class="okr-copy" id="okr4-copy">Add this task to the catalog before its completion can be tracked.</p></article>
+      </section>
+      <p class="footnote">No targets or reporting period have been set yet. Counts show current recorded totals.</p>
+    </div>
+  </main>
+  <script src="admin-dashboard.js" defer></script>
+</body>
+</html>
