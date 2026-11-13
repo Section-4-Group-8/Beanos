@@ -82,6 +82,7 @@
     ];
     const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    let completionUserId = null;
     const sections = document.getElementById('difficulty-sections');
     const statusMessage = document.getElementById('status-message');
     const params = new URLSearchParams(window.location.search);
@@ -213,13 +214,60 @@
       card.append(detail, control);
       return card;
     }
-    function completeTask(task, checked) {
+    async function completeTask(task, checked) {
       const key = String(task.id);
       if (!checked) return;
-      state.completed[key] = { difficulty:Number(task.difficulty), title:task.title, task, completed_at:new Date().toISOString() };
-      saveCatalog();
-      renderTasks();
-      openReflection(task);
+      const completedAt = new Date().toISOString();
+      const checkbox = [...sections.querySelectorAll('input[type="checkbox"]')]
+        .find(input => input.getAttribute('aria-label') === `Mark ${task.title} complete`);
+      if (checkbox) checkbox.disabled = true;
+      try {
+        if (client) {
+          const { data:authData, error:authError } = await client.auth.getUser();
+          if (authError) throw authError;
+          completionUserId = authData.user?.id || null;
+          if (completionUserId) {
+            const { error } = await client.from('task_completions').upsert({
+              auth_user_id:completionUserId,
+              task_id:key,
+              task_title:task.title,
+              difficulty:Number(task.difficulty),
+              completed:true,
+              completed_at:completedAt
+            }, { onConflict:'auth_user_id,task_id' });
+            if (error) throw error;
+          }
+        }
+        state.completed[key] = { difficulty:Number(task.difficulty), title:task.title, task, completed:true, completed_at:completedAt };
+        saveCatalog();
+        renderTasks();
+        openReflection(task);
+      } catch (error) {
+        if (checkbox) { checkbox.checked = false; checkbox.disabled = false; }
+        console.error('Could not save task completion:', error);
+        announce('Could not save this task completion. Apply supabase/task_completions.sql in Supabase, then try again.','error');
+      }
+    }
+    async function loadCompletions() {
+      if (!client) return;
+      const { data:authData, error:authError } = await client.auth.getUser();
+      if (authError) throw authError;
+      completionUserId = authData.user?.id || null;
+      if (!completionUserId) return;
+      const { data, error } = await client.from('task_completions')
+        .select('task_id,task_title,difficulty,completed,completed_at')
+        .eq('auth_user_id',completionUserId)
+        .eq('completed',true);
+      if (error) throw error;
+      const completions = {};
+      (data || []).forEach(row => {
+        const key = String(row.task_id);
+        const task = tasks.find(item => String(item.id) === key) || state.taskCatalog[key] || {
+          id:row.task_id,difficulty:Number(row.difficulty),title:row.task_title,description:'',estimated_minutes:0
+        };
+        completions[key] = { difficulty:Number(row.difficulty), title:row.task_title, task, completed:true, completed_at:row.completed_at };
+      });
+      state.completed = completions;
     }
     async function loadTasks() {
       if (client) {
@@ -261,6 +309,12 @@
         console.error('Could not load lesson tasks from Supabase:', error);
         if (lessonId) tasks = [];
         announce('Could not load the Supabase task bank or lesson task list. Check the table names and policies.','error');
+      }
+      try {
+        await loadCompletions();
+      } catch (error) {
+        console.error('Could not load task completions:', error);
+        announce('Could not load saved task completions. Apply supabase/task_completions.sql and check its access policies.','error');
       }
       saveCatalog();
       renderTasks();
