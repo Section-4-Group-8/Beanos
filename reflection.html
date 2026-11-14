@@ -29,6 +29,7 @@
     .task-card,.reflection-card{background:white;border:1px solid var(--color-gray-200);border-radius:var(--border-radius);box-shadow:var(--shadow-sm);padding:24px;margin-bottom:18px}.task-level{display:inline-flex;align-items:center;gap:8px;color:var(--color-primary-rust);font:600 .78rem var(--font-headings);text-transform:uppercase;letter-spacing:.7px}.task-stars{font-size:.9rem;letter-spacing:1px}.task-card h2{font-size:1.3rem;margin:10px 0 6px}.task-description{color:var(--color-gray-700);margin:0}.task-time{margin-top:12px;color:var(--color-gray-700);font:500 .8rem var(--font-headings)}
     .reflection-card h2{font-size:1.2rem;margin-bottom:6px}.reflection-prompt{color:var(--color-gray-700);font-size:.9rem;margin-bottom:16px}.reflection-label{display:block;font:600 .9rem var(--font-headings);color:var(--color-primary-navy);margin-bottom:8px}.reflection-input{width:100%;min-height:220px;resize:vertical;padding:14px;border:1px solid var(--color-gray-400);border-radius:var(--border-radius);font:400 .95rem/1.7 var(--font-body);color:var(--color-gray-900);background:white;transition:var(--transition-fast)}.reflection-input:focus{outline:3px solid #A65E4F33;border-color:var(--color-primary-rust)}.reflection-input[readonly]{background:var(--color-gray-100)}.input-footer{display:flex;justify-content:space-between;gap:12px;margin-top:8px;font:500 .76rem var(--font-headings);color:var(--color-gray-700)}.char-count.invalid{color:#a33d32}.char-count.valid{color:var(--color-success)}.minimum-note{color:var(--color-gray-700)}
     .form-status{min-height:24px;margin:14px 0 0;font:500 .82rem var(--font-headings);color:var(--color-gray-700)}.form-status.error{color:#a33d32}.form-status.success{color:var(--color-success)}.actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px}.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:11px 18px;border:0;border-radius:var(--border-radius);text-decoration:none;font:600 .86rem var(--font-headings);cursor:pointer;transition:var(--transition-fast)}.button-primary{background:var(--color-primary-rust);color:white}.button-primary:hover:not(:disabled){background:#87483d;box-shadow:var(--shadow-md)}.button-secondary{background:white;color:var(--color-primary-navy);border:1px solid var(--color-gray-200)}.button-secondary:hover{border-color:var(--color-primary-rust);color:var(--color-primary-rust)}.button:disabled{background:var(--color-gray-400);color:white;cursor:not-allowed}.completed-banner{padding:14px 16px;border-left:4px solid var(--color-success);background:#eef5f0;color:#345d48;border-radius:0 var(--border-radius) var(--border-radius) 0;font:500 .84rem var(--font-headings);margin-bottom:16px}.error-panel{padding:16px;background:#fbefed;border-left:4px solid #a33d32;color:#75342d;border-radius:0 var(--border-radius) var(--border-radius) 0}.footer-note{text-align:center;margin:24px 0 0;color:var(--color-gray-700);font-size:.8rem}
+    .rating-fieldset{border:0;padding:0;margin:0 0 20px}.rating-fieldset legend{font:600 .92rem var(--font-headings);color:var(--color-primary-navy);margin-bottom:8px}.rating-stars{display:flex;align-items:center;gap:5px}.rating-star{border:0;background:transparent;padding:2px;color:var(--color-gray-400);font-size:2rem;line-height:1;cursor:pointer;transition:var(--transition-fast)}.rating-star[aria-pressed="true"],.rating-star.is-filled{color:#D9A06F}.rating-star:hover,.rating-star:focus-visible{color:#B8783F;transform:scale(1.08);outline:2px solid #D9A06F55;outline-offset:2px;border-radius:4px}.rating-label{min-height:22px;margin:5px 0 0;color:var(--color-gray-700);font:500 .78rem var(--font-headings)}.rating-stars[aria-disabled="true"] .rating-star{cursor:default}.rating-stars[aria-disabled="true"] .rating-star:hover{transform:none}
     @media(max-width:560px){.header-inner{padding:12px 14px}.header-note{font-size:.72rem}main{padding:22px 14px 40px}.hero{padding:27px 21px}.hero h1{font-size:1.65rem}.task-card,.reflection-card{padding:19px 16px}.actions{align-items:stretch;flex-direction:column-reverse}.button{width:100%}.input-footer{flex-direction:column;gap:2px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
   </style>
@@ -52,6 +53,17 @@
       <div id="completed-banner" class="completed-banner" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> You’ve already reflected on this task. You can look back at what you wrote below.</div>
       <form id="reflection-form" class="reflection-card" novalidate>
         <h2>Your reflection</h2><p class="reflection-prompt">What did you notice? What felt easier or harder than expected? What would you like to remember next time?</p>
+        <fieldset class="rating-fieldset">
+          <legend>How was your experience with this task?</legend>
+          <div class="rating-stars" id="rating-stars" role="group" aria-label="Rate your experience from 1 to 5 stars">
+            <button class="rating-star" type="button" data-rating="1" aria-label="1 star" aria-pressed="false">★</button>
+            <button class="rating-star" type="button" data-rating="2" aria-label="2 stars" aria-pressed="false">★</button>
+            <button class="rating-star" type="button" data-rating="3" aria-label="3 stars" aria-pressed="false">★</button>
+            <button class="rating-star" type="button" data-rating="4" aria-label="4 stars" aria-pressed="false">★</button>
+            <button class="rating-star" type="button" data-rating="5" aria-label="5 stars" aria-pressed="false">★</button>
+          </div>
+          <p class="rating-label" id="rating-label" role="status" aria-live="polite">Choose a rating from 1 to 5 stars.</p>
+        </fieldset>
         <label class="reflection-label" for="reflection-text">Write at least 50 characters</label>
         <textarea class="reflection-input" id="reflection-text" name="reflection" minlength="50" maxlength="5000" required placeholder="Take your time. Your reflection is just for you."></textarea>
         <div class="input-footer"><span class="minimum-note">A minimum of 50 characters is needed to save.</span><span class="char-count invalid" id="character-count" aria-live="polite">0 / 50 characters</span></div>
@@ -59,7 +71,7 @@
         <div class="actions"><a class="button button-secondary" href="tasks.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to tasks</a><button class="button button-primary" id="save-reflection" type="submit" disabled>Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
       </form>
     </section>
-    <p class="footer-note">Your reflection is saved in this browser for now. Supabase can be connected later.</p>
+    <p class="footer-note">Your task rating and reflection are saved together.</p>
   </main>
   <script>
     'use strict';
@@ -82,6 +94,9 @@
     const pageError = document.getElementById('page-error');
     let savedReflection = state.reflections[String(taskId)];
     let showPastReflection = viewOnly || Boolean(savedReflection);
+    let selectedRating = Number(savedReflection?.rating) || 0;
+    const ratingButtons = [...document.querySelectorAll('[data-rating]')];
+    const ratingLabel = document.getElementById('rating-label');
     const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     const userId = localStorage.getItem('active_user_id');
@@ -118,7 +133,19 @@
       counter.textContent = `${count} / 50 characters`;
       counter.classList.toggle('valid', count >= 50);
       counter.classList.toggle('invalid', count < 50);
-      saveButton.disabled = count < 50 || showPastReflection;
+      saveButton.disabled = count < 50 || selectedRating < 1 || showPastReflection;
+    }
+    function setRating(value, readOnly=false) {
+      selectedRating = Number(value) || 0;
+      ratingButtons.forEach(button => {
+        const rating = Number(button.dataset.rating);
+        button.setAttribute('aria-pressed', String(rating === selectedRating));
+        button.classList.toggle('is-filled', selectedRating > 0 && rating <= selectedRating);
+        button.disabled = readOnly;
+      });
+      document.getElementById('rating-stars').setAttribute('aria-disabled', String(readOnly));
+      ratingLabel.textContent = selectedRating ? `${selectedRating} out of 5 stars` : (readOnly ? 'No rating was saved with this reflection.' : 'Choose a rating from 1 to 5 stars.');
+      if (!readOnly) updateCounter();
     }
     function announce(message, kind='') {
       status.textContent = message;
@@ -132,7 +159,7 @@
       if (client && userId) {
         try {
           const { data, error } = await client.from(REFLECTIONS_TABLE)
-            .select('task_id,difficulty,reflection,created_at')
+            .select('task_id,difficulty,rating,reflection,created_at')
             .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
           if (error) throw error;
           if (data) {
@@ -141,6 +168,7 @@
             state.completed[String(taskId)] = { difficulty:Number(data.difficulty), title:savedReflection.task.title, task:savedReflection.task, completed_at:data.created_at };
             task = savedReflection.task;
             showPastReflection = true;
+            selectedRating = Number(data.rating) || 0;
             saveState();
           }
         } catch (error) {
@@ -166,12 +194,14 @@
       if (showPastReflection) {
         document.getElementById('completed-banner').hidden = false;
         textarea.value = savedReflection?.reflection || '';
+        setRating(savedReflection?.rating, true);
         textarea.readOnly = true;
         textarea.setAttribute('aria-label', 'Your saved reflection');
         saveButton.hidden = true;
         document.getElementById('character-count').textContent = `${textarea.value.trim().length} characters saved`;
         document.getElementById('character-count').classList.add('valid');
       } else {
+        ratingButtons.forEach(button => button.addEventListener('click', () => setRating(button.dataset.rating)));
         textarea.addEventListener('input', updateCounter);
         form.addEventListener('submit', saveReflection);
         updateCounter();
@@ -180,6 +210,11 @@
     async function saveReflection(event) {
       event.preventDefault();
       const reflection = textarea.value.trim();
+      if (selectedRating < 1 || selectedRating > 5) {
+        announce('Please choose a star rating before saving.','error');
+        ratingButtons[0].focus();
+        return;
+      }
       if (reflection.length < 50) {
         announce('Please write at least 50 characters before saving.','error');
         textarea.focus();
@@ -199,6 +234,7 @@
             user_id:userId,
             task_id:task.id,
             difficulty,
+            rating:selectedRating,
             reflection
           }, { onConflict:'user_id,task_id' });
           if (error) throw error;
@@ -210,7 +246,7 @@
           return;
         }
       }
-      state.reflections[key] = { task_id: task.id, difficulty, task, reflection, saved_at: savedAt };
+      state.reflections[key] = { task_id: task.id, difficulty, rating:selectedRating, task, reflection, saved_at: savedAt };
       state.completed[key] = { difficulty, title: task.title, task, completed_at: savedAt };
       saveState();
       showPastReflection = true;
@@ -225,5 +261,8 @@
   </script>
 </body>
 </html>
+
+
+
 
 
