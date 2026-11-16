@@ -990,10 +990,8 @@
              =================================================================== -->
         <section class="lesson-step" id="step-4">
             <span class="badge badge-navy"><i class="fa-solid fa-robot"></i> Interactive AI Practice</span>
-            <h2 style="margin-bottom: 6px;">Simulated Scenario: Coffee Shop Line</h2>
-            <p style="font-size: 0.95rem; color: var(--color-gray-700); margin-bottom: 20px;">
-                Test your skills. Deliver a warm, contextual opener to Maya, who is waiting ahead of you in a local café holding a book you recognize.
-            </p>
+            <h2 id="roleplay-title" style="margin-bottom: 6px;">Lesson roleplay</h2>
+            <p id="roleplay-description" style="font-size: 0.95rem; color: var(--color-gray-700); margin-bottom: 20px;">Practice the skill from this lesson in a short conversation.</p>
 
             <!-- Chat Room Container -->
             <div class="chat-card">
@@ -1005,24 +1003,20 @@
                             <div style="font-size: 0.75rem; color: var(--color-secondary-tan);"><i class="fa-solid fa-circle" style="color: #5D9B7B; font-size: 0.6rem;"></i> In coffee shop line</div>
                         </div>
                     </div>
-                    <span class="caption-text" style="color: var(--color-secondary-tan);">Turn 1 of 3</span>
+                    <span class="caption-text" id="roleplay-turn" style="color: var(--color-secondary-tan);">Turn 1 of 3</span>
                 </div>
 
-                <div class="chat-body" id="chatBody">
-                    <div class="message message-ai">
-                        <em>[Scenario Start]</em> You've been standing in line behind Maya for two minutes. She's browsing a well-worn copy of a novel and glances around casually while waiting for the cashier. What do you say to start the conversation?
-                    </div>
-                </div>
+                <div class="chat-body" id="chatBody" role="log" aria-live="polite" aria-relevant="additions"></div>
 
                 <div class="chat-input-area">
-                    <input type="text" class="chat-input" id="userInput" placeholder="Type your opening statement here..." onkeypress="handleKeyPress(event)">
-                    <button class="btn btn-primary" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                    <input type="text" class="chat-input" id="userInput" placeholder="Type your response…" maxlength="800" onkeypress="handleKeyPress(event)">
+                    <button class="btn btn-primary" id="sendRoleplayMessage" onclick="sendMessage()" aria-label="Send message"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
 
             <div class="step-footer-actions" style="justify-content: space-between; align-items: center;">
                 <span class="caption-text" id="chatStatusText">Deliver your opener to proceed</span>
-                <button class="btn btn-success" id="finishRoleplayBtn" style="display: none;" onclick="goToStep(5)">
+                <button class="btn btn-success" id="finishRoleplayBtn" style="display: none;" onclick="finishRoleplay()">
                     Complete Roleplay & Get Feedback <i class="fa-solid fa-chart-line"></i>
                 </button>
             </div>
@@ -1034,52 +1028,10 @@
         <section class="lesson-step" id="step-5">
             <span class="badge badge-success"><i class="fa-solid fa-award"></i> AI Evaluation</span>
             <h2>Roleplay Performance Review</h2>
-            <p style="color: var(--color-gray-700);">Here is how our AI coach evaluated your opening approach and follow-up interaction:</p>
+            <p style="color: var(--color-gray-700);">Review specific strengths and one or two ideas to practice next. This is guidance for practice, not a judgment of you or a prediction of how someone will respond.</p>
 
-            <div class="feedback-card">
-                <div class="feedback-header">
-                    <h3 style="color: var(--color-white); font-size: 1.1rem;">Overall Approach Rating</h3>
-                    <div class="score-circle">
-                        <span class="number">88%</span>
-                        <span class="label">Solid</span>
-                    </div>
-                </div>
-
-                <div style="padding: calc(3 * var(--spacing-unit)); background: var(--color-white);">
-                    <!-- Metric Bars -->
-                    <div class="metric-row">
-                        <div>
-                            <strong style="font-family: var(--font-headings); font-size: 0.9rem;">Contextual Relevance</strong>
-                            <div style="font-size: 0.8rem; color: var(--color-gray-700);">Used the surroundings well</div>
-                        </div>
-                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 92%;"></div></div>
-                    </div>
-
-                    <div class="metric-row">
-                        <div>
-                            <strong style="font-family: var(--font-headings); font-size: 0.9rem;">Warmth & Tone</strong>
-                            <div style="font-size: 0.8rem; color: var(--color-gray-700);">Approachable and unforced</div>
-                        </div>
-                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 85%;"></div></div>
-                    </div>
-
-                    <div class="metric-row" style="border-bottom: none;">
-                        <div>
-                            <strong style="font-family: var(--font-headings); font-size: 0.9rem;">Pressure Index</strong>
-                            <div style="font-size: 0.8rem; color: var(--color-gray-700);">Low-demand question</div>
-                        </div>
-                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 88%;"></div></div>
-                    </div>
-
-                    <!-- Constructive Feedback List -->
-                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--color-gray-200);">
-                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--color-primary-navy);">Key Coaching Insights:</h4>
-                        <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--color-gray-700);">
-                            <li style="margin-bottom: 6px;"><strong>Great hook:</strong> Referencing the book created an immediate authentic connection without sounding intrusive.</li>
-                            <li><strong>Improvement Opportunity:</strong> Next time, follow up her answer with a brief statement of your own experience before asking a second question to avoid sounding like an interviewer.</li>
-                        </ul>
-                    </div>
-                </div>
+            <div class="feedback-card" id="roleplay-review" aria-live="polite">
+                <p id="roleplay-review-status">Your feedback will appear here when you finish the roleplay.</p>
             </div>
 
             <div class="step-footer-actions">
@@ -1126,6 +1078,46 @@
         let currentStep = 1;
         const totalSteps = 6;
         let chatTurnCount = 0;
+        let roleplayHistory = [];
+        let roleplayBusy = false;
+        let roleplayReviewed = false;
+        const roleplayScenarios = [
+            null,
+            { title: 'Starting with confidence', partner: 'Maya', setting: 'At a café line, Maya is browsing a well-worn novel and glances around while waiting. Try a relaxed, context-based opener.', starter: 'You are both waiting in line at a café. Maya is holding a well-worn novel and glances around casually. What would you say?' },
+            { title: 'Starting and continuing conversations', partner: 'Jordan', setting: 'At a community event before a talk begins.', starter: 'You and Jordan are waiting for a community talk to begin. Start a conversation, then practice listening and following up.' },
+            { title: 'Showing interest and respecting boundaries', partner: 'Alex', setting: 'At a casual social gathering.', starter: 'You meet Alex at a casual social gathering. Show interest and pay attention to whether Alex seems engaged or ready to move on.' },
+            { title: 'Asking someone on a date', partner: 'Sam', setting: 'After a pleasant conversation at a bookstore event.', starter: 'You have enjoyed chatting with Sam at a bookstore event. Practice making a clear, low-pressure invitation.' },
+            { title: 'Planning and enjoying a date', partner: 'Riley', setting: 'Planning a first coffee date together.', starter: 'You and Riley are planning a first coffee date. Find a comfortable plan together and keep the conversation balanced.' },
+            { title: 'Following up after a date', partner: 'Casey', setting: 'The day after a pleasant first date.', starter: 'You went on a pleasant first date with Casey yesterday. Send a follow-up and respond thoughtfully to Casey’s answer.' }
+        ];
+
+        function appendChatMessage(role, text) {
+            const message = document.createElement('div');
+            message.className = `message ${role === 'assistant' ? 'message-ai' : 'message-user'}`;
+            message.textContent = text;
+            document.getElementById('chatBody').appendChild(message);
+            document.getElementById('chatBody').scrollTop = document.getElementById('chatBody').scrollHeight;
+        }
+
+        function initializeRoleplay(lessonId) {
+            const scenario = roleplayScenarios[lessonId];
+            if (!scenario) return;
+            roleplayHistory = [];
+            chatTurnCount = 0;
+            roleplayReviewed = false;
+            document.getElementById('roleplay-title').textContent = scenario.title;
+            document.getElementById('roleplay-description').textContent = `Practice with ${scenario.partner}. ${scenario.setting}`;
+            document.querySelector('.chat-header .ai-profile div div').textContent = `${scenario.partner} (AI Roleplay)`;
+            document.querySelector('.chat-header .ai-profile div div + div').textContent = scenario.setting;
+            document.getElementById('chatBody').replaceChildren();
+            appendChatMessage('assistant', scenario.starter);
+            document.getElementById('roleplay-turn').textContent = 'Turn 1 of 3';
+            document.getElementById('chatStatusText').textContent = 'Send a message to begin the roleplay.';
+            document.getElementById('finishRoleplayBtn').style.display = 'none';
+            document.getElementById('userInput').disabled = false;
+            document.getElementById('sendRoleplayMessage').disabled = false;
+            document.getElementById('roleplay-review-status').textContent = 'Your feedback will appear here when you finish the roleplay.';
+        }
         document.querySelectorAll('.lesson-step').forEach((step) => {
             let footer = step.querySelector('.step-footer-actions');
             if (!footer) {
@@ -1329,6 +1321,7 @@
 
             const title = lessonTopics[lessonId - 1];
             activeLessonId = lessonId;
+            initializeRoleplay(lessonId);
             document.title = `Beanos — Lesson ${lessonId}: ${title}`;
             document.querySelector('#step-1 h1').textContent = title;
             document.querySelector('#step-1 .badge').textContent = `Lesson ${lessonId}`;
@@ -1404,57 +1397,142 @@
 
         }
 
-        // 2. AI Roleplay Simulator Logic
+        // 2. Lesson-specific AI roleplay
         function handleKeyPress(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
             }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const inputField = document.getElementById('userInput');
             const userText = inputField.value.trim();
-            if (!userText) return;
-
-            const chatBody = document.getElementById('chatBody');
-
-            // Render User Message
-            const userMsgDiv = document.createElement('div');
-            userMsgDiv.className = 'message message-user';
-            userMsgDiv.innerText = userText;
-            chatBody.appendChild(userMsgDiv);
-
+            if (!userText || roleplayBusy || chatTurnCount >= 3 || !activeLessonId) return;
+            roleplayBusy = true;
+            document.getElementById('sendRoleplayMessage').disabled = true;
+            inputField.disabled = true;
+            appendChatMessage('user', userText);
+            roleplayHistory.push({ role: 'user', text: userText });
             inputField.value = '';
             chatTurnCount++;
-            chatBody.scrollTop = chatBody.scrollHeight;
-
-            // Render Typing Indicator
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.id = 'typingIndicator';
-            typingDiv.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-            chatBody.appendChild(typingDiv);
-            chatBody.scrollTop = chatBody.scrollHeight;
-
-            // Simulate AI Delay & Responses
-            setTimeout(() => {
-                const indicator = document.getElementById('typingIndicator');
-                if (indicator) indicator.remove();
-
-                const aiMsgDiv = document.createElement('div');
-                aiMsgDiv.className = 'message message-ai';
-
-                if (chatTurnCount === 1) {
-                    aiMsgDiv.innerText = "Oh, hi! Yeah, it's actually one of my favorite authors. Have you read any of her other books?";
-                } else if (chatTurnCount >= 2) {
-                    aiMsgDiv.innerText = "That's awesome! I'm really enjoying it so far. Oh look, line is moving up—thanks for recommending that!";
+            document.getElementById('roleplay-turn').textContent = `Turn ${Math.min(chatTurnCount + 1, 3)} of 3`;
+            document.getElementById('chatStatusText').textContent = 'Your roleplay partner is responding…';
+            const typing = document.createElement('div');
+            typing.className = 'message message-ai';
+            typing.textContent = 'Thinking…';
+            typing.setAttribute('aria-label', 'Roleplay partner is responding');
+            document.getElementById('chatBody').appendChild(typing);
+            try {
+                const result = await window.BeanosAPI.requestLessonRoleplay('chat', activeLessonId, roleplayHistory);
+                typing.remove();
+                roleplayHistory.push({ role: 'assistant', text: result.reply });
+                appendChatMessage('assistant', result.reply);
+                if (chatTurnCount >= 3) {
+                    inputField.disabled = true;
+                    document.getElementById('chatStatusText').textContent = 'Roleplay complete. Get your coaching feedback.';
                     document.getElementById('finishRoleplayBtn').style.display = 'inline-flex';
-                    document.getElementById('chatStatusText').innerText = 'Great conversation! Click to get your review.';
+                } else {
+                    inputField.disabled = false;
+                    inputField.focus();
+                    document.getElementById('chatStatusText').textContent = `${3 - chatTurnCount} ${3 - chatTurnCount === 1 ? 'turn' : 'turns'} remaining. You can finish whenever you’re ready.`;
+                    document.getElementById('finishRoleplayBtn').style.display = 'inline-flex';
                 }
+            } catch (error) {
+                typing.remove();
+                roleplayHistory.pop();
+                chatTurnCount--;
+                appendChatMessage('assistant', window.BeanosAPI?.explain(error) || error.message || 'I couldn’t respond just now. Please try again.');
+                inputField.value = userText;
+                inputField.disabled = false;
+                inputField.focus();
+                document.getElementById('chatStatusText').textContent = 'Your message was not sent. Please try again.';
+            } finally {
+                roleplayBusy = false;
+                document.getElementById('sendRoleplayMessage').disabled = false;
+                document.getElementById('roleplay-turn').textContent = `Turn ${Math.min(chatTurnCount + 1, 3)} of 3`;
+            }
+        }
 
-                chatBody.appendChild(aiMsgDiv);
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }, 1400);
+        function renderRoleplayReview(review) {
+            const container = document.getElementById('roleplay-review');
+            container.replaceChildren();
+            const header = document.createElement('div');
+            header.className = 'feedback-header';
+            const heading = document.createElement('h3');
+            heading.textContent = 'Overall practice rating';
+            const score = document.createElement('div');
+            score.className = 'score-circle';
+            const number = document.createElement('span');
+            number.className = 'number';
+            number.textContent = `${Math.max(0, Math.min(100, Math.round(review.overallScore)))}%`;
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.textContent = review.label || 'Practice';
+            score.append(number, label);
+            header.append(heading, score);
+            container.appendChild(header);
+            const content = document.createElement('div');
+            content.style.padding = 'calc(3 * var(--spacing-unit))';
+            content.style.background = 'var(--color-white)';
+            (review.dimensions || []).forEach(dimension => {
+                const row = document.createElement('div');
+                row.className = 'metric-row';
+                const description = document.createElement('div');
+                const title = document.createElement('strong');
+                title.textContent = dimension.name;
+                title.style.fontFamily = 'var(--font-headings)';
+                const detail = document.createElement('div');
+                detail.textContent = dimension.feedback;
+                detail.style.cssText = 'font-size:.8rem;color:var(--color-gray-700)';
+                description.append(title, detail);
+                const bar = document.createElement('div');
+                bar.className = 'metric-bar-bg';
+                const fill = document.createElement('div');
+                fill.className = 'metric-bar-fill';
+                fill.style.width = `${Math.max(0, Math.min(100, Number(dimension.score) * 20))}%`;
+                bar.appendChild(fill);
+                row.append(description, bar);
+                content.appendChild(row);
+            });
+            [['What went well', review.strengths], ['Try next time', review.improvements]].forEach(([titleText, items]) => {
+                const section = document.createElement('div');
+                section.style.cssText = 'margin-top:20px;padding-top:16px;border-top:1px dashed var(--color-gray-200)';
+                const title = document.createElement('h4');
+                title.textContent = titleText;
+                title.style.cssText = 'font-size:.95rem;margin-bottom:10px;color:var(--color-primary-navy)';
+                const list = document.createElement('ul');
+                list.style.cssText = 'padding-left:20px;font-size:.9rem;color:var(--color-gray-700)';
+                (Array.isArray(items) ? items : []).slice(0, 3).forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    list.appendChild(li);
+                });
+                section.append(title, list);
+                content.appendChild(section);
+            });
+            container.appendChild(content);
+        }
+
+        async function finishRoleplay() {
+            if (roleplayBusy || roleplayReviewed || !roleplayHistory.some(message => message.role === 'user')) return;
+            roleplayBusy = true;
+            const button = document.getElementById('finishRoleplayBtn');
+            button.disabled = true;
+            document.getElementById('chatStatusText').textContent = 'Preparing your feedback…';
+            document.getElementById('roleplay-review-status').textContent = 'Your roleplay is being reviewed…';
+            try {
+                const result = await window.BeanosAPI.requestLessonRoleplay('evaluate', activeLessonId, roleplayHistory);
+                renderRoleplayReview(result.review);
+                roleplayReviewed = true;
+                goToStep(5);
+            } catch (error) {
+                document.getElementById('roleplay-review-status').textContent = window.BeanosAPI?.explain(error) || error.message || 'Feedback could not be loaded. Please try again.';
+            } finally {
+                roleplayBusy = false;
+                button.disabled = false;
+                document.getElementById('chatStatusText').textContent = roleplayReviewed ? 'Feedback is ready.' : 'Could not get feedback. You can retry.';
+            }
         }
 
     </script>

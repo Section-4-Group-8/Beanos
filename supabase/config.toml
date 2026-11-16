@@ -1,0 +1,4 @@
+project_id = "bzqepyhnvvrwzafydeqp"
+
+[functions.lesson-roleplay]
+verify_jwt = true

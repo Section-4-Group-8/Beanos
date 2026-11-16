@@ -90,6 +90,19 @@
     return data || [];
   }
 
+  async function requestLessonRoleplay(action, lessonId, history) {
+    if (!['chat', 'evaluate'].includes(action)) throw new Error('That roleplay action is not valid.');
+    const { data, error } = await ready().functions.invoke('lesson-roleplay', {
+      body: { action, lessonId: Number(lessonId), history }
+    });
+    if (error) {
+      const message = data?.error || error.message;
+      throw new Error(message || 'The roleplay service could not respond. Please try again.');
+    }
+    if (data?.error) throw new Error(data.error);
+    return data;
+  }
+
   function readLessonTaskProgress(userId) {
     const storageKey = `beanos_lesson_tasks:${userId}`;
     let saved;
@@ -161,6 +174,7 @@
     saveSurvey: answers => rpc('beanos_save_survey', { p_answers: answers }),
     loadLessonResources,
     loadLessonTasks,
+    requestLessonRoleplay,
     loadLessonProgress,
     completeLessonTask
   });

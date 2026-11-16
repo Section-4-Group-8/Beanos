@@ -1,6 +1,11 @@
 {
   "name": "beanos",
   "private": true,
-  "scripts": { "test": "node --test tests/frontend.test.cjs" },
-  "devDependencies": { "jsdom": "26.1.0" }
+  "scripts": {
+    "test": "node --test tests/frontend.test.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "supabase": "^3.2.0"
+  }
 }
