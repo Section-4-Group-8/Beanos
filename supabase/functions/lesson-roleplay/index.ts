@@ -82,15 +82,22 @@ Deno.serve(async request => {
     : [{ role: 'user', parts: [{ text: `Evaluate this roleplay conversation. Messages marked Learner are the learner; messages marked Partner are you in character.\n${history.map(message => `${message.role === 'assistant' ? 'Partner' : 'Learner'}: ${message.text}`).join('\n')}` }] }];
 
   try {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: instruction }] },
-        contents,
-        generationConfig: body.action === 'evaluate' ? { responseMimeType: 'application/json', temperature: 0.3 } : { temperature: 0.8, maxOutputTokens: 180 }
-      })
+    const requestBody = JSON.stringify({
+      systemInstruction: { parts: [{ text: instruction }] },
+      contents,
+      generationConfig: body.action === 'evaluate' ? { responseMimeType: 'application/json', temperature: 0.3 } : { temperature: 0.8, maxOutputTokens: 180 }
     });
+    let response: Response | undefined;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: requestBody
+      });
+      if (![500, 503].includes(response.status) || attempt === 2) break;
+      await new Promise(resolve => setTimeout(resolve, 500 * (2 ** attempt)));
+    }
+    if (!response) return json({ error: 'Gemini could not respond. Please try again.' }, 502);
     const result = await response.json();
     if (!response.ok) {
       const providerStatus = String(result?.error?.status || 'provider error');
@@ -100,6 +107,8 @@ Deno.serve(async request => {
         ? 'Gemini usage limit reached. Check the Gemini API quota and try again later.'
         : [401, 403].includes(response.status)
           ? 'Gemini rejected the API key. Check that GEMINI_API_KEY is correct and the Gemini API is enabled for its project.'
+        : response.status === 503 || response.status === 500
+          ? 'Gemini is temporarily unavailable. Please wait a few seconds and try again.'
           : response.status === 404
             ? 'Gemini could not find the configured model. Check the model name in the Edge Function.'
             : response.status === 400
