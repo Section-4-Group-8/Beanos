@@ -88,21 +88,26 @@ Deno.serve(async request => {
       generationConfig: body.action === 'evaluate' ? { responseMimeType: 'application/json', temperature: 0.3 } : { temperature: 0.8, maxOutputTokens: 180 }
     });
     let response: Response | undefined;
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: requestBody
-      });
-      if (![500, 503].includes(response.status) || attempt === 2) break;
-      await new Promise(resolve => setTimeout(resolve, 500 * (2 ** attempt)));
+    let responseModel = '';
+    for (const model of ['gemini-3.8-flash', 'gemini-3.6-flash']) {
+      responseModel = model;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: requestBody
+        });
+        if (![500, 503].includes(response.status) || attempt === 1) break;
+        await new Promise(resolve => setTimeout(resolve, 500 * (2 ** attempt)));
+      }
+      if (response?.ok || !response || ![500, 503].includes(response.status)) break;
     }
     if (!response) return json({ error: 'Gemini could not respond. Please try again.' }, 502);
     const result = await response.json();
     if (!response.ok) {
       const providerStatus = String(result?.error?.status || 'provider error');
       const providerMessage = String(result?.error?.message || 'No provider details returned').slice(0, 240);
-      console.error('Gemini request failed:', response.status, providerStatus, providerMessage);
+      console.error('Gemini request failed:', responseModel, response.status, providerStatus, providerMessage);
       const message = response.status === 429
         ? 'Gemini usage limit reached. Check the Gemini API quota and try again later.'
         : [401, 403].includes(response.status)
