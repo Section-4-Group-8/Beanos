@@ -96,7 +96,11 @@
       body: { action, lessonId: Number(lessonId), history }
     });
     if (error) {
-      const message = data?.error || error.message;
+      let responseBody = null;
+      try {
+        if (error.context?.clone) responseBody = await error.context.clone().json();
+      } catch { /* Keep the SDK message if the function response is not JSON. */ }
+      const message = responseBody?.error || data?.error || error.message;
       throw new Error(message || 'The roleplay service could not respond. Please try again.');
     }
     if (data?.error) throw new Error(data.error);

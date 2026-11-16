@@ -93,8 +93,19 @@ Deno.serve(async request => {
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error('Gemini request failed:', response.status, result?.error?.status || 'provider error');
-      return json({ error: response.status === 429 ? 'The roleplay is at its current usage limit. Please try again later.' : 'The roleplay could not get a response. Please try again.' }, 502);
+      const providerStatus = String(result?.error?.status || 'provider error');
+      const providerMessage = String(result?.error?.message || 'No provider details returned').slice(0, 240);
+      console.error('Gemini request failed:', response.status, providerStatus, providerMessage);
+      const message = response.status === 429
+        ? 'Gemini usage limit reached. Check the Gemini API quota and try again later.'
+        : [401, 403].includes(response.status)
+          ? 'Gemini rejected the API key. Check that GEMINI_API_KEY is correct and the Gemini API is enabled for its project.'
+          : response.status === 404
+            ? 'Gemini could not find the configured model. Check the model name in the Edge Function.'
+            : response.status === 400
+              ? 'Gemini rejected the roleplay request. Check the Edge Function logs for the provider error.'
+              : 'Gemini could not respond. Check the Edge Function logs and try again.';
+      return json({ error: message }, 502);
     }
     const text = result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || '').join('').trim();
     if (!text) return json({ error: 'The roleplay returned an empty response. Please try again.' }, 502);
