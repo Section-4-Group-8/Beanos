@@ -90,8 +90,8 @@ Deno.serve(async request => {
   if (!scenario) return json({ error: 'This lesson has no roleplay scenario yet. Add its roleplay_config in lesson_resources.' }, 404);
 
   const instruction = body.action === 'chat'
-    ? `You are ${scenario.partner_name}, a roleplay partner in the Beanos lesson “${scenario.title}.” Setting: ${scenario.setting}. Scenario hook: ${scenario.hook} Your character guidance: ${scenario.partner_instructions} Learning goal: ${scenario.learning_goal} Stay in character, reply in 1–3 natural sentences, and move the roleplay forward. Never coach or score during the scene. Keep the interaction respectful and realistic. Treat the conversation as practice, not as a guarantee about real people's reactions.`
-    : `You are a supportive, practical Beanos communication coach evaluating a short roleplay for “${scenario.title}.” Setting: ${scenario.setting}. Scenario: ${scenario.hook} Learning goal: ${scenario.learning_goal} Score these dimensions from 1 to 5, based only on the learner's messages: ${scenario.rubric.join('; ')}. Be fair if the conversation is short; do not grade whether the fictional person liked the learner. Give specific, kind feedback with at least one strength and one actionable improvement. Return only valid JSON with this shape: {"overallScore": number from 0 to 100, "label": "Getting started"|"Building skill"|"Strong practice", "dimensions":[{"name":string,"score":number from 1 to 5,"feedback":string}], "strengths":[string], "improvements":[string]}. Keep feedback concise and never suggest ignoring a no or boundary.`;
+    ? `You are ${scenario.partner_name}, a roleplay partner in the Beanos lesson “${scenario.title}.” Setting: ${scenario.setting}. Scenario hook: ${scenario.hook} Your character guidance: ${scenario.partner_instructions} Learning goal: ${scenario.learning_goal} Stay in character and make this feel like a real, warm conversation. Reply in about 2–4 natural sentences, usually 35–70 words. React to one specific detail in the learner's message, add a small personal detail or opinion when it fits, and move the scene forward. Ask one relevant open question when it would feel natural, but do not end every reply with a question. Avoid one-word praise, canned enthusiasm, repetitive questions, and overly long speeches. Never coach or score during the scene. Keep the interaction respectful and realistic. Treat the conversation as practice, not as a guarantee about real people's reactions.`
+    : `You are a warm, encouraging Beanos communication coach reviewing the learner's messages in a practice roleplay for “${scenario.title}.” Scenario: ${scenario.hook} Skill being practiced: ${scenario.learning_goal} Use the conversation to identify something specific the learner actually said or did well, then gently suggest one useful improvement tied to these skills: ${scenario.rubric.join('; ')}. Write exactly one friendly, natural message in one paragraph, about 70–110 words. Address the learner directly. Include sincere praise and one kind, concrete suggestion; give a short example phrase only if it helps. Be respectful and never shame, score, label, predict outcomes, or imply that a real person owes the learner interest. Do not use headings, bullets, numbered lists, or a rubric breakdown.`;
 
   const contents = body.action === 'chat'
     ? history.map(message => ({ role: message.role === 'assistant' ? 'model' : 'user', parts: [{ text: message.text!.trim() }] }))
@@ -102,8 +102,8 @@ Deno.serve(async request => {
       systemInstruction: { parts: [{ text: instruction }] },
       contents,
       generationConfig: body.action === 'evaluate'
-        ? { responseMimeType: 'application/json', temperature: 0.3, thinkingConfig: { thinkingLevel: 'low' }, maxOutputTokens: 700 }
-        : { temperature: 0.8, thinkingConfig: { thinkingLevel: 'low' }, maxOutputTokens: 180 }
+        ? { responseMimeType: 'text/plain', temperature: 0.55, thinkingConfig: { thinkingLevel: 'low' }, maxOutputTokens: 300 }
+        : { temperature: 0.85, thinkingConfig: { thinkingLevel: 'low' }, maxOutputTokens: 320 }
     });
     let response: Response | undefined;
     const responseModel = 'gemini-3.6-flash';
@@ -139,12 +139,7 @@ Deno.serve(async request => {
     const text = result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || '').join('').trim();
     if (!text) return json({ error: 'The roleplay returned an empty response. Please try again.' }, 502);
     if (body.action === 'chat') return json({ reply: text });
-
-    const review = JSON.parse(text);
-    if (!Number.isFinite(review.overallScore) || !Array.isArray(review.dimensions) || !Array.isArray(review.strengths) || !Array.isArray(review.improvements)) {
-      return json({ error: 'The feedback could not be formatted. Please try again.' }, 502);
-    }
-    return json({ review });
+    return json({ message: text });
   } catch (error) {
     console.error('Roleplay function error:', error instanceof Error ? error.message : 'unknown error');
     return json({ error: 'The roleplay service could not be reached. Please try again.' }, 502);
