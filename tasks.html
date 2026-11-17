@@ -31,7 +31,7 @@
     .recommendation-note{margin:0 0 24px;padding:14px 17px;border-left:4px solid var(--color-info);background:#eef5f7;border-radius:0 var(--border-radius) var(--border-radius) 0;color:var(--color-gray-700);font:500 .86rem/1.5 var(--font-headings)}
     .difficulty-section{margin:30px 0 0}.difficulty-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:2px solid var(--color-secondary-tan);padding:0 2px 12px;margin-bottom:16px}.difficulty-heading h2{font-size:var(--size-font-lg,1.75rem);margin:0}.difficulty-stars{color:var(--color-primary-rust);font:600 .85rem var(--font-headings);letter-spacing:1px;white-space:nowrap}.difficulty-description{color:var(--color-gray-700);margin:-6px 0 16px;font-size:.9rem}
     .task-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.task-card{--accent:var(--color-primary-rust);position:relative;display:grid;grid-template-columns:minmax(0,1fr) 126px;min-height:170px;background:white;border:1px solid var(--color-gray-200);border-top:3px solid var(--accent);border-radius:var(--border-radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:var(--transition-fast)}.task-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}.task-card.is-recommended{border-color:var(--color-info);border-top-color:var(--color-info)}.task-card.is-reflected{background:#f1f2f1;border-color:#d4d8d5;border-top-color:#929b95;box-shadow:none}.task-card.is-reflected:hover{transform:none}.task-details{min-width:0;padding:18px 20px}.task-title{padding:0;border:0;background:transparent;text-align:left;color:var(--color-primary-navy);font:600 1.02rem/1.4 var(--font-headings)}.task-title.can-open{cursor:pointer}.task-title.can-open:hover{text-decoration:underline;text-decoration-color:var(--color-primary-rust);text-underline-offset:4px}.task-card.is-reflected .task-title,.task-card.is-reflected .task-description,.task-card.is-reflected .task-time{color:#7c837e}.task-description{margin:8px 0 0;color:var(--color-gray-700);font-size:.88rem}.task-time{margin:12px 0 0;color:var(--color-gray-700);font:500 .76rem var(--font-headings)}.task-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px}.task-tag{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 9px;background:#edf4f6;color:#326f82;font:600 .67rem var(--font-headings);text-transform:uppercase;letter-spacing:.45px}.task-tag.completed-tag{background:#e5ece7;color:#526a59}.task-control{border-left:1px solid var(--color-gray-200);background:#fbfaf8;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;padding:12px;text-align:center;color:var(--color-gray-700);font:500 .73rem/1.45 var(--font-headings)}.task-card.is-reflected .task-control{background:#e9ece9;border-left-color:#d4d8d5}.task-control input{width:23px;height:23px;margin:0;accent-color:var(--color-success);cursor:pointer}.task-control input:disabled{cursor:default}.task-control button{padding:0;border:0;background:transparent;color:var(--color-primary-rust);font:600 .73rem/1.45 var(--font-headings);text-decoration:underline;text-underline-offset:3px;cursor:pointer}.task-control button:hover{color:#7f453a}.empty-state{padding:18px;background:white;border:1px dashed var(--color-gray-400);border-radius:var(--border-radius);color:var(--color-gray-700);font-size:.9rem}
-    .status-message{min-height:24px;margin:12px 0 0;color:var(--color-gray-700);font:500 .82rem var(--font-headings)}.status-message.error{color:#9b3b32}.status-message.success{color:var(--color-success)}.footer-note{margin-top:18px;color:var(--color-gray-700);font-size:.82rem;text-align:center}
+    .task-lock{padding:22px;background:#fff;border:1px solid var(--color-gray-200);border-left:4px solid var(--color-warning);border-radius:var(--border-radius);box-shadow:var(--shadow-sm);color:var(--color-gray-700);font:500 .95rem/1.6 var(--font-headings)}.task-lock[hidden]{display:none}.status-message{min-height:24px;margin:12px 0 0;color:var(--color-gray-700);font:500 .82rem var(--font-headings)}.status-message.error{color:#9b3b32}.status-message.success{color:var(--color-success)}.footer-note{margin-top:18px;color:var(--color-gray-700);font-size:.82rem;text-align:center}
     @media(max-width:760px){.task-grid{grid-template-columns:1fr}}
     @media(max-width:560px){main{padding:22px 14px 42px}.header-inner{padding:12px 14px}.header-note{font-size:.72rem}.hero{padding:28px 22px}.hero h1{font-size:1.75rem}.lesson-progress{padding:15px}.lesson-progress-head{align-items:flex-start}.difficulty-heading h2{font-size:1.35rem}.task-card{grid-template-columns:minmax(0,1fr) 94px}.task-details{padding:15px}.task-control{padding:8px;font-size:.67rem}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
@@ -63,10 +63,12 @@
     <section class="hero" aria-labelledby="page-title"><span class="eyebrow">YOUR NEXT STEPS</span><h1 id="page-title">Tasks to practice what you learned.</h1><p>Choose an action that feels right for you. After you complete it, take a moment to reflect on how it went.</p></section>
     <section class="lesson-progress" aria-labelledby="lesson-progress-title"><div class="lesson-progress-head"><h2 id="lesson-progress-title">Progress to your next lesson</h2><span class="lesson-progress-score" id="lesson-progress-score">0 / 10 stars</span></div><div class="progress-track" id="lesson-progress-track" role="progressbar" aria-label="Progress to next lesson" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="progress-fill" id="lesson-progress-fill"></div></div><div class="progress-stars" aria-hidden="true"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10 ★</span></div><p class="lesson-unlock" id="lesson-unlock">Complete tasks to earn stars. Each task adds stars equal to its difficulty.</p></section>
     <p class="recommendation-note" id="recommendation-note" hidden></p>
+    <section class="task-lock" id="task-lock" role="status" hidden></section>
     <div id="difficulty-sections"></div>
     <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
     <p class="footer-note">Task completion and reflections are saved in this browser for now.</p>
   </main>
+  <script src="beanos-api.js"></script>
   <script>
     'use strict';
     // Add the Supabase project URL and public anon key when the task table is ready.
@@ -98,22 +100,14 @@
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     let completionUserId = null;
     const sections = document.getElementById('difficulty-sections');
+    const taskLock = document.getElementById('task-lock');
+    const progressSection = document.querySelector('.lesson-progress');
     const statusMessage = document.getElementById('status-message');
     const params = new URLSearchParams(window.location.search);
-    const lessonId = params.get('lesson_id');
+    let lessonId = params.get('lesson_id');
     let recommendedIds = readRecommendedIds(params);
-    const assignmentId = params.get('assignment_id') || crypto.randomUUID();
-    if (!params.has('assignment_id')) {
-      params.set('assignment_id', assignmentId);
-      history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
-    }
     let tasks = sampleTasks;
     let state = readState();
-    if (state.assignmentProgress?.id !== assignmentId) {
-      state.assignmentProgress = { id:assignmentId, completed:[], attemptIds:{} };
-      saveState();
-    }
-    const completedInAssignment = new Set(state.assignmentProgress.completed || []);
 
     function readRecommendedIds(searchParams) {
       const ids = new Set(searchParams.getAll('task_id'));
@@ -129,8 +123,8 @@
     function readState() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        return { completed:saved.completed || {}, reflections:saved.reflections || {}, taskCatalog:saved.taskCatalog || {}, pendingAttempts:saved.pendingAttempts || {}, assignmentProgress:saved.assignmentProgress || null };
-      } catch { return { completed:{}, reflections:{}, taskCatalog:{}, pendingAttempts:{}, assignmentProgress:null }; }
+        return { completed:saved.completed || {}, reflections:saved.reflections || {}, taskCatalog:saved.taskCatalog || {} };
+      } catch { return { completed:{}, reflections:{}, taskCatalog:{} }; }
     }
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
@@ -143,15 +137,7 @@
     }
     function openReflection(task, readOnly=false) {
       const query = new URLSearchParams({ task:String(task.id), difficulty:String(task.difficulty) });
-      query.set('assignment_id', assignmentId);
       if (readOnly) query.set('view','1');
-      else {
-        const key = String(task.id);
-        state.assignmentProgress.attemptIds[key] ||= crypto.randomUUID();
-        state.pendingAttempts[key] = state.assignmentProgress.attemptIds[key];
-        query.set('attempt_id', state.assignmentProgress.attemptIds[key]);
-        saveState();
-      }
       window.location.href = `${REFLECTION_PAGE_URL}?${query.toString()}`;
     }
     function renderProgress() {
@@ -194,9 +180,9 @@
     }
     function createTaskCard(task, level) {
       const key = String(task.id);
+      const completed = isComplete(task);
+      const reflected = hasReflection(task);
       const recommended = recommendedIds.has(key);
-      const completed = completedInAssignment.has(key) || (!recommended && isComplete(task));
-      const reflected = hasReflection(task) && (!recommended || state.reflections[key]?.attempt_id === state.assignmentProgress.attemptIds[key]);
       const card = document.createElement('article');
       card.className = `task-card${recommended ? ' is-recommended' : ''}${reflected ? ' is-reflected' : ''}`;
       card.style.setProperty('--accent', level.color);
@@ -268,10 +254,6 @@
           completed_at:completedAt
         }, { onConflict:'auth_user_id,task_id' });
         if (saveError) throw saveError;
-        completedInAssignment.add(key);
-        state.assignmentProgress.completed = [...completedInAssignment];
-        state.assignmentProgress.attemptIds[key] ||= crypto.randomUUID();
-        state.pendingAttempts[key] = state.assignmentProgress.attemptIds[key];
         state.completed[key] = { difficulty:Number(task.difficulty), title:task.title, task, completed:true, completed_at:completedAt };
         saveCatalog();
         renderTasks();
@@ -310,65 +292,78 @@
       });
       state.completed = completions;
     }
+    function lockTasks(message) {
+      tasks = [];
+      sections.replaceChildren();
+      sections.hidden = true;
+      progressSection.hidden = true;
+      taskLock.textContent = message;
+      taskLock.hidden = false;
+    }
+    function unlockTasks() {
+      taskLock.hidden = true;
+      sections.hidden = false;
+      progressSection.hidden = false;
+    }
     async function loadTasks() {
-      if (client) {
-        document.querySelector('.footer-note').textContent = 'Supabase is configured; sign in to load and save task and reflection history.';
-      }
-      if (!client) {
-        state.completed = {};
-        if (recommendedIds.size) tasks = sampleTasks.filter(task => recommendedIds.has(String(task.id)));
-        saveCatalog(); renderTasks();
-        if (lessonId) announce('Connect Supabase to load the tasks linked to this lesson.','error');
+      if (!client || !window.BeanosAPI) {
+        lockTasks('Sign in and connect the Beanos Supabase setup to unlock tasks after completing a lesson.');
         return;
       }
       try {
-        if (lessonId && !recommendedIds.size) {
-          const { data: lessonTasks, error: lessonError } = await client
-            .from('lesson_task_recommendations').select('lesson_title,task_ids').eq('lesson_id',lessonId).maybeSingle();
-          if (lessonError) throw lessonError;
-          recommendedIds = new Set((lessonTasks?.task_ids || []).map(String));
-          if (lessonTasks?.lesson_title) {
-            const note = document.getElementById('recommendation-note');
-            note.textContent = `Tasks recommended from “${lessonTasks.lesson_title}.”`;
-            note.hidden = false;
-          }
-        }
-        if (lessonId && !recommendedIds.size) {
-          tasks = [];
-          announce('No tasks are linked to this lesson yet.','error');
-          saveCatalog(); renderTasks(); await loadReflections();
+        const account = await window.BeanosAPI.requireAccount({ completed: true });
+        if (!account) {
+          lockTasks('Sign in and complete Lesson 1 to unlock its tasks.');
           return;
         }
-        let request = client.from('task_bank').select('id,difficulty,title,description,estimated_minutes').order('difficulty').order('title');
+        completionUserId = account.authUserId;
+        const progress = await window.BeanosAPI.loadLessonProgress(completionUserId);
+        const completed = new Set((progress.completedLessons || []).map(Number));
+        const requestedLessonId = lessonId ? Number(lessonId) : null;
+
+        if (lessonId && (!Number.isInteger(requestedLessonId) || requestedLessonId < 1 || requestedLessonId > 6)) {
+          lockTasks('That lesson link is not valid. Return to Lessons and choose an available lesson.');
+          return;
+        }
+        if (requestedLessonId && !completed.has(requestedLessonId)) {
+          lockTasks(`Tasks for Lesson ${requestedLessonId} stay locked until you complete that lesson.`);
+          return;
+        }
+        lessonId = requestedLessonId || (progress.lessonOrder || []).filter(id => completed.has(Number(id))).map(Number).at(-1) || null;
+        if (!lessonId) {
+          lockTasks('Complete Lesson 1 first. Its tasks will unlock here after the lesson is marked complete.');
+          return;
+        }
+        unlockTasks();
+        let request = client.from('task_bank')
+          .select('id,lesson_id,difficulty,title,description,estimated_minutes')
+          .eq('lesson_id', lessonId)
+          .order('difficulty', { ascending: true })
+          .order('title', { ascending: true });
         if (recommendedIds.size) request = request.in('id', [...recommendedIds].map(Number));
         const { data, error } = await request;
         if (error) throw error;
         tasks = data || [];
-      } catch (error) {
-        console.error('Could not load lesson tasks from Supabase:', error);
-        if (lessonId) tasks = [];
-        announce('Could not load the Supabase task bank or lesson task list. Check the table names and policies.','error');
-      }
-      try {
+        if (!tasks.length) {
+          announce(`No tasks are currently linked to Lesson ${lessonId}.`, 'error');
+        } else {
+          const note = document.getElementById('recommendation-note');
+          note.textContent = `Showing tasks associated with completed Lesson ${lessonId}.`;
+          note.hidden = false;
+        }
         await loadCompletions();
+        saveCatalog();
+        renderTasks();
+        await loadReflections();
       } catch (error) {
-        console.error('Could not load task completions:', error);
-        announce('Could not load saved task completions. Apply supabase/task_completions.sql and check its access policies.','error');
+        console.error('Could not load the unlocked lesson task bank:', error);
+        lockTasks(window.BeanosAPI?.explain(error) || 'Your lesson progress or task bank could not be loaded. Please try again.');
       }
-      saveCatalog();
-      renderTasks();
-      await loadReflections();
     }
     async function loadReflections() {
-      if (!client) return;
+      const userId = localStorage.getItem('active_user_id');
+      if (!client || !userId) return;
       try {
-        const { data:authData, error:authError } = await client.auth.getUser();
-        if (authError) throw authError;
-        if (!authData.user) return;
-        const { data:account, error:accountError } = await client.rpc('beanos_account');
-        if (accountError) throw accountError;
-        const userId = account?.userId ? String(account.userId) : null;
-        if (!userId) return;
         const { data, error } = await client.from('task_reflections')
           .select('task_id,difficulty,reflection,created_at')
           .eq('user_id',userId);
