@@ -4,8 +4,8 @@
   <link rel="icon" href="beanos-favicon.ico" sizes="any">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Take a moment to reflect on a Beanos task.">
-  <title>Your reflection | Beanos</title>
+  <meta name="description" content="Choose and complete confidence-building Beanos tasks.">
+  <title>Your tasks | Beanos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,15 +24,18 @@
     *{box-sizing:border-box}body{margin:0;background:var(--color-gray-100);color:var(--color-gray-900);font:1rem/1.7 var(--font-body);-webkit-font-smoothing:antialiased}
     h1,h2,h3,p{margin-top:0}h1,h2,h3{font-family:var(--font-headings);line-height:1.3;color:var(--color-primary-navy)}button{font:inherit}
     .skip-link{position:absolute;left:-9999px;top:8px;background:white;padding:10px;z-index:10}.skip-link:focus{left:8px}
-    .site-header{background:white;border-bottom:1px solid var(--color-gray-200)}.header-inner{max-width:900px;margin:auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .site-header{background:white;border-bottom:1px solid var(--color-gray-200)}.header-inner{max-width:1120px;margin:auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}
     .brand{display:flex;align-items:center;gap:10px;color:var(--color-primary-navy);font:700 1.35rem var(--font-headings);letter-spacing:-.5px;text-decoration:none}.brand-mark{width:36px;height:36px}.brand-dot{color:var(--color-primary-rust)}.header-note{font:500 .85rem var(--font-headings);color:var(--color-gray-700)}
-    main{max-width:900px;margin:0 auto;padding:36px 24px 60px}.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--color-primary-navy),#2A3E5C);border-radius:12px;padding:36px;color:white;box-shadow:var(--shadow-lg);margin-bottom:24px}.hero:after{content:"";position:absolute;width:240px;height:240px;right:-90px;top:-130px;border-radius:50%;background:#A65E4F26}.eyebrow{font:600 .78rem var(--font-headings);text-transform:uppercase;letter-spacing:1px;color:var(--color-secondary-tan)}.hero h1{color:white;font-size:2rem;margin:8px 0}.hero p{font:400 .98rem/1.7 var(--font-headings);color:#f4e9dc;margin:0;max-width:620px}
-    .task-card,.reflection-card{background:white;border:1px solid var(--color-gray-200);border-radius:var(--border-radius);box-shadow:var(--shadow-sm);padding:24px;margin-bottom:18px}.task-level{display:inline-flex;align-items:center;gap:8px;color:var(--color-primary-rust);font:600 .78rem var(--font-headings);text-transform:uppercase;letter-spacing:.7px}.task-stars{font-size:.9rem;letter-spacing:1px}.task-card h2{font-size:1.3rem;margin:10px 0 6px}.task-description{color:var(--color-gray-700);margin:0}.task-time{margin-top:12px;color:var(--color-gray-700);font:500 .8rem var(--font-headings)}
-    .reflection-card h2{font-size:1.2rem;margin-bottom:6px}.reflection-prompt{color:var(--color-gray-700);font-size:.9rem;margin-bottom:16px}.reflection-label{display:block;font:600 .9rem var(--font-headings);color:var(--color-primary-navy);margin-bottom:8px}.reflection-input{width:100%;min-height:220px;resize:vertical;padding:14px;border:1px solid var(--color-gray-400);border-radius:var(--border-radius);font:400 .95rem/1.7 var(--font-body);color:var(--color-gray-900);background:white;transition:var(--transition-fast)}.reflection-input:focus{outline:3px solid #A65E4F33;border-color:var(--color-primary-rust)}.reflection-input[readonly]{background:var(--color-gray-100)}.input-footer{display:flex;justify-content:space-between;gap:12px;margin-top:8px;font:500 .76rem var(--font-headings);color:var(--color-gray-700)}.char-count.invalid{color:#a33d32}.char-count.valid{color:var(--color-success)}.minimum-note{color:var(--color-gray-700)}
-    .form-status{min-height:24px;margin:14px 0 0;font:500 .82rem var(--font-headings);color:var(--color-gray-700)}.form-status.error{color:#a33d32}.form-status.success{color:var(--color-success)}.actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px}.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:11px 18px;border:0;border-radius:var(--border-radius);text-decoration:none;font:600 .86rem var(--font-headings);cursor:pointer;transition:var(--transition-fast)}.button-primary{background:var(--color-primary-rust);color:white}.button-primary:hover:not(:disabled){background:#87483d;box-shadow:var(--shadow-md)}.button-secondary{background:white;color:var(--color-primary-navy);border:1px solid var(--color-gray-200)}.button-secondary:hover{border-color:var(--color-primary-rust);color:var(--color-primary-rust)}.button:disabled{background:var(--color-gray-400);color:white;cursor:not-allowed}.completed-banner{padding:14px 16px;border-left:4px solid var(--color-success);background:#eef5f0;color:#345d48;border-radius:0 var(--border-radius) var(--border-radius) 0;font:500 .84rem var(--font-headings);margin-bottom:16px}.error-panel{padding:16px;background:#fbefed;border-left:4px solid #a33d32;color:#75342d;border-radius:0 var(--border-radius) var(--border-radius) 0}.footer-note{text-align:center;margin:24px 0 0;color:var(--color-gray-700);font-size:.8rem}
-    .rating-fieldset{border:0;padding:0;margin:0 0 20px}.rating-fieldset legend{font:600 .92rem var(--font-headings);color:var(--color-primary-navy);margin-bottom:8px}.rating-stars{display:flex;align-items:center;gap:5px}.rating-star{border:0;background:transparent;padding:2px;color:var(--color-gray-400);font-size:2rem;line-height:1;cursor:pointer;transition:var(--transition-fast)}.rating-star[aria-pressed="true"],.rating-star.is-filled{color:#D9A06F}.rating-star:hover,.rating-star:focus-visible{color:#B8783F;transform:scale(1.08);outline:2px solid #D9A06F55;outline-offset:2px;border-radius:4px}.rating-label{min-height:22px;margin:5px 0 0;color:var(--color-gray-700);font:500 .78rem var(--font-headings)}.rating-stars[aria-disabled="true"] .rating-star{cursor:default}.rating-stars[aria-disabled="true"] .rating-star:hover{transform:none}
-    @media(max-width:560px){.header-inner{padding:12px 14px}.header-note{font-size:.72rem}main{padding:22px 14px 40px}.hero{padding:27px 21px}.hero h1{font-size:1.65rem}.task-card,.reflection-card{padding:19px 16px}.actions{align-items:stretch;flex-direction:column-reverse}.button{width:100%}.input-footer{flex-direction:column;gap:2px}}
-    @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
+    main{max-width:1120px;margin:0 auto;padding:36px 24px 64px}.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--color-primary-navy),#2A3E5C);border-radius:12px;padding:40px;color:white;box-shadow:var(--shadow-lg);margin-bottom:24px}.hero:after{content:"";position:absolute;width:260px;height:260px;right:-80px;top:-130px;border-radius:50%;background:#A65E4F26}.eyebrow{font:600 .78rem var(--font-headings);text-transform:uppercase;letter-spacing:1px;color:var(--color-secondary-tan)}.hero h1{color:white;font-size:2.1rem;margin:8px 0}.hero p{font:400 1rem/1.7 var(--font-headings);color:#f4e9dc;margin:0;max-width:650px}
+    .lesson-progress{background:white;border:1px solid var(--color-gray-200);border-left:4px solid var(--color-success);border-radius:var(--border-radius);box-shadow:var(--shadow-sm);padding:18px 20px;margin-bottom:28px}.lesson-progress-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}.lesson-progress-head h2{font:600 1rem var(--font-headings);margin:0}.lesson-progress-score{font:600 .86rem var(--font-headings);color:var(--color-primary-navy);white-space:nowrap}.progress-track{height:12px;background:var(--color-gray-200);border-radius:99px;overflow:hidden}.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--color-success),#83B89B);border-radius:inherit;transition:width .35s ease}.progress-stars{display:flex;justify-content:space-between;margin-top:6px;color:var(--color-gray-400);font:500 .7rem var(--font-headings)}.lesson-unlock{margin:10px 0 0;color:var(--color-gray-700);font:400 .8rem var(--font-headings)}.lesson-unlock.unlocked{color:var(--color-success);font-weight:600}
+    .recommendation-note{margin:0 0 24px;padding:14px 17px;border-left:4px solid var(--color-info);background:#eef5f7;border-radius:0 var(--border-radius) var(--border-radius) 0;color:var(--color-gray-700);font:500 .86rem/1.5 var(--font-headings)}
+    .completed-tasks-link{display:inline-flex;align-items:center;gap:8px;margin:0 0 22px;padding:10px 15px;border:1px solid var(--color-primary-navy);border-radius:var(--border-radius);background:#fff;color:var(--color-primary-navy);font:600 .82rem var(--font-headings);text-decoration:none}.completed-tasks-link:hover{background:var(--color-primary-navy);color:#fff}
+    .difficulty-section{margin:30px 0 0}.difficulty-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:2px solid var(--color-secondary-tan);padding:0 2px 12px;margin-bottom:16px}.difficulty-heading h2{font-size:var(--size-font-lg,1.75rem);margin:0}.difficulty-stars{color:var(--color-primary-rust);font:600 .85rem var(--font-headings);letter-spacing:1px;white-space:nowrap}.difficulty-description{color:var(--color-gray-700);margin:-6px 0 16px;font-size:.9rem}
+    .task-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.task-card{--accent:var(--color-primary-rust);position:relative;display:grid;grid-template-columns:minmax(0,1fr) 126px;min-height:170px;background:white;border:1px solid var(--color-gray-200);border-top:3px solid var(--accent);border-radius:var(--border-radius);box-shadow:var(--shadow-sm);overflow:hidden;transition:var(--transition-fast)}.task-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}.task-card.is-recommended{border-color:var(--color-info);border-top-color:var(--color-info)}.task-card.is-reflected{background:#f1f2f1;border-color:#d4d8d5;border-top-color:#929b95;box-shadow:none}.task-card.is-reflected:hover{transform:none}.task-details{min-width:0;padding:18px 20px}.task-title{padding:0;border:0;background:transparent;text-align:left;color:var(--color-primary-navy);font:600 1.02rem/1.4 var(--font-headings)}.task-title.can-open{cursor:pointer}.task-title.can-open:hover{text-decoration:underline;text-decoration-color:var(--color-primary-rust);text-underline-offset:4px}.task-card.is-reflected .task-title,.task-card.is-reflected .task-description,.task-card.is-reflected .task-time{color:#7c837e}.task-description{margin:8px 0 0;color:var(--color-gray-700);font-size:.88rem}.task-time{margin:12px 0 0;color:var(--color-gray-700);font:500 .76rem var(--font-headings)}.task-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px}.task-tag{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 9px;background:#edf4f6;color:#326f82;font:600 .67rem var(--font-headings);text-transform:uppercase;letter-spacing:.45px}.task-tag.completed-tag{background:#e5ece7;color:#526a59}.task-control{border-left:1px solid var(--color-gray-200);background:#fbfaf8;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;padding:12px;text-align:center;color:var(--color-gray-700);font:500 .73rem/1.45 var(--font-headings)}.task-card.is-reflected .task-control{background:#e9ece9;border-left-color:#d4d8d5}.task-control input{width:23px;height:23px;margin:0;accent-color:var(--color-success);cursor:pointer}.task-control input:disabled{cursor:default}.task-control button{padding:0;border:0;background:transparent;color:var(--color-primary-rust);font:600 .73rem/1.45 var(--font-headings);text-decoration:underline;text-underline-offset:3px;cursor:pointer}.task-control button:hover{color:#7f453a}.empty-state{padding:18px;background:white;border:1px dashed var(--color-gray-400);border-radius:var(--border-radius);color:var(--color-gray-700);font-size:.9rem}
+    .task-lock{padding:22px;background:#fff;border:1px solid var(--color-gray-200);border-left:4px solid var(--color-warning);border-radius:var(--border-radius);box-shadow:var(--shadow-sm);color:var(--color-gray-700);font:500 .95rem/1.6 var(--font-headings)}.task-lock[hidden]{display:none}.status-message{min-height:24px;margin:12px 0 0;color:var(--color-gray-700);font:500 .82rem var(--font-headings)}.status-message.error{color:#9b3b32}.status-message.success{color:var(--color-success)}.footer-note{margin-top:18px;color:var(--color-gray-700);font-size:.82rem;text-align:center}
+    @media(max-width:760px){.task-grid{grid-template-columns:1fr}}
+    @media(max-width:560px){main{padding:22px 14px 42px}.header-inner{padding:12px 14px}.header-note{font-size:.72rem}.hero{padding:28px 22px}.hero h1{font-size:1.75rem}.lesson-progress{padding:15px}.lesson-progress-head{align-items:flex-start}.difficulty-heading h2{font-size:1.35rem}.task-card{grid-template-columns:minmax(0,1fr) 94px}.task-details{padding:15px}.task-control{padding:8px;font-size:.67rem}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
   </style>
 
   <style id="beanos-page-navigation-style">
@@ -44,10 +47,11 @@
   </style>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to your reflection</a>
+  <a class="skip-link" href="#main">Skip to tasks</a>
   <nav class="beanos-page-nav" aria-label="Page navigation">
     <button type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = 'index.html'; }" aria-label="Go back to the previous page">← Back</button>
   </nav>
+
 
 
   <header class="site-header"><div class="header-inner">
@@ -57,259 +61,410 @@
     </a><span class="header-note">A little progress, every day.</span>
   </div></header>
   <main id="main">
-    <section class="hero" aria-labelledby="page-title"><span class="eyebrow">A MOMENT TO REFLECT</span><h1 id="page-title">Take a moment for yourself.</h1><p>There’s no right answer. A few honest thoughts can help you notice what you learned and what you want to try next.</p></section>
-    <div id="page-error" class="error-panel" hidden></div>
-    <section id="reflection-content" hidden>
-      <article class="task-card" aria-labelledby="task-title">
-        <span class="task-level"><span id="task-stars" class="task-stars" aria-label="Task difficulty"></span><span id="task-difficulty"></span></span>
-        <h2 id="task-title"></h2><p class="task-description" id="task-description"></p><p class="task-time" id="task-time"></p>
-      </article>
-      <div id="completed-banner" class="completed-banner" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> You’ve already reflected on this task. You can look back at what you wrote below.</div>
-      <form id="reflection-form" class="reflection-card" novalidate>
-        <h2>Your reflection</h2><p class="reflection-prompt">What did you notice? What felt easier or harder than expected? What would you like to remember next time?</p>
-        <fieldset class="rating-fieldset">
-          <legend>How was your experience with this task?</legend>
-          <div class="rating-stars" id="rating-stars" role="group" aria-label="Rate your experience from 1 to 5 stars">
-            <button class="rating-star" type="button" data-rating="1" aria-label="1 star" aria-pressed="false">★</button>
-            <button class="rating-star" type="button" data-rating="2" aria-label="2 stars" aria-pressed="false">★</button>
-            <button class="rating-star" type="button" data-rating="3" aria-label="3 stars" aria-pressed="false">★</button>
-            <button class="rating-star" type="button" data-rating="4" aria-label="4 stars" aria-pressed="false">★</button>
-            <button class="rating-star" type="button" data-rating="5" aria-label="5 stars" aria-pressed="false">★</button>
-          </div>
-          <p class="rating-label" id="rating-label" role="status" aria-live="polite">Choose a rating from 1 to 5 stars.</p>
-        </fieldset>
-        <label class="reflection-label" for="reflection-text">Write at least 50 characters</label>
-        <textarea class="reflection-input" id="reflection-text" name="reflection" minlength="50" maxlength="5000" required placeholder="Take your time. Your reflection is just for you."></textarea>
-        <div class="input-footer"><span class="minimum-note">A minimum of 50 characters is needed to save.</span><span class="char-count invalid" id="character-count" aria-live="polite">0 / 50 characters</span></div>
-        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
-        <div class="actions"><a class="button button-secondary" href="tasks.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to tasks</a><button class="button button-primary" id="save-reflection" type="submit" disabled>Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
-      </form>
-    </section>
-    <p class="footer-note">Your task rating and reflection are saved together.</p>
+    <section class="hero" aria-labelledby="page-title"><span class="eyebrow">YOUR NEXT STEPS</span><h1 id="page-title">Tasks to practice what you learned.</h1><p>Choose an action that feels right for you. After you complete it, take a moment to reflect on how it went.</p></section>
+    <a class="completed-tasks-link" href="completed_tasks.html"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> View completed tasks</a>
+    <section class="lesson-progress" aria-labelledby="lesson-progress-title"><div class="lesson-progress-head"><h2 id="lesson-progress-title">Progress in your current lesson</h2><span class="lesson-progress-score" id="lesson-progress-score">0 / 10 stars</span></div><div class="progress-track" id="lesson-progress-track" role="progressbar" aria-label="Progress to next lesson" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="progress-fill" id="lesson-progress-fill"></div></div><div class="progress-stars" aria-hidden="true"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10 ★</span></div><p class="lesson-unlock" id="lesson-unlock">Complete tasks to earn stars. Each task adds stars equal to its difficulty.</p></section>
+    <p class="recommendation-note" id="recommendation-note" hidden></p>
+    <section class="task-lock" id="task-lock" role="status" hidden></section>
+    <div id="difficulty-sections"></div>
+    <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
+    <p class="footer-note">Completed tasks move to your history, where you can revisit each reflection or try a task again.</p>
   </main>
+  <script src="beanos-api.js"></script>
   <script>
     'use strict';
-    // The publishable/anon key is safe for this school-project demo with the supplied public policies.
-    // Never use a service-role key in a browser page.
+    // Add the Supabase project URL and public anon key when the task table is ready.
+    // Never place a service-role key in this browser page.
     const SUPABASE_URL = 'https://bzqepyhnvvrwzafydeqp.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_VbXs3R4Y6H4bVS63j2KkoA_g0trAUp5';
+    const REFLECTION_PAGE_URL = 'reflection.html';
     const STORAGE_KEY = 'beanos.tasks.v1';
-    const REFLECTIONS_TABLE = 'task_reflections';
-    const query = new URLSearchParams(window.location.search);
-    const taskId = query.get('task');
-    const difficulty = Number(query.get('difficulty'));
-    const viewOnly = query.get('view') === '1';
-    const attemptId = query.get('attempt_id') || (viewOnly ? null : crypto.randomUUID());
-    const assignmentId = query.get('assignment_id');
-    const state = readState();
-    let task = findTask();
-    const form = document.getElementById('reflection-form');
-    const textarea = document.getElementById('reflection-text');
-    const saveButton = document.getElementById('save-reflection');
-    const status = document.getElementById('form-status');
-    const pageError = document.getElementById('page-error');
-    let savedReflection = viewOnly ? state.reflections[String(taskId)] : null;
-    let showPastReflection = viewOnly;
-    let selectedRating = viewOnly ? (Number(savedReflection?.rating) || 0) : 0;
-    const ratingButtons = [...document.querySelectorAll('[data-rating]')];
-    const ratingLabel = document.getElementById('rating-label');
+    const levels = [
+      { difficulty:1, name:'Start small', description:'A gentle first step.', color:'#5D9B7B' },
+      { difficulty:2, name:'Find your rhythm', description:'Practice in a familiar setting.', color:'#4F8EA6' },
+      { difficulty:3, name:'Stretch a little', description:'Try something new.', color:'#D9A06F' },
+      { difficulty:4, name:'Build confidence', description:'Take a more active step.', color:'#A65E4F' },
+      { difficulty:5, name:'Go for it', description:'A bigger confidence challenge.', color:'#1A2A40' }
+    ];
+    const sampleTasks = [
+      { id:'1-1', difficulty:1, title:'Write down three things you enjoy about yourself', description:'Take a few quiet minutes to notice qualities you value.', estimated_minutes:5 },
+      { id:'1-2', difficulty:1, title:'Practice a friendly greeting out loud', description:'Say hello and introduce yourself a few times in a relaxed setting.', estimated_minutes:5 },
+      { id:'2-1', difficulty:2, title:'Make friendly small talk with someone', description:'Start a brief conversation with a cashier, classmate, or neighbor.', estimated_minutes:10 },
+      { id:'2-2', difficulty:2, title:'Ask someone an open-ended question', description:'Ask about a hobby, a recommendation, or something they enjoy.', estimated_minutes:10 },
+      { id:'3-1', difficulty:3, title:'Join a group conversation', description:'Listen for a natural opening and add one thought or question.', estimated_minutes:15 },
+      { id:'3-2', difficulty:3, title:'Invite someone to do a low-pressure activity', description:'Suggest coffee, a walk, or another simple activity together.', estimated_minutes:15 },
+      { id:'4-1', difficulty:4, title:'Tell someone you enjoyed talking with them', description:'Share a sincere, specific compliment and let the conversation continue naturally.', estimated_minutes:10 },
+      { id:'4-2', difficulty:4, title:'Ask someone you like to go on a date', description:'Be clear and kind. Give them room to answer honestly.', estimated_minutes:10 },
+      { id:'5-1', difficulty:5, title:'Plan and go on a first date', description:'Choose a simple public activity and focus on getting to know each other.', estimated_minutes:60 },
+      { id:'5-2', difficulty:5, title:'Reflect on a vulnerable conversation', description:'Share something meaningful with someone you trust and reflect on how it felt.', estimated_minutes:20 }
+    ];
     const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-    let userId = null;
-    let authUserId = null;
-    document.querySelector('.footer-note').textContent = client
-      ? 'Supabase is configured; the task_reflections table must exist for online saving.'
-      : 'Your reflection is saved in this browser until Supabase is connected.';
+    let completionUserId = null;
+    const sections = document.getElementById('difficulty-sections');
+    const taskLock = document.getElementById('task-lock');
+    const progressSection = document.querySelector('.lesson-progress');
+    const statusMessage = document.getElementById('status-message');
+    const params = new URLSearchParams(window.location.search);
+    const repeatTaskId = params.get('repeat_task_id');
+    let lessonProgress = null;
+    let availableLessonIds = [];
+    let recommendedIds = readRecommendedIds(params);
+    let tasks = [];
+    let state = readState();
 
+    function readRecommendedIds(searchParams) {
+      const ids = new Set(searchParams.getAll('task_id'));
+      const raw = searchParams.get('task_ids');
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          (Array.isArray(parsed) ? parsed : [parsed]).forEach(id => ids.add(String(id)));
+        } catch { raw.split(',').map(id => id.trim()).filter(Boolean).forEach(id => ids.add(id)); }
+      }
+      return ids;
+    }
     function readState() {
       try {
-        const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        return { selected: value.selected || {}, completed: value.completed || {}, reflections: value.reflections || {}, taskCatalog: value.taskCatalog || {}, pendingAttempts: value.pendingAttempts || {}, assignmentProgress:value.assignmentProgress || null };
-      } catch { return { selected:{}, completed:{}, reflections:{}, taskCatalog:{}, pendingAttempts:{}, assignmentProgress:null }; }
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return { completed:saved.completed || {}, reflections:saved.reflections || {}, taskCatalog:saved.taskCatalog || {} };
+      } catch { return { completed:{}, reflections:{}, taskCatalog:{} }; }
     }
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    function findTask() {
-      const catalogTask = state.taskCatalog[String(taskId)];
-      if (catalogTask) return catalogTask;
-      const selected = state.selected[difficulty];
-      if (selected && typeof selected === 'object' && String(selected.id) === String(taskId)) return selected;
-      const past = state.reflections[String(taskId)];
-      if (past?.task) return past.task;
-      const completed = state.completed[String(taskId)];
-      if (completed?.task) return completed.task;
-      return null;
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+    function isComplete(task) { return Boolean(state.completed[String(task.id)]); }
+    function hasReflection(task) { return Boolean(state.reflections[String(task.id)]); }
+    function announce(message, kind='') { statusMessage.textContent = message; statusMessage.className = `status-message ${kind}`.trim(); }
+    function saveCatalog() {
+      state.taskCatalog = { ...state.taskCatalog, ...Object.fromEntries(tasks.map(task => [String(task.id), task])) };
+      saveState();
     }
-    function showError(message) {
-      pageError.textContent = message;
-      pageError.hidden = false;
-      document.getElementById('reflection-content').hidden = true;
+    function openReflection(task, readOnly=false) {
+      const query = new URLSearchParams({ task:String(task.id), difficulty:String(task.difficulty) });
+      if (readOnly) query.set('view','1');
+      window.location.href = `${REFLECTION_PAGE_URL}?${query.toString()}`;
     }
-    function updateCounter() {
-      const count = textarea.value.trim().length;
-      const counter = document.getElementById('character-count');
-      counter.textContent = `${count} / 50 characters`;
-      counter.classList.toggle('valid', count >= 50);
-      counter.classList.toggle('invalid', count < 50);
-      saveButton.disabled = count < 50 || selectedRating < 1 || showPastReflection;
+    function renderProgress() {
+      const targetLessonId = lessonProgress?.nextLessonId ?? null;
+      const earned = targetLessonId ? Number(lessonProgress?.starsByLesson?.[targetLessonId]) || 0 : 10;
+      const progress = Math.min(10, earned);
+      document.getElementById('lesson-progress-score').textContent = `${progress} / 10 stars`;
+      document.getElementById('lesson-progress-fill').style.width = `${progress * 10}%`;
+      document.getElementById('lesson-progress-track').setAttribute('aria-valuenow', String(progress));
+      const unlock = document.getElementById('lesson-unlock');
+      if (!targetLessonId) {
+        unlock.textContent = 'All six lessons are complete. You can revisit any available tasks below.';
+        unlock.classList.add('unlocked');
+        return;
+      }
+      const currentIndex = (lessonProgress.lessonOrder || []).indexOf(targetLessonId);
+      const nextLessonId = lessonProgress.lessonOrder?.[currentIndex + 1];
+      const remaining = 10 - progress;
+      unlock.textContent = nextLessonId
+        ? `${remaining} more ${remaining === 1 ? 'star' : 'stars'} in Lesson ${targetLessonId} to unlock Lesson ${nextLessonId}.`
+        : `${remaining} more ${remaining === 1 ? 'star' : 'stars'} to complete the final lesson.`;
+      unlock.classList.toggle('unlocked', progress >= 10);
     }
-    function setRating(value, readOnly=false) {
-      selectedRating = Number(value) || 0;
-      ratingButtons.forEach(button => {
-        const rating = Number(button.dataset.rating);
-        button.setAttribute('aria-pressed', String(rating === selectedRating));
-        button.classList.toggle('is-filled', selectedRating > 0 && rating <= selectedRating);
-        button.disabled = readOnly;
+    function renderTasks() {
+      sections.replaceChildren();
+      levels.forEach(level => {
+        const section = document.createElement('section');
+        section.className = 'difficulty-section';
+        section.setAttribute('aria-labelledby', `difficulty-${level.difficulty}-title`);
+        const heading = document.createElement('div');
+        heading.className = 'difficulty-heading';
+        heading.innerHTML = `<h2 id="difficulty-${level.difficulty}-title">${level.difficulty}-star difficulty · ${escapeHtml(level.name)}</h2><span class="difficulty-stars" aria-label="${level.difficulty} out of 5 stars">${'★'.repeat(level.difficulty)}${'☆'.repeat(5-level.difficulty)}</span>`;
+        section.append(heading, Object.assign(document.createElement('p'), { className:'difficulty-description', textContent:level.description }));
+        const taskGrid = document.createElement('div');
+        taskGrid.className = 'task-grid';
+        const matching = tasks.filter(task => Number(task.difficulty) === level.difficulty && (repeatTaskId ? String(task.id) === repeatTaskId : !isComplete(task)));
+        if (!matching.length) {
+          taskGrid.innerHTML = '<p class="empty-state">No tasks are available at this difficulty yet.</p>';
+        } else {
+          matching.forEach(task => taskGrid.append(createTaskCard(task, level)));
+        }
+        section.append(taskGrid);
+        sections.append(section);
       });
-      document.getElementById('rating-stars').setAttribute('aria-disabled', String(readOnly));
-      ratingLabel.textContent = selectedRating ? `${selectedRating} out of 5 stars` : (readOnly ? 'No rating was saved with this reflection.' : 'Choose a rating from 1 to 5 stars.');
-      if (!readOnly) updateCounter();
+      renderProgress();
     }
-    function announce(message, kind='') {
-      status.textContent = message;
-      status.className = `form-status ${kind}`.trim();
+    function createTaskCard(task, level) {
+      const key = String(task.id);
+      const isRetake = Boolean(repeatTaskId && key === repeatTaskId);
+      const completed = isComplete(task) && !isRetake;
+      const reflected = hasReflection(task) && !isRetake;
+      const recommended = recommendedIds.has(key);
+      const card = document.createElement('article');
+      card.className = `task-card${recommended ? ' is-recommended' : ''}${reflected ? ' is-reflected' : ''}`;
+      card.style.setProperty('--accent', level.color);
+      const detail = document.createElement('div');
+      detail.className = 'task-details';
+      const tags = document.createElement('div');
+      tags.className = 'task-tags';
+      if (recommended) tags.innerHTML += '<span class="task-tag"><i class="fa-solid fa-sparkles" aria-hidden="true"></i> Recommended from lesson</span>';
+      if (reflected) tags.innerHTML += '<span class="task-tag completed-tag"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Completed</span>';
+      if (tags.childElementCount) detail.append(tags);
+      const title = document.createElement(reflected ? 'button' : 'h3');
+      title.className = `task-title${reflected ? ' can-open' : ''}`;
+      title.textContent = task.title;
+      if (reflected) {
+        title.type = 'button';
+        title.setAttribute('aria-label', `View your reflection for ${task.title}`);
+        title.addEventListener('click', () => openReflection(task, true));
+      }
+      detail.append(title);
+      const description = document.createElement('p');
+      description.className = 'task-description';
+      description.textContent = task.description || '';
+      detail.append(description);
+      const time = document.createElement('p');
+      time.className = 'task-time';
+      time.innerHTML = Number(task.estimated_minutes) ? `<i class="fa-regular fa-clock" aria-hidden="true"></i> About ${Number(task.estimated_minutes)} minutes` : 'Go at your own pace';
+      detail.append(time);
+
+      const control = document.createElement('label');
+      control.className = 'task-control';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = completed;
+      checkbox.disabled = completed;
+      checkbox.setAttribute('aria-label', `Mark ${task.title} complete`);
+      const controlText = document.createElement('span');
+      controlText.textContent = isRetake ? 'Complete this task again' : reflected ? 'Reflection saved' : completed ? 'Task complete' : 'Done on my own time';
+      checkbox.addEventListener('change', () => completeTask(task, checkbox.checked));
+      control.append(checkbox, controlText);
+      if (completed) {
+        const link = document.createElement('button');
+        link.type = 'button';
+        link.textContent = reflected ? 'View reflection' : 'Continue reflection';
+        link.addEventListener('click', () => openReflection(task, reflected));
+        control.append(link);
+      }
+      card.append(detail, control);
+      return card;
     }
-    async function initialize() {
-      if (!taskId || !Number.isInteger(difficulty) || difficulty < 1 || difficulty > 5) {
-        showError('This reflection link is missing a task. Return to the tasks page and open a task from your list.');
-        return;
-      }
-      if (!client) {
-        showError('Supabase is not available on this page. Check the project URL, publishable key, and network connection.');
-        return;
-      }
+    async function completeTask(task, checked) {
+      const key = String(task.id);
+      if (!checked) return;
+      const completedAt = new Date().toISOString();
+      const checkbox = [...sections.querySelectorAll('input[type="checkbox"]')]
+        .find(input => input.getAttribute('aria-label') === `Mark ${task.title} complete`);
+      if (checkbox) checkbox.disabled = true;
       try {
-        const { data:authData, error:authError } = await client.auth.getUser();
-        if (authError) throw authError;
-        if (!authData.user) throw new Error('Please sign in before opening or saving a reflection.');
-        authUserId = authData.user.id;
-
-        // Resolve the signed-in account to the numeric user ID used by task_reflections.
-        const { data:account, error:accountError } = await client.rpc('beanos_account');
-        if (accountError) throw accountError;
-        userId = account?.userId ? String(account.userId) : null;
-        if (!userId) throw new Error('Your signed-in account does not have an app user ID.');
-
-        // A new attempt must start with a blank reflection and rating; only view-only links load the past one.
-        if (viewOnly) {
-          const { data, error } = await client.from(REFLECTIONS_TABLE)
-            .select('task_id,difficulty,rating,reflection,created_at')
-            .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
-          if (error) throw error;
-          if (data) {
-            savedReflection = { ...data, task:task || { id:data.task_id,difficulty:data.difficulty,title:'Completed task',description:'',estimated_minutes:0 } };
-            state.reflections[String(taskId)] = savedReflection;
-            state.completed[String(taskId)] = { difficulty:Number(data.difficulty), title:savedReflection.task.title, task:savedReflection.task, completed_at:data.created_at };
-            task = savedReflection.task;
-            showPastReflection = true;
-            selectedRating = Number(data.rating) || 0;
-            saveState();
+        if (!window.BeanosAPI || !task.assignment_id) throw new Error('This task assignment is missing. Reload the Tasks page and try again.');
+        if (!completionUserId) throw new Error('Please sign in before completing a task so it can be saved to your account.');
+        lessonProgress = await window.BeanosAPI.completeLessonTask(
+          Number(task.lesson_id), task, task.assignment_id, completionUserId
+        );
+        state.completed[key] = { difficulty:Number(task.difficulty), title:task.title, task, completed:true, completed_at:completedAt };
+        if (repeatTaskId === key) { try { localStorage.removeItem(repeatAssignmentCacheKey(completionUserId, key)); } catch { /* Ignore blocked browser storage. */ } }
+        saveCatalog();
+        renderTasks();
+        openReflection(task);
+      } catch (error) {
+        if (checkbox) { checkbox.checked = false; checkbox.disabled = false; }
+        console.error('Could not save task completion:', error);
+        const details = [error?.message, error?.details, error?.hint, error?.code].filter(Boolean).join(' | ');
+        announce(`Task save failed: ${details || String(error)}`, 'error');
+      }
+    }
+    async function loadCompletions() {
+      // Supabase is authoritative; discard stale browser-only completion flags before loading.
+      state.completed = {};
+      completionUserId = null;
+      if (!client) return;
+      const { data:authData, error:authError } = await client.auth.getUser();
+      if (authError) throw authError;
+      completionUserId = authData.user?.id || null;
+      if (!completionUserId) {
+        announce('Sign in to load and save task completions to your account.','error');
+        return;
+      }
+      const { data, error } = await client.from('task_completions')
+        .select('task_id,task_title,difficulty,completed,completed_at')
+        .eq('auth_user_id',completionUserId)
+        .eq('completed',true);
+      if (error) throw error;
+      const completions = {};
+      (data || []).forEach(row => {
+        const key = String(row.task_id);
+        const task = tasks.find(item => String(item.id) === key) || state.taskCatalog[key] || {
+          id:row.task_id,difficulty:Number(row.difficulty),title:row.task_title,description:'',estimated_minutes:0
+        };
+        completions[key] = { difficulty:Number(row.difficulty), title:row.task_title, task, completed:true, completed_at:row.completed_at };
+      });
+      state.completed = completions;
+    }
+    function lockTasks(message) {
+      tasks = [];
+      sections.replaceChildren();
+      sections.hidden = true;
+      progressSection.hidden = true;
+      taskLock.textContent = message;
+      taskLock.hidden = false;
+    }
+    function unlockTasks() {
+      taskLock.hidden = true;
+      sections.hidden = false;
+      progressSection.hidden = false;
+    }
+    async function getLessonAssignmentId(lessonId, lessonTasks, authUserId) {
+      const cacheKey = `beanos.task.assignment:${authUserId}:${lessonId}`;
+      let cachedId = null;
+      try { cachedId = localStorage.getItem(cacheKey); } catch { /* Continue with Supabase lookup. */ }
+      const expectedIds = new Set(lessonTasks.map(task => String(task.id)));
+      try {
+        const { data, error } = await client.from('lesson_task_assignments')
+          .select('assignment_id,task_id,assigned_at')
+          .eq('auth_user_id', authUserId)
+          .eq('lesson_id', lessonId)
+          .order('assigned_at', { ascending: false });
+        if (error) throw error;
+        const grouped = new Map();
+        (data || []).forEach(row => {
+          if (!grouped.has(row.assignment_id)) grouped.set(row.assignment_id, new Set());
+          grouped.get(row.assignment_id).add(String(row.task_id));
+        });
+        for (const [assignmentId, assignedIds] of grouped) {
+          if ([...expectedIds].every(id => assignedIds.has(id))) {
+            try { localStorage.setItem(cacheKey, assignmentId); } catch { /* Supabase retains the assignment. */ }
+            return assignmentId;
           }
         }
       } catch (error) {
-        console.error('Could not verify the account or load its reflection:', error);
-        showError(`Could not load your reflection from Supabase: ${error?.message || 'Check your sign-in and table access.'}`);
-        return;
+        console.warn(`Could not look up an existing Lesson ${lessonId} assignment:`, error);
+        if (cachedId) return cachedId;
       }
-      if (!task) {
-        showError('The task details could not be found in this browser. Return to the tasks page and choose the task again.');
-        return;
-      }
-      if (viewOnly && !savedReflection) {
-        showError('No saved reflection was found for this task. Return to the tasks page to continue.');
-        return;
-      }
-      document.getElementById('reflection-content').hidden = false;
-      document.getElementById('task-title').textContent = task.title || 'Your task';
-      document.getElementById('task-description').textContent = task.description || '';
-      document.getElementById('task-difficulty').textContent = `${difficulty}-star difficulty`;
-      document.getElementById('task-stars').textContent = `${'★'.repeat(difficulty)}${'☆'.repeat(5-difficulty)}`;
-      document.getElementById('task-stars').setAttribute('aria-label', `${difficulty} out of 5 stars`);
-      document.getElementById('task-time').textContent = Number(task.estimated_minutes) ? `Estimated time: about ${Number(task.estimated_minutes)} minutes` : 'Take as much time as you need.';
-      if (showPastReflection) {
-        document.getElementById('completed-banner').hidden = false;
-        textarea.value = savedReflection?.reflection || '';
-        setRating(savedReflection?.rating, true);
-        textarea.readOnly = true;
-        textarea.setAttribute('aria-label', 'Your saved reflection');
-        saveButton.hidden = true;
-        document.getElementById('character-count').textContent = `${textarea.value.trim().length} characters saved`;
-        document.getElementById('character-count').classList.add('valid');
-      } else {
-        ratingButtons.forEach(button => button.addEventListener('click', () => setRating(button.dataset.rating)));
-        textarea.addEventListener('input', updateCounter);
-        form.addEventListener('submit', saveReflection);
-        updateCounter();
-      }
+      const assignmentId = await window.BeanosAPI.startLessonTaskAssignment(lessonId, authUserId);
+      try { localStorage.setItem(cacheKey, assignmentId); } catch { /* Supabase retains the assignment. */ }
+      return assignmentId;
     }
-    async function saveReflection(event) {
-      event.preventDefault();
-      const reflection = textarea.value.trim();
-      if (selectedRating < 1 || selectedRating > 5) {
-        announce('Please choose a star rating before saving.','error');
-        ratingButtons[0].focus();
+    function repeatAssignmentCacheKey(authUserId, taskId) {
+      return `beanos.task.repeat-assignment:${authUserId}:${taskId}`;
+    }
+    async function getRepeatAssignmentId(lessonId, taskId, authUserId) {
+      const cacheKey = repeatAssignmentCacheKey(authUserId, taskId);
+      let cachedId = null;
+      try { cachedId = localStorage.getItem(cacheKey); } catch { /* Continue with Supabase. */ }
+      if (cachedId) {
+        try {
+          const { data, error } = await client.from('lesson_task_assignments')
+            .select('assignment_id')
+            .eq('auth_user_id', authUserId)
+            .eq('lesson_id', lessonId)
+            .eq('task_id', Number(taskId))
+            .eq('assignment_id', cachedId)
+            .is('completed_at', null)
+            .maybeSingle();
+          if (!error && data) return cachedId;
+        } catch { /* A new assignment will be created below. */ }
+      }
+      const assignmentId = await window.BeanosAPI.startLessonTaskAssignment(lessonId, authUserId);
+      try { localStorage.setItem(cacheKey, assignmentId); } catch { /* Supabase retains the assignment. */ }
+      return assignmentId;
+    }
+    async function loadTasksForLessons(lessonIds, authUserId, retakeId = null) {
+      const loaded = [];
+      for (const lessonId of lessonIds) {
+        const recommendedTasks = await window.BeanosAPI.loadLessonTasks(lessonId);
+        const lessonTasks = recommendedTasks.filter(task => Number(task.lesson_id) === Number(lessonId));
+        if (!lessonTasks.length) continue;
+        const retakingThisLesson = retakeId && lessonTasks.some(task => String(task.id) === retakeId);
+        const assignmentId = retakingThisLesson
+          ? await getRepeatAssignmentId(lessonId, retakeId, authUserId)
+          : await getLessonAssignmentId(lessonId, lessonTasks, authUserId);
+        loaded.push(...lessonTasks.map(task => ({ ...task, assignment_id:assignmentId })));
+      }
+      return loaded;
+    }
+    async function loadTasks() {
+      if (!client || !window.BeanosAPI) {
+        lockTasks('Sign in and connect the Beanos Supabase setup to load your available lesson tasks.');
         return;
       }
-      if (reflection.length < 50) {
-        announce('Please write at least 50 characters before saving.','error');
-        textarea.focus();
-        return;
-      }
-      const key = String(taskId);
-      const savedAt = new Date().toISOString();
-      if (!client || !userId || !authUserId) {
-        announce('Your sign-in could not be verified. Please sign in again before saving.','error');
-        return;
-      }
-      saveButton.disabled = true;
-      saveButton.innerHTML = 'Saving… <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
       try {
-        const { data:currentAuth, error:currentAuthError } = await client.auth.getUser();
-        if (currentAuthError) throw currentAuthError;
-        if (currentAuth.user?.id !== authUserId) throw new Error('Your signed-in account changed. Please reopen the task and try again.');
-        const { error:attemptError } = await client.from('task_rating_attempts').insert({
-          attempt_id:attemptId,
-          auth_user_id:authUserId,
-          task_id:task.id,
-          rating:selectedRating
-        });
-        if (attemptError && attemptError.code !== '23505') throw attemptError;
-        const { error } = await client.from(REFLECTIONS_TABLE).upsert({
-          user_id:userId,
-          task_id:task.id,
-          difficulty,
-          rating:selectedRating,
-          reflection
-        }, { onConflict:'user_id,task_id' });
-        if (error) throw error;
+        const account = await window.BeanosAPI.requireAccount({ completed: true });
+        if (!account) return;
+        completionUserId = account.authUserId;
+        lessonProgress = await window.BeanosAPI.loadLessonProgress(completionUserId);
+
+        for (let pass = 0; pass < 6; pass += 1) {
+          availableLessonIds = [...new Set((lessonProgress.unlockedLessonIds || []).map(Number))];
+          if (!availableLessonIds.length) {
+            availableLessonIds = [Number(lessonProgress.lessonOrder?.[0]) || 1];
+          }
+          tasks = await loadTasksForLessons(availableLessonIds, completionUserId, repeatTaskId);
+          try { await loadCompletions(); }
+          catch (error) {
+            console.error('Could not load saved task completions:', error);
+            announce('Tasks loaded, but saved completions could not be checked. Check task_completions access policies.', 'error');
+          }
+
+          const previousUnlocked = JSON.stringify(lessonProgress.unlockedLessonIds || []);
+          for (const task of tasks) {
+            const taskId = String(task.id);
+            const lessonId = Number(task.lesson_id);
+            const alreadyCounted = (lessonProgress.completedTaskIdsByLesson?.[lessonId] || []).map(String).includes(taskId);
+            if (!state.completed[taskId] || alreadyCounted) continue;
+            try {
+              lessonProgress = await window.BeanosAPI.completeLessonTask(
+                lessonId, task, task.assignment_id, completionUserId
+              );
+            } catch (error) {
+              console.warn(`Could not restore progress for completed task ${taskId}:`, error);
+            }
+          }
+          if (previousUnlocked === JSON.stringify(lessonProgress.unlockedLessonIds || [])) break;
+        }
+
+        unlockTasks();
+        saveCatalog();
+        const note = document.getElementById('recommendation-note');
+        note.textContent = `Showing tasks for available Lessons ${availableLessonIds.join(', ')}. Completing tasks earns stars toward the next lesson.`;
+        note.hidden = false;
+        if (repeatTaskId && !tasks.some(task => String(task.id) === repeatTaskId)) {
+          announce('That task is not part of your currently available lessons.', 'error');
+        } else if (!tasks.length) {
+          announce('No tasks are currently associated with your available lessons.', 'error');
+        }
+        renderTasks();
+        await loadReflections();
       } catch (error) {
-        console.error('Could not save the reflection to Supabase:', error);
-        saveButton.innerHTML = 'Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
-        updateCounter();
-        announce(`Could not save to Supabase: ${error?.message || 'Check task_rating_attempts and task_reflections permissions, then try again.'}`,'error');
-        return;
+        console.error('Could not load the available lesson task bank:', error);
+        lockTasks(window.BeanosAPI?.explain(error) || 'Your lesson tasks could not be loaded. Please try again.');
       }
-      state.reflections[key] = { task_id: task.id, difficulty, rating:selectedRating, task, reflection, attempt_id:attemptId, saved_at: savedAt };
-      delete state.pendingAttempts[key];
-      if (assignmentId && state.assignmentProgress?.id === assignmentId) {
-        state.assignmentProgress.attemptIds[key] = attemptId;
-      }
-      state.completed[key] = { difficulty, title: task.title, task, completed_at: savedAt };
-      saveState();
-      showPastReflection = true;
-      textarea.readOnly = true;
-      saveButton.hidden = true;
-      document.getElementById('completed-banner').hidden = false;
-      document.getElementById('character-count').textContent = `${reflection.length} characters saved`;
-      document.getElementById('character-count').classList.add('valid');
-      announce('Reflection saved. Returning to your tasks…','success');
-      window.setTimeout(() => window.location.assign('tasks.html'), 1000);
     }
-    initialize();
+    async function loadReflections() {
+      const userId = localStorage.getItem('active_user_id');
+      if (!client || !userId) return;
+      try {
+        const { data, error } = await client.from('task_reflections')
+          .select('task_id,difficulty,reflection,created_at')
+          .eq('user_id',userId);
+        if (error) throw error;
+        (data || []).forEach(row => {
+          const id = String(row.task_id);
+          const task = tasks.find(item => String(item.id) === id) || state.taskCatalog[id] || {
+            id:row.task_id,difficulty:row.difficulty,title:'Completed task',description:'',estimated_minutes:0
+          };
+          state.reflections[id] = { ...row, task };
+          state.completed[id] = { difficulty:Number(row.difficulty), title:task.title, task, completed_at:row.created_at };
+        });
+        saveState(); renderTasks();
+      } catch (error) {
+        console.error('Could not load reflections from Supabase:', error);
+        announce('Could not load saved reflections. Check task_reflections and its read policy.','error');
+      }
+    }
+
+    if (recommendedIds.size) {
+      const note = document.getElementById('recommendation-note');
+      note.textContent = 'Your daily task is highlighted.';
+      note.hidden = false;
+    }
+    loadTasks();
   </script>
 </body>
 </html>
-
-
-
 
 

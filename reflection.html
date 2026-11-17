@@ -191,11 +191,35 @@
 
         // A new attempt must start with a blank reflection and rating; only view-only links load the past one.
         if (viewOnly) {
-          const { data, error } = await client.from(REFLECTIONS_TABLE)
-            .select('task_id,difficulty,rating,reflection,created_at')
-            .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
-          if (error) throw error;
+          let data = null;
+          if (attemptId) {
+            const { data:attempt, error:attemptError } = await client.from('task_rating_attempts')
+              .select('attempt_id,task_id,rating,reflection,rated_at')
+              .eq('auth_user_id', authUserId)
+              .eq('attempt_id', attemptId)
+              .maybeSingle();
+            if (attemptError) throw attemptError;
+            if (attempt?.reflection) {
+              data = { task_id:attempt.task_id, difficulty, rating:attempt.rating,
+                reflection:attempt.reflection, created_at:attempt.rated_at, attempt_id:attempt.attempt_id };
+            }
+          }
+          if (!data) {
+            const { data:latestReflection, error:reflectionError } = await client.from(REFLECTIONS_TABLE)
+              .select('task_id,difficulty,rating,reflection,created_at')
+              .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
+            if (reflectionError) throw reflectionError;
+            data = latestReflection;
+          }
           if (data) {
+            if (!task) {
+              const { data:taskRow, error:taskError } = await client.from('task_bank')
+                .select('id,lesson_id,difficulty,title,description,estimated_minutes')
+                .eq('id', taskId)
+                .maybeSingle();
+              if (taskError) throw taskError;
+              task = taskRow;
+            }
             savedReflection = { ...data, task:task || { id:data.task_id,difficulty:data.difficulty,title:'Completed task',description:'',estimated_minutes:0 } };
             state.reflections[String(taskId)] = savedReflection;
             state.completed[String(taskId)] = { difficulty:Number(data.difficulty), title:savedReflection.task.title, task:savedReflection.task, completed_at:data.created_at };
@@ -270,9 +294,17 @@
           attempt_id:attemptId,
           auth_user_id:authUserId,
           task_id:task.id,
-          rating:selectedRating
+          rating:selectedRating,
+          reflection
         });
         if (attemptError && attemptError.code !== '23505') throw attemptError;
+        if (attemptError?.code === '23505') {
+          const { error:updateAttemptError } = await client.from('task_rating_attempts')
+            .update({ reflection })
+            .eq('auth_user_id', authUserId)
+            .eq('attempt_id', attemptId);
+          if (updateAttemptError) throw updateAttemptError;
+        }
         const { error } = await client.from(REFLECTIONS_TABLE).upsert({
           user_id:userId,
           task_id:task.id,
@@ -301,7 +333,8 @@
       document.getElementById('completed-banner').hidden = false;
       document.getElementById('character-count').textContent = `${reflection.length} characters saved`;
       document.getElementById('character-count').classList.add('valid');
-      announce(client ? 'Reflection saved to Supabase. You can return to your tasks and continue with another one.' : 'Reflection saved in this browser. Add your Supabase project details to save it online.','success');
+      announce('Reflection saved. Returning to your tasks…','success');
+      window.setTimeout(() => window.location.assign('tasks.html'), 1000);
     }
     initialize();
   </script>
