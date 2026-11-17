@@ -102,8 +102,18 @@
     const params = new URLSearchParams(window.location.search);
     const lessonId = params.get('lesson_id');
     let recommendedIds = readRecommendedIds(params);
+    const assignmentId = params.get('assignment_id') || crypto.randomUUID();
+    if (!params.has('assignment_id')) {
+      params.set('assignment_id', assignmentId);
+      history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    }
     let tasks = sampleTasks;
     let state = readState();
+    if (state.assignmentProgress?.id !== assignmentId) {
+      state.assignmentProgress = { id:assignmentId, completed:[], attemptIds:{} };
+      saveState();
+    }
+    const completedInAssignment = new Set(state.assignmentProgress.completed || []);
 
     function readRecommendedIds(searchParams) {
       const ids = new Set(searchParams.getAll('task_id'));
@@ -119,8 +129,8 @@
     function readState() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        return { completed:saved.completed || {}, reflections:saved.reflections || {}, taskCatalog:saved.taskCatalog || {} };
-      } catch { return { completed:{}, reflections:{}, taskCatalog:{} }; }
+        return { completed:saved.completed || {}, reflections:saved.reflections || {}, taskCatalog:saved.taskCatalog || {}, pendingAttempts:saved.pendingAttempts || {}, assignmentProgress:saved.assignmentProgress || null };
+      } catch { return { completed:{}, reflections:{}, taskCatalog:{}, pendingAttempts:{}, assignmentProgress:null }; }
     }
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
@@ -133,7 +143,15 @@
     }
     function openReflection(task, readOnly=false) {
       const query = new URLSearchParams({ task:String(task.id), difficulty:String(task.difficulty) });
+      query.set('assignment_id', assignmentId);
       if (readOnly) query.set('view','1');
+      else {
+        const key = String(task.id);
+        state.assignmentProgress.attemptIds[key] ||= crypto.randomUUID();
+        state.pendingAttempts[key] = state.assignmentProgress.attemptIds[key];
+        query.set('attempt_id', state.assignmentProgress.attemptIds[key]);
+        saveState();
+      }
       window.location.href = `${REFLECTION_PAGE_URL}?${query.toString()}`;
     }
     function renderProgress() {
@@ -176,9 +194,9 @@
     }
     function createTaskCard(task, level) {
       const key = String(task.id);
-      const completed = isComplete(task);
-      const reflected = hasReflection(task);
       const recommended = recommendedIds.has(key);
+      const completed = completedInAssignment.has(key) || (!recommended && isComplete(task));
+      const reflected = hasReflection(task) && (!recommended || state.reflections[key]?.attempt_id === state.assignmentProgress.attemptIds[key]);
       const card = document.createElement('article');
       card.className = `task-card${recommended ? ' is-recommended' : ''}${reflected ? ' is-reflected' : ''}`;
       card.style.setProperty('--accent', level.color);
@@ -250,6 +268,10 @@
           completed_at:completedAt
         }, { onConflict:'auth_user_id,task_id' });
         if (saveError) throw saveError;
+        completedInAssignment.add(key);
+        state.assignmentProgress.completed = [...completedInAssignment];
+        state.assignmentProgress.attemptIds[key] ||= crypto.randomUUID();
+        state.pendingAttempts[key] = state.assignmentProgress.attemptIds[key];
         state.completed[key] = { difficulty:Number(task.difficulty), title:task.title, task, completed:true, completed_at:completedAt };
         saveCatalog();
         renderTasks();
@@ -290,10 +312,7 @@
     }
     async function loadTasks() {
       if (client) {
-        const note = document.querySelector('.footer-note');
-        note.textContent = localStorage.getItem('active_user_id')
-          ? 'Supabase is configured for this page; task and reflection tables must exist for live data.'
-          : 'Supabase is configured for the task bank. Sign in to load reflection history.';
+        document.querySelector('.footer-note').textContent = 'Supabase is configured; sign in to load and save task and reflection history.';
       }
       if (!client) {
         state.completed = {};
@@ -341,9 +360,15 @@
       await loadReflections();
     }
     async function loadReflections() {
-      const userId = localStorage.getItem('active_user_id');
-      if (!client || !userId) return;
+      if (!client) return;
       try {
+        const { data:authData, error:authError } = await client.auth.getUser();
+        if (authError) throw authError;
+        if (!authData.user) return;
+        const { data:account, error:accountError } = await client.rpc('beanos_account');
+        if (accountError) throw accountError;
+        const userId = account?.userId ? String(account.userId) : null;
+        if (!userId) return;
         const { data, error } = await client.from('task_reflections')
           .select('task_id,difficulty,reflection,created_at')
           .eq('user_id',userId);

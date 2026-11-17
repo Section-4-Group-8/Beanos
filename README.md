@@ -49,12 +49,10 @@ Email confirmation is optional and can be enabled later without changing the cod
 - [Survey page](survey.html) · [Team style guide](Beanos_style_guide.html)
 - [Database migration](supabase/connect_survey_auth.sql)
 
-<<<<<<< Updated upstream
 The standalone Tasks page remains a separate picker; its tasks are not yet part
 of the lesson-star unlock flow.
-=======
+
 ## Home page
->>>>>>> Stashed changes
 
 After the survey, you will redirected to the home page. From there you have a few options: Tasks, Lessons, or Profile
 

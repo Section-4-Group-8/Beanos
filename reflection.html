@@ -99,6 +99,8 @@
     const taskId = query.get('task');
     const difficulty = Number(query.get('difficulty'));
     const viewOnly = query.get('view') === '1';
+    const attemptId = query.get('attempt_id') || (viewOnly ? null : crypto.randomUUID());
+    const assignmentId = query.get('assignment_id');
     const state = readState();
     let task = findTask();
     const form = document.getElementById('reflection-form');
@@ -106,14 +108,15 @@
     const saveButton = document.getElementById('save-reflection');
     const status = document.getElementById('form-status');
     const pageError = document.getElementById('page-error');
-    let savedReflection = null;
+    let savedReflection = viewOnly ? state.reflections[String(taskId)] : null;
     let showPastReflection = viewOnly;
-    let selectedRating = Number(savedReflection?.rating) || 0;
+    let selectedRating = viewOnly ? (Number(savedReflection?.rating) || 0) : 0;
     const ratingButtons = [...document.querySelectorAll('[data-rating]')];
     const ratingLabel = document.getElementById('rating-label');
     const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     let userId = null;
+    let authUserId = null;
     document.querySelector('.footer-note').textContent = client
       ? 'Supabase is configured; the task_reflections table must exist for online saving.'
       : 'Your reflection is saved in this browser until Supabase is connected.';
@@ -121,8 +124,8 @@
     function readState() {
       try {
         const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        return { selected: value.selected || {}, completed: value.completed || {}, reflections: value.reflections || {}, taskCatalog: value.taskCatalog || {} };
-      } catch { return { selected:{}, completed:{}, reflections:{}, taskCatalog:{} }; }
+        return { selected: value.selected || {}, completed: value.completed || {}, reflections: value.reflections || {}, taskCatalog: value.taskCatalog || {}, pendingAttempts: value.pendingAttempts || {}, assignmentProgress:value.assignmentProgress || null };
+      } catch { return { selected:{}, completed:{}, reflections:{}, taskCatalog:{}, pendingAttempts:{}, assignmentProgress:null }; }
     }
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function findTask() {
@@ -178,25 +181,29 @@
         const { data:authData, error:authError } = await client.auth.getUser();
         if (authError) throw authError;
         if (!authData.user) throw new Error('Please sign in before opening or saving a reflection.');
+        authUserId = authData.user.id;
 
-        // This RPC maps the signed-in Supabase Auth UUID to the numeric USER.user_id.
+        // Resolve the signed-in account to the numeric user ID used by task_reflections.
         const { data:account, error:accountError } = await client.rpc('beanos_account');
         if (accountError) throw accountError;
         userId = account?.userId ? String(account.userId) : null;
         if (!userId) throw new Error('Your signed-in account does not have an app user ID.');
 
-        const { data, error } = await client.from(REFLECTIONS_TABLE)
-          .select('task_id,difficulty,rating,reflection,created_at')
-          .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
-        if (error) throw error;
-        if (data) {
-          savedReflection = { ...data, task:task || { id:data.task_id,difficulty:data.difficulty,title:'Completed task',description:'',estimated_minutes:0 } };
-          state.reflections[String(taskId)] = savedReflection;
-          state.completed[String(taskId)] = { difficulty:Number(data.difficulty), title:savedReflection.task.title, task:savedReflection.task, completed_at:data.created_at };
-          task = savedReflection.task;
-          showPastReflection = true;
-          selectedRating = Number(data.rating) || 0;
-          saveState();
+        // A new attempt must start with a blank reflection and rating; only view-only links load the past one.
+        if (viewOnly) {
+          const { data, error } = await client.from(REFLECTIONS_TABLE)
+            .select('task_id,difficulty,rating,reflection,created_at')
+            .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
+          if (error) throw error;
+          if (data) {
+            savedReflection = { ...data, task:task || { id:data.task_id,difficulty:data.difficulty,title:'Completed task',description:'',estimated_minutes:0 } };
+            state.reflections[String(taskId)] = savedReflection;
+            state.completed[String(taskId)] = { difficulty:Number(data.difficulty), title:savedReflection.task.title, task:savedReflection.task, completed_at:data.created_at };
+            task = savedReflection.task;
+            showPastReflection = true;
+            selectedRating = Number(data.rating) || 0;
+            saveState();
+          }
         }
       } catch (error) {
         console.error('Could not verify the account or load its reflection:', error);
@@ -249,13 +256,23 @@
       }
       const key = String(taskId);
       const savedAt = new Date().toISOString();
-      if (!client || !userId) {
+      if (!client || !userId || !authUserId) {
         announce('Your sign-in could not be verified. Please sign in again before saving.','error');
         return;
       }
       saveButton.disabled = true;
       saveButton.innerHTML = 'Saving… <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
       try {
+        const { data:currentAuth, error:currentAuthError } = await client.auth.getUser();
+        if (currentAuthError) throw currentAuthError;
+        if (currentAuth.user?.id !== authUserId) throw new Error('Your signed-in account changed. Please reopen the task and try again.');
+        const { error:attemptError } = await client.from('task_rating_attempts').insert({
+          attempt_id:attemptId,
+          auth_user_id:authUserId,
+          task_id:task.id,
+          rating:selectedRating
+        });
+        if (attemptError && attemptError.code !== '23505') throw attemptError;
         const { error } = await client.from(REFLECTIONS_TABLE).upsert({
           user_id:userId,
           task_id:task.id,
@@ -268,10 +285,14 @@
         console.error('Could not save the reflection to Supabase:', error);
         saveButton.innerHTML = 'Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
         updateCounter();
-        announce(`Could not save to Supabase: ${error?.message || 'Check table permissions and try again.'}`,'error');
+        announce(`Could not save to Supabase: ${error?.message || 'Check task_rating_attempts and task_reflections permissions, then try again.'}`,'error');
         return;
       }
-      state.reflections[key] = { task_id: task.id, difficulty, rating:selectedRating, task, reflection, saved_at: savedAt };
+      state.reflections[key] = { task_id: task.id, difficulty, rating:selectedRating, task, reflection, attempt_id:attemptId, saved_at: savedAt };
+      delete state.pendingAttempts[key];
+      if (assignmentId && state.assignmentProgress?.id === assignmentId) {
+        state.assignmentProgress.attemptIds[key] = attemptId;
+      }
       state.completed[key] = { difficulty, title: task.title, task, completed_at: savedAt };
       saveState();
       showPastReflection = true;
