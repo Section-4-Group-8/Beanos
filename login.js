@@ -89,7 +89,7 @@
     const { data, error } = await api.client.auth.getSession();
     if (error) throw error;
     if (recovery) return recoveryMode();
-    if (data.session) window.location.replace(await api.destination());
+    if (data.session) message('You are already signed in. Use the Beanos logo to go to Home.');
   }
   initialize().catch(error => message(api.explain(error), true));
 })();
