@@ -11,6 +11,14 @@
   ];
   const cards = document.getElementById('lesson-cards');
   const status = document.getElementById('lesson-list-status');
+  const api = window.BeanosAPI;
+  const suggestButton = document.getElementById('suggest-lesson-order');
+  const acceptButton = document.getElementById('accept-lesson-order');
+  const keepButton = document.getElementById('keep-lesson-order');
+  const suggestionStatus = document.getElementById('suggestion-status');
+  const preview = document.getElementById('lesson-order-preview');
+  let authUserId;
+  let suggestion;
 
   function render(progress) {
     cards.replaceChildren();
@@ -67,13 +75,66 @@
 
   async function initialize() {
     try {
-      const account = await window.BeanosAPI.requireAccount({ completed: true });
+      const account = await api.requireAccount({ completed: true });
       if (!account) return;
-      render(await window.BeanosAPI.loadLessonProgress(account.authUserId));
+      authUserId = account.authUserId;
+      render(await api.loadLessonProgress(authUserId));
+      suggestButton.disabled = false;
     } catch (error) {
       status.textContent = window.BeanosAPI?.explain(error) || 'Your lesson progress could not load. Please return home and try again.';
     }
   }
+
+  function closePreview(message) {
+    suggestion = undefined;
+    preview.hidden = true;
+    suggestionStatus.textContent = message;
+    suggestButton.disabled = false;
+    suggestButton.focus();
+  }
+
+  suggestButton.addEventListener('click', async () => {
+    suggestButton.disabled = true;
+    suggestionStatus.textContent = 'Creating your suggested order…';
+    try {
+      suggestion = await api.suggestLessonOrder(authUserId);
+      const items = suggestion.lessonIds.map(id => {
+        const item = document.createElement('li');
+        item.textContent = lessons[id - 1];
+        return item;
+      });
+      document.getElementById('suggested-lessons').replaceChildren(...items);
+      document.getElementById('lesson-order-reason').textContent = suggestion.reason;
+      suggestionStatus.textContent = '';
+      preview.hidden = false;
+      document.getElementById('lesson-order-preview-title').focus();
+    } catch (error) {
+      closePreview(api.explain(error));
+    }
+  });
+
+  keepButton.addEventListener('click', () => closePreview('Your current lesson order is still in use.'));
+
+  acceptButton.addEventListener('click', async () => {
+    if (!suggestion) return;
+    acceptButton.disabled = true;
+    keepButton.disabled = true;
+    suggestionStatus.textContent = 'Saving your lesson order…';
+    try {
+      const saved = await api.acceptLessonOrder(suggestion, authUserId);
+      closePreview('Your new lesson order is saved.');
+      try {
+        render(await api.loadLessonProgress(authUserId, saved));
+      } catch {
+        suggestionStatus.textContent = 'Your new order is saved. Reload Lessons to see it.';
+      }
+    } catch (error) {
+      suggestionStatus.textContent = api.explain(error);
+    } finally {
+      acceptButton.disabled = false;
+      keepButton.disabled = false;
+    }
+  });
 
   initialize();
 })();

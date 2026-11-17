@@ -123,21 +123,24 @@
     return data || [];
   }
 
-  async function requestLessonRoleplay(action, lessonId, history) {
-    if (!['chat', 'evaluate'].includes(action)) throw new Error('That roleplay action is not valid.');
-    const { data, error } = await ready().functions.invoke('lesson-roleplay', {
-      body: { action, lessonId: Number(lessonId), history }
-    });
+  async function invokeLessonFunction(name, body, fallbackMessage) {
+    const { data, error } = await ready().functions.invoke(name, { body });
     if (error) {
       let responseBody = null;
       try {
         if (error.context?.clone) responseBody = await error.context.clone().json();
       } catch { /* Keep the SDK message if the function response is not JSON. */ }
       const message = responseBody?.error || data?.error || error.message;
-      throw new Error(message || 'The roleplay service could not respond. Please try again.');
+      throw new Error(message || fallbackMessage);
     }
     if (data?.error) throw new Error(data.error);
     return data;
+  }
+
+  async function requestLessonRoleplay(action, lessonId, history) {
+    if (!['chat', 'evaluate'].includes(action)) throw new Error('That roleplay action is not valid.');
+    return invokeLessonFunction('lesson-roleplay', { action, lessonId: Number(lessonId), history },
+      'The roleplay service could not respond. Please try again.');
   }
 
   // The index maps the survey's stable choice key to the existing lesson ID.
@@ -147,11 +150,38 @@
   ];
   const defaultLessonOrder = lessonPriorityKeys.map((_, index) => index + 1);
 
+  function isLessonOrder(order) {
+    return Array.isArray(order) && order.length === defaultLessonOrder.length &&
+      defaultLessonOrder.every(id => order.includes(id));
+  }
+
   function getLessonOrder(survey) {
+    if (isLessonOrder(survey?.acceptedLessonOrder)) return survey.acceptedLessonOrder;
     const priorities = survey?.lessonPriorities;
     if (!Array.isArray(priorities) || priorities.length !== defaultLessonOrder.length) return defaultLessonOrder;
     const order = priorities.map(key => lessonPriorityKeys.indexOf(key) + 1);
     return order.includes(0) || new Set(order).size !== order.length ? defaultLessonOrder : order;
+  }
+
+  async function suggestLessonOrder(authUserId) {
+    if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
+    const fallback = 'A lesson order could not be suggested. Try again.';
+    const suggestion = await waitForResponse(invokeLessonFunction('suggest-lesson-order', {}, fallback), 'Suggesting a lesson order');
+    if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
+    if (!isLessonOrder(suggestion?.lessonIds) || typeof suggestion.reason !== 'string' ||
+        !suggestion.reason.trim() || typeof suggestion.surveyCompletedAt !== 'string') throw new Error(fallback);
+    return suggestion;
+  }
+
+  async function acceptLessonOrder(suggestion, authUserId) {
+    if (!isLessonOrder(suggestion?.lessonIds) || typeof suggestion.surveyCompletedAt !== 'string') {
+      throw new Error('Request a new lesson order before saving.');
+    }
+    if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
+    return rpc('beanos_accept_lesson_order', {
+      p_order: suggestion.lessonIds,
+      p_survey_completed_at: suggestion.surveyCompletedAt
+    });
   }
 
   function readLessonTaskState(storageKey) {
@@ -252,6 +282,8 @@
     loadLessonRoleplayConfig,
     loadLessonTasks,
     requestLessonRoleplay,
+    suggestLessonOrder,
+    acceptLessonOrder,
     loadLessonProgress,
     completeLessonTask
   });

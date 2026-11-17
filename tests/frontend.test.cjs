@@ -269,3 +269,57 @@ test('legacy unlocks and earned stars survive survey reordering, including unloc
   assert.equal(revisit.nextLessonId, 4);
   dom.window.close();
 });
+
+test('AI suggestion previews and dismissals never save, but accepting changes the stored path', async () => {
+  const dom = page('lessons.html');
+  const w = dom.window;
+  const d = w.document;
+  const user = { id: 'auth-one' };
+  const survey = { lessonPriorities: lessonKeys, completedAt: 'revision-1' };
+  const choice = { lessonIds: [5, 2, 1, 3, 4, 6], reason: 'Start with date planning.', surveyCompletedAt: survey.completedAt };
+  let saveCalls = 0;
+  w.supabase = { createClient: () => ({
+    auth: { getSession: async () => ({ data: { session: { user } } }) },
+    functions: { invoke: async (name, options) => {
+      assert.equal(name, 'suggest-lesson-order');
+      assert.deepEqual(Object.keys(options.body), []);
+      return { data: choice };
+    } },
+    rpc: async (name, args) => {
+      if (name === 'beanos_account') return { data: { surveyCompleted: true } };
+      if (name === 'beanos_accept_lesson_order') {
+        saveCalls++;
+        assert.deepEqual(args.p_order, choice.lessonIds);
+        assert.equal(args.p_survey_completed_at, survey.completedAt);
+        survey.acceptedLessonOrder = args.p_order;
+      }
+      return { data: survey };
+    }
+  }) };
+  w.eval(read('beanos-api.js'));
+  w.eval(read('lessons.js'));
+  await tick();
+  const firstCard = () => d.querySelector('#lesson-cards > a').getAttribute('href');
+  assert.match(firstCard(), /lesson=1$/);
+  d.getElementById('suggest-lesson-order').click();
+  await tick();
+  assert.equal(d.getElementById('lesson-order-preview').hidden, false);
+  assert.equal(d.querySelector('#suggested-lessons li').textContent, 'Planning and enjoying a date');
+  assert.match(firstCard(), /lesson=1$/);
+  assert.equal(saveCalls, 0);
+  d.getElementById('keep-lesson-order').click();
+  assert.equal(saveCalls, 0);
+  assert.equal(d.getElementById('lesson-order-preview').hidden, true);
+
+  d.getElementById('suggest-lesson-order').click();
+  await tick();
+  d.getElementById('accept-lesson-order').click();
+  await tick();
+  assert.equal(saveCalls, 1);
+  assert.match(firstCard(), /lesson=5$/);
+  assert.deepEqual(survey.lessonPriorities, lessonKeys);
+  const progress = await w.BeanosAPI.loadLessonProgress(user.id);
+  assert.equal(progress.nextLessonId, 5);
+  assert.deepEqual(Array.from(progress.unlockedLessonIds), [5, 1]);
+  dom.window.close();
+});
