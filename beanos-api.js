@@ -13,13 +13,13 @@
     return client;
   }
 
-  async function waitForResponse(promise, action) {
+  async function waitForResponse(promise, action, timeoutMs = 15000) {
     let timer;
     try {
       return await Promise.race([
         promise,
         new Promise((resolve, reject) => {
-          timer = window.setTimeout(() => reject(new Error(`${action} is taking too long. Check your connection and try again.`)), 15000);
+          timer = window.setTimeout(() => reject(new Error(`${action} is taking too long. Check your connection and try again.`)), timeoutMs);
         })
       ]);
     } finally {
@@ -166,7 +166,10 @@
   async function suggestLessonOrder(authUserId) {
     if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
     const fallback = 'A lesson order could not be suggested. Try again.';
-    const suggestion = await waitForResponse(invokeLessonFunction('suggest-lesson-order', {}, fallback), 'Suggesting a lesson order');
+    // Allow for the survey lookup, up to 30 seconds for Gemini, and network overhead.
+    const suggestion = await waitForResponse(
+      invokeLessonFunction('suggest-lesson-order', {}, fallback), 'Suggesting a lesson order', 40000
+    );
     if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
     if (!isLessonOrder(suggestion?.lessonIds) || typeof suggestion.reason !== 'string' ||
         !suggestion.reason.trim() || typeof suggestion.surveyCompletedAt !== 'string') throw new Error(fallback);
