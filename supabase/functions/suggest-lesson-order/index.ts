@@ -70,7 +70,8 @@ Deno.serve(async request => {
     };
     const model = 'gemini-3.5-flash-lite';
     geminiTimeout = AbortSignal.timeout(30000);
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const geminiRequest = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       signal: geminiTimeout,
@@ -91,10 +92,20 @@ Deno.serve(async request => {
           maxOutputTokens: 1024
         }
       })
-    });
+    };
+    let response = await fetch(geminiUrl, geminiRequest);
+    if (response.status === 503) {
+      console.warn('Gemini lesson-order request returned 503; retrying once.');
+      await response.body?.cancel();
+      // Both attempts share the same Gemini deadline.
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      geminiTimeout.throwIfAborted();
+      response = await fetch(geminiUrl, geminiRequest);
+    }
     if (!response.ok) {
       console.error('Gemini lesson-order request failed:', response.status);
-      return json({ error: 'AI suggestions are temporarily unavailable. Try again later.' }, response.status === 429 ? 429 : 502);
+      const status = [429, 503].includes(response.status) ? response.status : 502;
+      return json({ error: 'AI suggestions are temporarily unavailable. Try again later.' }, status);
     }
     const result = await response.json();
     const parts = result?.candidates?.[0]?.content?.parts || [];
