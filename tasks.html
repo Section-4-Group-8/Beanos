@@ -51,6 +51,7 @@
   </nav>
 
 
+
   <header class="site-header"><div class="header-inner">
     <a class="brand" href="index.html" aria-label="Beanos home">
       <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="6" fill="currentColor"/><path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/><path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/></svg>
@@ -257,7 +258,8 @@
       } catch (error) {
         if (checkbox) { checkbox.checked = false; checkbox.disabled = false; }
         console.error('Could not save task completion:', error);
-        announce('Could not save this task completion. Apply supabase/task_completions.sql in Supabase, then try again.','error');
+        const details = [error?.message, error?.details, error?.hint, error?.code].filter(Boolean).join(' | ');
+        announce(`Task save failed: ${details || String(error)}`, 'error');
       }
     }
     async function loadCompletions() {
