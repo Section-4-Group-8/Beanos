@@ -370,6 +370,7 @@
         .lesson-resource-summary { margin-top: 12px; }
         .lesson-resource-unavailable { margin: 12px 0; color: var(--color-gray-700); font: 400 .8rem/1.7 var(--font-headings); }
         .lesson-resource-open { display: inline-block; margin-top: 8px; color: var(--color-primary-rust); font: 500 .8rem var(--font-headings); text-underline-offset: 3px; }
+        .lesson-resource-article-link { display: inline-block; margin: 12px 0; text-decoration: none; }
         .lesson-resource-controls { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; }
         .lesson-resource-controls .btn { cursor: pointer; }
         .lesson-resource-controls .btn:disabled {
@@ -1123,15 +1124,16 @@
                     content.appendChild(message);
                 }
             } else if (safeUrl && resource.type === 'article') {
-                const frame = document.createElement('iframe');
-                frame.src = safeUrl;
-                frame.title = resource.title || 'Lesson article';
-                frame.loading = 'lazy';
-                frame.referrerPolicy = 'strict-origin-when-cross-origin';
-                content.appendChild(frame);
+                const articleLink = document.createElement('a');
+                articleLink.className = 'btn btn-primary lesson-resource-article-link';
+                articleLink.href = safeUrl;
+                articleLink.target = '_blank';
+                articleLink.rel = 'noopener noreferrer';
+                articleLink.textContent = resource.title || 'Open article';
+                content.appendChild(articleLink);
             }
 
-            openLink.hidden = !safeUrl;
+            openLink.hidden = !safeUrl || resource.type === 'article';
             if (safeUrl) openLink.href = safeUrl;
             document.getElementById('lesson-resource-previous').disabled = lessonResourceIndex === 0;
             document.getElementById('lesson-resource-next').disabled = lessonResourceIndex === lessonResources.length - 1;
