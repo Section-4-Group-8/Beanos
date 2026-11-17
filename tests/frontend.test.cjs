@@ -323,3 +323,105 @@ test('AI suggestion previews and dismissals never save, but accepting changes th
   assert.deepEqual(Array.from(progress.unlockedLessonIds), [5, 1]);
   dom.window.close();
 });
+
+test('profile preserves account identity and submits email and password changes with inline feedback', async () => {
+  const dom = page('profile.html');
+  const { window: w } = dom;
+  const calls = [];
+  let pending = deferred();
+  let signedOut = 0;
+  w.BeanosAPI = {
+    callbackUrl: 'https://example.test/Beanos/login_page.html',
+    requireAccount: async options => {
+      assert.equal(options.completed, true);
+      return { email: 'luke.melanson@example.com', userId: '9007199254740994', authUserId: 'auth-one' };
+    },
+    loadLessonProgress: async id => {
+      assert.equal(id, 'auth-one');
+      return { lessonOrder: [1, 3, 2, 4, 5, 6], completedLessons: [1, 3], starsByLesson: { 1: 10, 3: 12 } };
+    },
+    signOut: async () => { signedOut++; },
+    explain: error => error.message,
+    client: { auth: {
+      onAuthStateChange() {},
+      updateUser: (...args) => { calls.push(args); return pending.promise; }
+    } }
+  };
+  w.eval(read('profile.js'));
+  await tick();
+  const d = w.document;
+  assert.equal(d.getElementById('account-content').hidden, false);
+  assert.equal(d.getElementById('current-user-id').textContent, '9007199254740994');
+  assert.equal(d.getElementById('current-email').textContent, 'luke.melanson@example.com');
+  assert.equal(d.getElementById('profile-initials').textContent, 'LM');
+  assert.equal(d.getElementById('lesson-count').textContent, '6');
+  assert.equal(d.getElementById('completed-count').textContent, '2');
+  assert.equal(d.getElementById('star-count').textContent, '22');
+  const emailForm = d.getElementById('update-email-form');
+  const email = d.getElementById('new-email');
+  const submit = form => form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+  email.value = 'new@example.com';
+  submit(emailForm);
+  assert.equal(emailForm.querySelector('button').disabled, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls[0])), [{ email: 'new@example.com' }, { emailRedirectTo: w.BeanosAPI.callbackUrl }]);
+  pending.resolve({ error: { message: 'Email update failed' } });
+  await tick();
+  assert.equal(email.value, 'new@example.com');
+  assert.equal(emailForm.querySelector('[role="status"]').hidden, false);
+  assert.equal(emailForm.querySelector('[role="status"]').dataset.failed, 'true');
+  assert.equal(emailForm.querySelector('button').disabled, false);
+  pending = deferred();
+  submit(emailForm);
+  pending.resolve({ error: null });
+  await tick();
+  assert.equal(email.value, '');
+  assert.match(emailForm.querySelector('[role="status"]').textContent, /Check your inbox/);
+  assert.equal(d.getElementById('current-user-id').textContent, '9007199254740994');
+  const passwordForm = d.getElementById('update-password-form');
+  const password = d.getElementById('new-password');
+  password.value = 'short';
+  submit(passwordForm);
+  await tick();
+  assert.equal(calls.length, 2, 'invalid passwords must not reach Supabase');
+  assert.match(passwordForm.querySelector('[role="status"]').textContent, /at least 8 characters/);
+  pending = deferred();
+  password.value = 'synthetic-test-password';
+  submit(passwordForm);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls[2])), [{ password: 'synthetic-test-password' }]);
+  pending.resolve({ error: null });
+  await tick();
+  assert.equal(password.value, '');
+  assert.equal(passwordForm.querySelector('[role="status"]').textContent, 'Your password has been updated.');
+  d.getElementById('signout-button').click();
+  assert.equal(signedOut, 1);
+  dom.window.close();
+});
+
+test('profile account settings remain available when progress fails and hidden when account checks fail', async () => {
+  for (const accountFails of [false, true]) {
+    const dom = page('profile.html');
+    const { window: w } = dom;
+    w.BeanosAPI = {
+      requireAccount: async () => {
+        if (accountFails) throw new Error('Account unavailable');
+        return { email: 'longusername@example.com', userId: 42, authUserId: 'auth-one' };
+      },
+      loadLessonProgress: async () => { throw new Error('Progress unavailable'); },
+      explain: error => error.message,
+      client: { auth: { onAuthStateChange() {} } }
+    };
+    w.eval(read('profile.js'));
+    await tick();
+    const d = w.document;
+    assert.equal(d.getElementById('account-content').hidden, accountFails);
+    if (accountFails) {
+      assert.equal(d.getElementById('status-box').textContent, 'Account unavailable');
+    } else {
+      assert.equal(d.getElementById('profile-initials').textContent, 'LO');
+      assert.equal(d.getElementById('completed-count').textContent, '—');
+      assert.equal(d.getElementById('progress-note').textContent, 'Lesson progress is currently unavailable.');
+      assert.equal(d.getElementById('new-email').disabled, false);
+    }
+    dom.window.close();
+  }
+});
