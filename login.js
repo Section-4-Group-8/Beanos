@@ -15,6 +15,7 @@
 
   function recoveryMode() {
     recovery = true;
+    document.getElementById('continue-link').hidden = true;
     document.getElementById('signup-btn').hidden = true;
     document.getElementById('login-btn').hidden = true;
     document.getElementById('reset-password-btn').hidden = true;
@@ -47,7 +48,9 @@
       message('Check your email to confirm your account, then return here to log in.');
       return;
     }
-    window.location.assign(await api.destination());
+    // Confirm the saved token can be read by the next page before navigating.
+    await api.currentUser();
+    window.location.replace(await api.destination());
   }
 
   document.getElementById('signup-btn').addEventListener('click', () => run(() => loginOrSignup(true)));
@@ -73,7 +76,8 @@
     if (error) throw error;
     document.getElementById('password').value = '';
     window.history.replaceState(null, '', 'login_page.html');
-    window.location.assign(await api.destination());
+    await api.currentUser();
+    window.location.replace(await api.destination());
   }));
 
   async function initialize() {
@@ -89,7 +93,16 @@
     const { data, error } = await api.client.auth.getSession();
     if (error) throw error;
     if (recovery) return recoveryMode();
-    if (data.session) window.location.replace(await api.destination());
+    if (data.session) {
+      const continueLink = document.getElementById('continue-link');
+      try {
+        continueLink.href = await api.destination();
+        continueLink.hidden = false;
+        message('You are already signed in. Continue to your account below.');
+      } catch (error) {
+        message(api.explain(error), true);
+      }
+    }
   }
   initialize().catch(error => message(api.explain(error), true));
 })();

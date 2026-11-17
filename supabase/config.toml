@@ -1,0 +1,7 @@
+project_id = "bzqepyhnvvrwzafydeqp"
+
+[functions.lesson-roleplay]
+verify_jwt = true
+
+[functions.suggest-lesson-order]
+verify_jwt = true

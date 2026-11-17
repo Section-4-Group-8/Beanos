@@ -29,6 +29,7 @@ insert into auth.users(id,email) values
  ('33333333-3333-4333-8333-333333333333','legacy@example.invalid');
 \ir ../supabase/connect_survey_auth.sql
 \ir ../supabase/allow_skipped_survey_skills.sql
+\ir ../supabase/accept_lesson_order.sql
 
 create function pg_temp.assert_error(statement text, expected text) returns void language plpgsql as $$
 begin
@@ -42,6 +43,7 @@ insert into payload values ('{"schemaVersion":1,"background":{"experience":"no-d
 grant select on payload to authenticated;
 set role anon;
 select pg_temp.assert_error('select public.beanos_account()', 'permission denied');
+select pg_temp.assert_error('select public.beanos_accept_lesson_order(null, null)', 'permission denied');
 select pg_temp.assert_error('select * from public."SIGN_IN"', 'permission denied');
 select pg_temp.assert_error('select * from public.survey_responses', 'permission denied');
 reset role;
@@ -75,7 +77,22 @@ do $$ begin
 end $$;
 select public.beanos_save_survey(jsonb_set(value,'{mainGoal}','"ask-on-date"')) from payload;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
-do $$ begin assert public.beanos_get_survey()->>'mainGoal'='find-girlfriend'; end $$;
+do $$
+declare
+  prior jsonb := public.beanos_get_survey();
+  saved jsonb;
+begin
+  assert prior->>'mainGoal' = 'find-girlfriend';
+  saved := public.beanos_accept_lesson_order(array[5, 2, 1, 3, 4, 6]::smallint[], prior->>'completedAt');
+  assert saved - 'acceptedLessonOrder' = prior;
+  assert saved->'acceptedLessonOrder' = '[5,2,1,3,4,6]'::jsonb;
+  assert public.beanos_get_survey() = saved;
+end $$;
+select pg_temp.assert_error('select public.beanos_accept_lesson_order(array[1,1,2,3,4,5]::smallint[], null)', 'each of the six');
+select pg_temp.assert_error('select public.beanos_accept_lesson_order(array[1,2,3,4,5,6]::smallint[], ''old-version'')', 'Your survey changed');
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+do $$ begin assert not (public.beanos_get_survey() ? 'acceptedLessonOrder'); end $$;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 reset role;
 create temporary table original_times as select user_id,created_at,updated_at from public.survey_responses;
 set role authenticated;

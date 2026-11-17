@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="beanos-favicon.ico" sizes="any">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Explore all six Beanos lessons and their articles and videos.">
@@ -8,27 +9,55 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="home.css">
+  <link rel="stylesheet" href="home.css?v=lesson-path-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="beanos-api.js" defer></script>
-  <script src="lessons.js" defer></script>
+  <script src="beanos-api.js?v=lesson-path-3" defer></script>
+  <script src="lessons.js?v=lesson-path-2" defer></script>
+
+  <style id="beanos-page-navigation-style">
+    .beanos-page-nav{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;justify-content:flex-end;gap:10px;font-family:Arial,sans-serif}
+    .beanos-page-nav a,.beanos-page-nav button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 14px;border:1px solid #d8d5cf;border-radius:6px;background:#fff;color:#1A2A40;text-decoration:none;font:600 .82rem/1.2 Arial,sans-serif;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+    .beanos-page-nav a:hover,.beanos-page-nav button:hover{background:#f4f1e9;border-color:#A65E4F;transform:translateY(-1px)}
+    .beanos-page-nav a:focus-visible,.beanos-page-nav button:focus-visible{outline:3px solid #A65E4F66;outline-offset:2px}
+    @media(max-width:560px){.beanos-page-nav{padding:10px 16px}}
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#lessons-main">Skip to lessons</a>
+  <nav class="beanos-page-nav" aria-label="Page navigation">
+    <button type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = 'index.html'; }" aria-label="Go back to the previous page">← Back</button>
+  </nav>
+
+
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="index.html" aria-label="Beanos home">
         <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="6" fill="currentColor"/><path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/><path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/></svg>
         <span>Beanos<span class="brand-dot">.</span></span>
       </a>
-      <nav class="header-nav" aria-label="Main navigation"><a href="index.html">Back to home</a></nav>
+      <nav class="header-nav" aria-label="Main navigation"><a href="index.html">Home</a></nav>
     </div>
   </header>
   <main id="lessons-main" tabindex="-1">
     <section class="welcome" aria-labelledby="lessons-title">
       <span class="eyebrow">YOUR LEARNING PATH</span>
       <h1 id="lessons-title">Explore the lessons</h1>
-      <p>Complete each lesson’s tasks to unlock the next one.</p>
+      <p>Earn 10 stars in a lesson to move to the next one on your path.</p>
+    </section>
+    <section class="path-card lesson-suggestion" aria-labelledby="suggestion-title">
+      <h2 id="suggestion-title">Find a lesson order that fits</h2>
+      <p id="suggestion-description">Ask Google Gemini to suggest an order using your saved survey choices.</p>
+      <button class="button button-secondary" id="suggest-lesson-order" type="button" aria-describedby="suggestion-description" disabled>Suggest an order</button>
+      <p id="suggestion-status" role="status"></p>
+      <div id="lesson-order-preview" hidden>
+        <h3 id="lesson-order-preview-title" tabindex="-1">Suggested lesson order</h3>
+        <p id="lesson-order-reason"></p>
+        <ol id="suggested-lessons"></ol>
+        <div class="lesson-suggestion-actions">
+          <button class="button button-primary" id="accept-lesson-order" type="button">Use this order</button>
+          <button class="button button-secondary" id="keep-lesson-order" type="button">Keep my current order</button>
+        </div>
+      </div>
     </section>
     <section aria-label="All lessons">
       <p class="lesson-list-status" id="lesson-list-status" role="status" aria-live="polite">Loading your lesson progress…</p>

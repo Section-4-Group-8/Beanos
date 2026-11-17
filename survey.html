@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="beanos-favicon.ico" sizes="any">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Find your starting point with the Beanos dating skills survey.">
@@ -17,15 +18,16 @@
   <a class="skip-link" href="#survey-main">Skip to survey</a>
   <header class="site-header">
     <div class="header-inner">
-      <div class="brand" aria-label="Beanos">
+      <a class="brand" href="index.html" aria-label="Beanos home">
         <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
           <rect width="40" height="40" rx="6" fill="currentColor"/>
           <path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/>
           <path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <span>Beanos<span class="brand-dot">.</span></span>
-      </div>
+      </a>
       <span class="header-note">A little progress, every day.</span>
+      <button class="header-back" type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = 'index.html'; }" aria-label="Go back to the previous page">← Back</button>
     </div>
   </header>
 
@@ -86,8 +88,8 @@
         </section>
 
         <section class="survey-screen" data-step="3" aria-labelledby="priorities-title" hidden>
-          <div class="screen-heading"><span class="eyebrow">04 / YOUR PRIORITIES</span><h1 id="priorities-title" tabindex="-1">Choose where to start.</h1><p>What would you like to learn first? Put these topics in order, with the topic you’re most interested in at the top.</p></div>
-          <div class="section-content"><div class="ranking-labels"><span>LEARN FIRST</span><span>6 TOPICS</span></div><p class="interaction-help" id="ranking-help">Drag the handle to reorder, or use the up and down buttons. Happy with the order? You can keep it.</p><ol id="lesson-list" class="lesson-list" aria-describedby="ranking-help"></ol><span class="ranking-end">A LITTLE LATER</span><p id="ranking-feedback" class="visually-hidden" role="status" aria-live="polite"></p></div>
+          <div class="screen-heading"><span class="eyebrow">04 / YOUR PRIORITIES</span><h1 id="priorities-title" tabindex="-1">Choose where to start.</h1><p>What would you like to learn first? Rank the six Beanos lessons, with the one you want to take first at the top.</p></div>
+          <div class="section-content"><div class="ranking-labels"><span>LEARN FIRST</span><span>6 LESSONS</span></div><p class="interaction-help" id="ranking-help">Drag the handle to reorder, or use the up and down buttons. Happy with the order? You can keep it.</p><ol id="lesson-list" class="lesson-list" aria-describedby="ranking-help"></ol><span class="ranking-end">A LITTLE LATER</span><p id="ranking-feedback" class="visually-hidden" role="status" aria-live="polite"></p></div>
         </section>
 
         <section class="survey-screen completion-screen" data-step="4" aria-labelledby="complete-title" hidden>

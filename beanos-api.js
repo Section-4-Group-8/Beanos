@@ -13,6 +13,20 @@
     return client;
   }
 
+  async function waitForResponse(promise, action, timeoutMs = 15000) {
+    let timer;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise((resolve, reject) => {
+          timer = window.setTimeout(() => reject(new Error(`${action} is taking too long. Check your connection and try again.`)), timeoutMs);
+        })
+      ]);
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+
   function explain(error) {
     const message = error?.message || 'Something went wrong. Please try again.';
     if (message.includes('LEGACY_ACCOUNT_LINK_REQUIRED')) {
@@ -25,20 +39,29 @@
   }
 
   async function rpc(name, args) {
-    const { data, error } = await ready().rpc(name, args);
+    const { data, error } = await waitForResponse(ready().rpc(name, args), 'Loading your account details');
     if (error) throw new Error(explain(error));
     return data;
   }
 
   async function currentUser() {
-    const { data, error } = await ready().auth.getUser();
+    const { data, error } = await waitForResponse(ready().auth.getUser(), 'Checking your login');
     if (error || !data.user) throw new Error('Please log in to continue.');
     return data.user;
   }
 
+  async function currentSessionUser() {
+    const { data, error } = await waitForResponse(ready().auth.getSession(), 'Reading your saved login');
+    if (error || !data.session?.user) throw new Error('Please log in to continue.');
+    return data.session.user;
+  }
+
   async function requireAccount({ completed = false } = {}) {
-    // The server validates the Auth token; localStorage IDs are never used.
-    try { await currentUser(); } catch (error) {
+    // The local session supplies only the auth UUID for browser progress. The
+    // account RPC validates the token with Supabase before granting access.
+    let user;
+    try { user = await currentSessionUser(); } catch (error) {
+      if (error?.message?.includes('taking too long')) throw error;
       if (!client) throw error;
       window.location.replace('login_page.html');
       return null;
@@ -48,7 +71,7 @@
       window.location.replace('survey.html');
       return null;
     }
-    return account;
+    return { ...account, authUserId: user.id };
   }
 
   async function destination() {
@@ -66,13 +89,23 @@
   }
 
   async function loadLessonResources(lessonId) {
-    const { data, error } = await ready().from('lesson_resources')
+    const { data, error } = await waitForResponse(ready().from('lesson_resources')
       .select('id,lesson_id,title,type,platform,url,focus_summary,sort_order')
       .eq('lesson_id', lessonId)
       .order('sort_order', { ascending: true })
-      .order('title', { ascending: true });
+      .order('title', { ascending: true }), 'Loading lesson resources');
     if (error) throw new Error(explain(error));
     return data || [];
+  }
+
+  async function loadLessonRoleplayConfig(lessonId) {
+    const { data, error } = await waitForResponse(ready().from('lesson_resources')
+      .select('roleplay_config')
+      .eq('lesson_id', lessonId)
+      .not('roleplay_config', 'is', null)
+      .maybeSingle(), 'Loading the roleplay scenario');
+    if (error) throw new Error(explain(error));
+    return data?.roleplay_config || null;
   }
 
   async function loadLessonTasks(lessonId) {
@@ -81,45 +114,131 @@
     if (!Number.isInteger(Number(lessonId)) || Number(lessonId) < 1 || Number(lessonId) > 6) {
       throw new Error('That lesson number is not valid.');
     }
-    const { data, error } = await ready().from('task_bank')
+    const { data, error } = await waitForResponse(ready().from('task_bank')
       .select('id,lesson_id,difficulty,title,description,estimated_minutes')
       .eq('lesson_id', lessonId)
       .order('difficulty', { ascending: true })
-      .order('title', { ascending: true });
+      .order('title', { ascending: true }), 'Loading lesson tasks');
     if (error) throw new Error(explain(error));
     return data || [];
   }
 
-  function readLessonTaskProgress(userId) {
-    const storageKey = `beanos_lesson_tasks:${userId}`;
-    let saved;
-    try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); }
-    catch { saved = {}; }
+  async function invokeLessonFunction(name, body, fallbackMessage) {
+    const { data, error } = await ready().functions.invoke(name, { body });
+    if (error) {
+      let responseBody = null;
+      try {
+        if (error.context?.clone) responseBody = await error.context.clone().json();
+      } catch { /* Keep the SDK message if the function response is not JSON. */ }
+      const message = responseBody?.error || data?.error || error.message;
+      throw new Error(message || fallbackMessage);
+    }
+    if (data?.error) throw new Error(data.error);
+    return data;
+  }
+
+  async function requestLessonRoleplay(action, lessonId, history) {
+    if (!['chat', 'evaluate'].includes(action)) throw new Error('That roleplay action is not valid.');
+    return invokeLessonFunction('lesson-roleplay', { action, lessonId: Number(lessonId), history },
+      'The roleplay service could not respond. Please try again.');
+  }
+
+  // The index maps the survey's stable choice key to the existing lesson ID.
+  const lessonPriorityKeys = [
+    'confidence', 'conversations', 'interest-and-boundaries',
+    'asking-someone-out', 'date-planning', 'following-up'
+  ];
+  const defaultLessonOrder = lessonPriorityKeys.map((_, index) => index + 1);
+
+  function isLessonOrder(order) {
+    return Array.isArray(order) && order.length === defaultLessonOrder.length &&
+      defaultLessonOrder.every(id => order.includes(id));
+  }
+
+  function getLessonOrder(survey) {
+    if (isLessonOrder(survey?.acceptedLessonOrder)) return survey.acceptedLessonOrder;
+    const priorities = survey?.lessonPriorities;
+    if (!Array.isArray(priorities) || priorities.length !== defaultLessonOrder.length) return defaultLessonOrder;
+    const order = priorities.map(key => lessonPriorityKeys.indexOf(key) + 1);
+    return order.includes(0) || new Set(order).size !== order.length ? defaultLessonOrder : order;
+  }
+
+  async function suggestLessonOrder(authUserId) {
+    if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
+    const fallback = 'A lesson order could not be suggested. Try again.';
+    // Allow for the survey lookup, up to 30 seconds for Gemini, and network overhead.
+    const suggestion = await waitForResponse(
+      invokeLessonFunction('suggest-lesson-order', {}, fallback), 'Suggesting a lesson order', 40000
+    );
+    if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
+    if (!isLessonOrder(suggestion?.lessonIds) || typeof suggestion.reason !== 'string' ||
+        !suggestion.reason.trim() || typeof suggestion.surveyCompletedAt !== 'string') throw new Error(fallback);
+    return suggestion;
+  }
+
+  async function acceptLessonOrder(suggestion, authUserId) {
+    if (!isLessonOrder(suggestion?.lessonIds) || typeof suggestion.surveyCompletedAt !== 'string') {
+      throw new Error('Request a new lesson order before saving.');
+    }
+    if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
+    return rpc('beanos_accept_lesson_order', {
+      p_order: suggestion.lessonIds,
+      p_survey_completed_at: suggestion.surveyCompletedAt
+    });
+  }
+
+  function readLessonTaskState(storageKey) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+    } catch { return {}; }
+  }
+
+  function lessonTaskProgress(saved, lessonOrder) {
     const completedTasks = saved && typeof saved.completedTasks === 'object' && saved.completedTasks ? saved.completedTasks : {};
     const starsByLesson = {};
     const completedTaskIdsByLesson = {};
-    for (let lessonId = 1; lessonId <= 6; lessonId += 1) {
+    for (const lessonId of defaultLessonOrder) {
       const tasks = completedTasks[lessonId] && typeof completedTasks[lessonId] === 'object' ? completedTasks[lessonId] : {};
       const entries = Object.entries(tasks).filter(([, difficulty]) => Number.isInteger(difficulty) && difficulty >= 1 && difficulty <= 5);
       completedTaskIdsByLesson[lessonId] = entries.map(([taskId]) => taskId);
       starsByLesson[lessonId] = entries.reduce((sum, [, difficulty]) => sum + difficulty, 0);
     }
-    let unlockedThrough = 1;
-    while (unlockedThrough < 6 && starsByLesson[unlockedThrough] >= 10) unlockedThrough += 1;
-    const nextLessonId = starsByLesson[unlockedThrough] >= 10 ? null : unlockedThrough;
+    const completedLessons = lessonOrder.filter(id => starsByLesson[id] >= 10);
+    const nextIndex = lessonOrder.findIndex(id => starsByLesson[id] < 10);
+    const unlocked = new Set(lessonOrder.slice(0, nextIndex < 0 ? lessonOrder.length : nextIndex + 1));
+    const previouslyUnlocked = saved.unlockedLessonIds;
+    if (Array.isArray(previouslyUnlocked)) {
+      for (const id of previouslyUnlocked) if (defaultLessonOrder.includes(id)) unlocked.add(id);
+    } else if (defaultLessonOrder.some(id => starsByLesson[id] > 0)) {
+      // Restore access earned under the original numeric sequence once per browser.
+      const firstIncomplete = defaultLessonOrder.findIndex(id => starsByLesson[id] < 10);
+      const legacyUnlocked = firstIncomplete < 0 ? defaultLessonOrder : defaultLessonOrder.slice(0, firstIncomplete + 1);
+      for (const id of legacyUnlocked) unlocked.add(id);
+    }
+    for (const id of defaultLessonOrder) if (starsByLesson[id] > 0) unlocked.add(id);
     return {
-      completedLessons: Object.keys(starsByLesson).map(Number).filter(id => starsByLesson[id] >= 10),
+      lessonOrder,
+      completedLessons,
       completedTaskIdsByLesson,
       starsByLesson,
-      nextLessonId,
-      unlockedThrough
+      nextLessonId: lessonOrder[nextIndex] ?? null,
+      unlockedLessonIds: lessonOrder.filter(id => unlocked.has(id))
     };
   }
 
-  async function loadLessonProgress(expectedUserId) {
-    const user = await currentUser();
+  async function loadLessonProgress(expectedUserId, survey) {
+    const user = expectedUserId ? await currentSessionUser() : await currentUser();
     if (expectedUserId && user.id !== expectedUserId) throw new Error('Your login changed. Return to the lesson using your current account.');
-    return readLessonTaskProgress(user.id);
+    const answers = survey === undefined ? await rpc('beanos_get_survey') : survey;
+    if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
+    const storageKey = `beanos_lesson_tasks:${user.id}`;
+    const saved = readLessonTaskState(storageKey);
+    const progress = lessonTaskProgress(saved, getLessonOrder(answers));
+    if (JSON.stringify(saved.unlockedLessonIds) !== JSON.stringify(progress.unlockedLessonIds)) {
+      localStorage.setItem(storageKey, JSON.stringify({ ...saved, unlockedLessonIds: progress.unlockedLessonIds }));
+    }
+    return progress;
   }
 
   async function completeLessonTask(lessonId, task, expectedUserId) {
@@ -133,23 +252,26 @@
     }
     const user = await currentUser();
     if (expectedUserId && user.id !== expectedUserId) throw new Error('Your login changed. Return to the lesson using your current account.');
-    const progress = readLessonTaskProgress(user.id);
-    if (lessonId > progress.unlockedThrough) {
+    const answers = await rpc('beanos_get_survey');
+    if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
+    const lessonOrder = getLessonOrder(answers);
+    const storageKey = `beanos_lesson_tasks:${user.id}`;
+    const saved = readLessonTaskState(storageKey);
+    const progress = lessonTaskProgress(saved, lessonOrder);
+    if (!progress.unlockedLessonIds.includes(lessonId)) {
       throw new Error('Complete tasks for the available lesson before opening this lesson.');
     }
     if (progress.starsByLesson[lessonId] >= 10) return progress;
-    const storageKey = `beanos_lesson_tasks:${user.id}`;
-    let saved;
-    try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); }
-    catch { saved = {}; }
-    if (!saved || typeof saved !== 'object') saved = {};
     if (!saved.completedTasks || typeof saved.completedTasks !== 'object') saved.completedTasks = {};
     saved.completedTasks[lessonId] = saved.completedTasks[lessonId] || {};
     if (!saved.completedTasks[lessonId][taskId]) saved.completedTasks[lessonId][taskId] = difficulty;
+    saved.unlockedLessonIds = progress.unlockedLessonIds;
+    const updated = lessonTaskProgress(saved, lessonOrder);
+    saved.unlockedLessonIds = updated.unlockedLessonIds;
     // Prototype storage seam: replace this local save with a Supabase RPC
     // (for example, beanos_complete_lesson_task) when user task records exist.
     localStorage.setItem(storageKey, JSON.stringify(saved));
-    return readLessonTaskProgress(user.id);
+    return updated;
   }
 
   window.BeanosAPI = Object.freeze({
@@ -160,7 +282,11 @@
     // Ownership comes exclusively from auth.uid() inside the database function.
     saveSurvey: answers => rpc('beanos_save_survey', { p_answers: answers }),
     loadLessonResources,
+    loadLessonRoleplayConfig,
     loadLessonTasks,
+    requestLessonRoleplay,
+    suggestLessonOrder,
+    acceptLessonOrder,
     loadLessonProgress,
     completeLessonTask
   });

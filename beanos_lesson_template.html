@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" href="beanos-favicon.ico" sizes="any">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beanos — Lesson: Mastering the Warm Opener</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="beanos-api.js" defer></script>
+    <script src="beanos-api.js?v=lesson-path-2" defer></script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -329,56 +330,7 @@
         .note-warning { border-color: var(--color-primary-rust); background-color: #FBF4F3; }
         .note-warning i, .note-warning .note-title { color: var(--color-primary-rust); }
 
-        /* Step 2 Diagnostic Form Styling */
-        .diagnostic-card {
-            background-color: var(--color-gray-100);
-            border: 1px solid var(--color-gray-200);
-            border-radius: var(--border-radius);
-            padding: calc(2.5 * var(--spacing-unit));
-            margin-top: calc(2 * var(--spacing-unit));
-        }
-
-        .question-group {
-            margin-bottom: calc(3 * var(--spacing-unit));
-        }
-
-        .question-label {
-            font-family: var(--font-headings);
-            font-weight: var(--weight-semibold);
-            font-size: 1.05rem;
-            color: var(--color-primary-navy);
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .option-tile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--color-white);
-            border: 1px solid var(--color-gray-200);
-            border-radius: var(--border-radius);
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: var(--transition-fast);
-            font-family: var(--font-headings);
-            font-size: 0.95rem;
-        }
-
-        .option-tile:hover {
-            border-color: var(--color-primary-rust);
-            background-color: #FFFDFB;
-        }
-
-        .option-tile input[type="radio"],
-        .option-tile input[type="checkbox"] {
-            accent-color: var(--color-primary-rust);
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Step 3 Video Player Wrapper */
+        /* Video Player Wrapper */
         .video-container {
             position: relative;
             padding-bottom: 56.25%; /* 16:9 ratio */
@@ -518,6 +470,14 @@
             border-bottom-left-radius: 2px;
             font-family: var(--font-body);
             box-shadow: var(--shadow-sm);
+        }
+
+        .roleplay-coach-message {
+            width: 100%;
+            max-width: none;
+            padding: 20px 22px;
+            font-size: .98rem;
+            line-height: 1.8;
         }
 
         .message-user {
@@ -809,8 +769,21 @@
             .task-select-card { min-height: 150px; padding: 14px; }
         }
     </style>
+
+  <style id="beanos-page-navigation-style">
+    .beanos-page-nav{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;justify-content:flex-end;gap:10px;font-family:Arial,sans-serif}
+    .beanos-page-nav a,.beanos-page-nav button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 14px;border:1px solid #d8d5cf;border-radius:6px;background:#fff;color:#1A2A40;text-decoration:none;font:600 .82rem/1.2 Arial,sans-serif;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+    .beanos-page-nav a:hover,.beanos-page-nav button:hover{background:#f4f1e9;border-color:#A65E4F;transform:translateY(-1px)}
+    .beanos-page-nav a:focus-visible,.beanos-page-nav button:focus-visible{outline:3px solid #A65E4F66;outline-offset:2px}
+    @media(max-width:560px){.beanos-page-nav{padding:10px 16px}}
+  </style>
 </head>
 <body>
+  <nav class="beanos-page-nav" aria-label="Page navigation">
+    <button type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = 'index.html'; }" aria-label="Go back to the previous page">← Back</button>
+  </nav>
+
+
 
     <!-- Sticky Navigation Bar -->
     <header class="site-header">
@@ -831,11 +804,8 @@
             <div class="nav-actions">
                 <div class="progress-indicator">
                     <i class="fa-solid fa-layer-group"></i>
-                    <span>Step</span> <strong id="stepIndicatorText">1 of 6</strong>
+                    <span>Step</span> <strong id="stepIndicatorText">1 of 5</strong>
                 </div>
-                <a href="index.html" class="btn btn-nav-back">
-                    <i class="fa-solid fa-house"></i> Back Home
-                </a>
             </div>
         </div>
         <!-- Dynamic Step Bar -->
@@ -892,68 +862,15 @@
 
             <div class="step-footer-actions">
                 <button class="btn btn-primary" onclick="goToStep(2)">
-                    Begin Diagnostic Reflection <i class="fa-solid fa-arrow-right"></i>
+                    Continue to Core Concept <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </section>
 
         <!-- ===================================================================
-             STEP 2: INTERACTIVE DIAGNOSTIC QUESTIONS
+             STEP 2: IN-DEPTH CONTEXT & VIDEO LESSON
              =================================================================== -->
         <section class="lesson-step" id="step-2">
-            <span class="badge badge-navy">Self-Assessment</span>
-            <h2>Where Do You Currently Get Stuck?</h2>
-            <p style="color: var(--color-gray-700); margin-bottom: 16px; font-size: 0.95rem;">
-                Answer these diagnostic questions to help personalize your upcoming roleplay simulation scenario.
-            </p>
-
-            <div class="diagnostic-card">
-                <!-- Question 1 -->
-                <div class="question-group">
-                    <label class="question-label">1. What is your primary instinct when you see someone you'd like to talk to?</label>
-                    <label class="option-tile">
-                        <input type="radio" name="diag_q1" value="overthink" checked>
-                        <span>I overthink what to say until the opportunity passes.</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="radio" name="diag_q1" value="cheesy">
-                        <span>I worry my line will sound scripted or cheesy.</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="radio" name="diag_q1" value="stuck">
-                        <span>I say hello fine, but panic when trying to keep conversation going.</span>
-                    </label>
-                </div>
-
-                <!-- Question 2 -->
-                <div class="question-group" style="margin-bottom: 0;">
-                    <label class="question-label">2. Which environment feels most challenging for you?</label>
-                    <label class="option-tile">
-                        <input type="radio" name="diag_q2" value="coffee" checked>
-                        <span>Daytime public places (Coffee shops, bookstores, parks)</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="radio" name="diag_q2" value="event">
-                        <span>Social events / Networking mixers</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="radio" name="diag_q2" value="evening">
-                        <span>Bars or active nightlife venues</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="step-footer-actions">
-                <button class="btn btn-primary" onclick="goToStep(3)">
-                    Submit & Continue to Context <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-        </section>
-
-        <!-- ===================================================================
-             STEP 3: IN-DEPTH CONTEXT & VIDEO LESSON
-             =================================================================== -->
-        <section class="lesson-step" id="step-3">
             <span class="badge">Core Concept</span>
             <h2>The 3-Second Context Framework</h2>
             
@@ -979,21 +896,19 @@
             </div>
 
             <div class="step-footer-actions">
-                <button class="btn btn-primary" onclick="goToStep(4)">
+                <button class="btn btn-primary" onclick="goToStep(3)">
                     Proceed to AI Roleplay Practice <i class="fa-solid fa-comments"></i>
                 </button>
             </div>
         </section>
 
         <!-- ===================================================================
-             STEP 4: INTERACTIVE AI ROLEPLAY CHAT EXPERIENCE
+             STEP 3: INTERACTIVE AI ROLEPLAY CHAT EXPERIENCE
              =================================================================== -->
-        <section class="lesson-step" id="step-4">
+        <section class="lesson-step" id="step-3">
             <span class="badge badge-navy"><i class="fa-solid fa-robot"></i> Interactive AI Practice</span>
-            <h2 style="margin-bottom: 6px;">Simulated Scenario: Coffee Shop Line</h2>
-            <p style="font-size: 0.95rem; color: var(--color-gray-700); margin-bottom: 20px;">
-                Test your skills. Deliver a warm, contextual opener to Maya, who is waiting ahead of you in a local café holding a book you recognize.
-            </p>
+            <h2 id="roleplay-title" style="margin-bottom: 6px;">Lesson roleplay</h2>
+            <p id="roleplay-description" style="font-size: 0.95rem; color: var(--color-gray-700); margin-bottom: 20px;">Practice the skill from this lesson in a short conversation.</p>
 
             <!-- Chat Room Container -->
             <div class="chat-card">
@@ -1005,104 +920,58 @@
                             <div style="font-size: 0.75rem; color: var(--color-secondary-tan);"><i class="fa-solid fa-circle" style="color: #5D9B7B; font-size: 0.6rem;"></i> In coffee shop line</div>
                         </div>
                     </div>
-                    <span class="caption-text" style="color: var(--color-secondary-tan);">Turn 1 of 3</span>
+                    <span class="caption-text" id="roleplay-turn" style="color: var(--color-secondary-tan);">Turn 1 of 4</span>
                 </div>
 
-                <div class="chat-body" id="chatBody">
-                    <div class="message message-ai">
-                        <em>[Scenario Start]</em> You've been standing in line behind Maya for two minutes. She's browsing a well-worn copy of a novel and glances around casually while waiting for the cashier. What do you say to start the conversation?
-                    </div>
-                </div>
+                <div class="chat-body" id="chatBody" role="log" aria-live="polite" aria-relevant="additions"></div>
 
                 <div class="chat-input-area">
-                    <input type="text" class="chat-input" id="userInput" placeholder="Type your opening statement here..." onkeypress="handleKeyPress(event)">
-                    <button class="btn btn-primary" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                    <input type="text" class="chat-input" id="userInput" placeholder="Type your response…" maxlength="800" onkeypress="handleKeyPress(event)">
+                    <button class="btn btn-primary" id="sendRoleplayMessage" onclick="sendMessage()" aria-label="Send message"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
 
             <div class="step-footer-actions" style="justify-content: space-between; align-items: center;">
                 <span class="caption-text" id="chatStatusText">Deliver your opener to proceed</span>
-                <button class="btn btn-success" id="finishRoleplayBtn" style="display: none;" onclick="goToStep(5)">
+                <button class="btn btn-success" id="finishRoleplayBtn" style="display: none;" onclick="finishRoleplay()">
                     Complete Roleplay & Get Feedback <i class="fa-solid fa-chart-line"></i>
                 </button>
             </div>
         </section>
 
         <!-- ===================================================================
-             STEP 5: AI FEEDBACK & SKILL RATING EVALUATION
+             STEP 4: AI COACH MESSAGE
              =================================================================== -->
-        <section class="lesson-step" id="step-5">
-            <span class="badge badge-success"><i class="fa-solid fa-award"></i> AI Evaluation</span>
-            <h2>Roleplay Performance Review</h2>
-            <p style="color: var(--color-gray-700);">Here is how our AI coach evaluated your opening approach and follow-up interaction:</p>
+        <section class="lesson-step" id="step-4">
+            <span class="badge badge-success"><i class="fa-solid fa-comment-dots"></i> AI Coach</span>
+            <h2>A Note on Your Practice</h2>
+            <p style="color: var(--color-gray-700);">A supportive message about what you said, with one helpful idea to try next time.</p>
 
-            <div class="feedback-card">
-                <div class="feedback-header">
-                    <h3 style="color: var(--color-white); font-size: 1.1rem;">Overall Approach Rating</h3>
-                    <div class="score-circle">
-                        <span class="number">88%</span>
-                        <span class="label">Solid</span>
-                    </div>
-                </div>
-
-                <div style="padding: calc(3 * var(--spacing-unit)); background: var(--color-white);">
-                    <!-- Metric Bars -->
-                    <div class="metric-row">
-                        <div>
-                            <strong style="font-family: var(--font-headings); font-size: 0.9rem;">Contextual Relevance</strong>
-                            <div style="font-size: 0.8rem; color: var(--color-gray-700);">Used the surroundings well</div>
-                        </div>
-                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 92%;"></div></div>
-                    </div>
-
-                    <div class="metric-row">
-                        <div>
-                            <strong style="font-family: var(--font-headings); font-size: 0.9rem;">Warmth & Tone</strong>
-                            <div style="font-size: 0.8rem; color: var(--color-gray-700);">Approachable and unforced</div>
-                        </div>
-                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 85%;"></div></div>
-                    </div>
-
-                    <div class="metric-row" style="border-bottom: none;">
-                        <div>
-                            <strong style="font-family: var(--font-headings); font-size: 0.9rem;">Pressure Index</strong>
-                            <div style="font-size: 0.8rem; color: var(--color-gray-700);">Low-demand question</div>
-                        </div>
-                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 88%;"></div></div>
-                    </div>
-
-                    <!-- Constructive Feedback List -->
-                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--color-gray-200);">
-                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--color-primary-navy);">Key Coaching Insights:</h4>
-                        <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--color-gray-700);">
-                            <li style="margin-bottom: 6px;"><strong>Great hook:</strong> Referencing the book created an immediate authentic connection without sounding intrusive.</li>
-                            <li><strong>Improvement Opportunity:</strong> Next time, follow up her answer with a brief statement of your own experience before asking a second question to avoid sounding like an interviewer.</li>
-                        </ul>
-                    </div>
-                </div>
+            <div class="feedback-card" id="roleplay-review" aria-live="polite">
+                <p id="roleplay-review-status">Your feedback will appear here when you finish the roleplay.</p>
             </div>
 
             <div class="step-footer-actions">
-                <button class="btn btn-primary" onclick="goToStep(6)">
+                <button class="btn btn-primary" onclick="goToStep(5)">
                     Select Daily Action Tasks <i class="fa-solid fa-tasks"></i>
                 </button>
             </div>
         </section>
 
         <!-- ===================================================================
-             STEP 6: SUPABASE DYNAMIC TASK SELECTION & COMMIT
+             STEP 5: SUPABASE DYNAMIC TASK SELECTION & COMMIT
              =================================================================== -->
-        <section class="lesson-step" id="step-6">
+        <section class="lesson-step" id="step-5">
             <span class="badge badge-navy">Real-World Execution</span>
             <h2>Tasks for this lesson</h2>
             <p style="color: var(--color-gray-700);">
-                Complete tasks to earn stars equal to their difficulty. Ten stars unlock the next lesson.
+                Complete tasks to earn stars equal to their difficulty. Ten stars complete this lesson.
             </p>
 
             <div class="lesson-task-progress" aria-live="polite">
                 <div class="lesson-task-progress-head">
                     <strong id="lesson-task-progress-label">Loading this lesson’s tasks…</strong>
-                    <span>10 stars unlock the next lesson</span>
+                    <span>10 stars complete this lesson</span>
                 </div>
                 <div class="lesson-task-progress-track" id="lesson-task-progress-track" role="progressbar" aria-label="Stars earned for this lesson" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="lesson-task-progress-fill" id="lesson-task-progress-fill"></div></div>
                 <p id="lesson-task-completion-status" role="status">Tasks completed in this lesson only count toward its next lesson.</p>
@@ -1111,7 +980,7 @@
             <p class="lesson-task-storage-note">Task completion is saved in this browser for now.</p>
 
             <div class="step-footer-actions">
-                <button class="btn btn-success" id="complete-lesson-tasks" type="button" disabled>Complete tasks to unlock next lesson</button>
+                <button class="btn btn-success" id="complete-lesson-tasks" type="button" disabled>Complete lesson tasks</button>
                 <a class="btn btn-secondary" href="lessons.html">View lessons</a>
             </div>
         </section>
@@ -1124,8 +993,50 @@
     <script>
         // State Management variables
         let currentStep = 1;
-        const totalSteps = 6;
+        const totalSteps = 5;
+        const maxRoleplayTurns = 4;
         let chatTurnCount = 0;
+        let roleplayHistory = [];
+        let roleplayBusy = false;
+        let roleplayReviewed = false;
+        let activeRoleplayScenario = null;
+
+        function appendChatMessage(role, text) {
+            const message = document.createElement('div');
+            message.className = `message ${role === 'assistant' ? 'message-ai' : 'message-user'}`;
+            message.textContent = text;
+            document.getElementById('chatBody').appendChild(message);
+            document.getElementById('chatBody').scrollTop = document.getElementById('chatBody').scrollHeight;
+        }
+
+        function initializeRoleplay(scenario) {
+            roleplayHistory = [];
+            chatTurnCount = 0;
+            roleplayReviewed = false;
+            activeRoleplayScenario = scenario;
+            document.getElementById('chatBody').replaceChildren();
+            document.getElementById('roleplay-review-status').textContent = 'Your feedback will appear here when you finish the roleplay.';
+            if (!scenario) {
+                document.getElementById('roleplay-title').textContent = 'Roleplay scenario';
+                document.getElementById('roleplay-description').textContent = 'A scenario for this lesson has not been configured yet.';
+                document.getElementById('chatStatusText').textContent = 'This lesson’s roleplay is not available yet.';
+                document.getElementById('userInput').disabled = true;
+                document.getElementById('sendRoleplayMessage').disabled = true;
+                document.getElementById('finishRoleplayBtn').style.display = 'none';
+                return;
+            }
+            document.getElementById('roleplay-title').textContent = scenario.title;
+            document.getElementById('roleplay-description').textContent = `Practice with ${scenario.partner_name}. ${scenario.setting} ${scenario.learning_goal}`;
+            document.querySelector('.chat-header .ai-profile div div').textContent = `${scenario.partner_name} (AI Roleplay)`;
+            document.querySelector('.chat-header .ai-profile div div + div').textContent = scenario.setting;
+            appendChatMessage('assistant', scenario.opening_prompt);
+            document.getElementById('roleplay-turn').textContent = `Turn 1 of ${maxRoleplayTurns}`;
+            document.getElementById('chatStatusText').textContent = 'Send a message to begin the roleplay.';
+            document.getElementById('finishRoleplayBtn').style.display = 'none';
+            document.getElementById('userInput').disabled = false;
+            document.getElementById('sendRoleplayMessage').disabled = false;
+            document.getElementById('roleplay-review-status').textContent = 'Your feedback will appear here when you finish the roleplay.';
+        }
         document.querySelectorAll('.lesson-step').forEach((step) => {
             let footer = step.querySelector('.step-footer-actions');
             if (!footer) {
@@ -1247,19 +1158,16 @@
 
         function renderLessonTaskProgress(lessonId, progress) {
             const stars = progress.starsByLesson[lessonId] || 0;
-            document.querySelector('.lesson-task-progress-head span').textContent = lessonId === 6 ? '10 stars complete the final lesson' : '10 stars unlock the next lesson';
             document.getElementById('lesson-task-progress-label').textContent = `${stars} / 10 stars earned`;
             document.getElementById('lesson-task-progress-fill').style.width = `${Math.min(100, stars * 10)}%`;
             document.getElementById('lesson-task-progress-track').setAttribute('aria-valuenow', String(Math.min(10, stars)));
             if (stars >= 10) {
-                taskCompletionStatus.textContent = lessonId === 6
-                    ? 'You’ve earned enough stars to complete all six lessons. Extra stars do not carry over.'
-                    : `Lesson ${lessonId + 1} is unlocked. Extra stars from this lesson do not carry over.`;
+                taskCompletionStatus.textContent = progress.nextLessonId
+                    ? `Lesson complete. Continue your path with Lesson ${progress.nextLessonId}.`
+                    : 'You’ve completed all six lessons.';
             } else {
                 const remaining = 10 - stars;
-                taskCompletionStatus.textContent = lessonId === 6
-                    ? `${remaining} more ${remaining === 1 ? 'star' : 'stars'} needed to complete the final lesson.`
-                    : `${remaining} more ${remaining === 1 ? 'star' : 'stars'} needed to unlock Lesson ${lessonId + 1}. Only this lesson’s stars count toward that unlock.`;
+                taskCompletionStatus.textContent = `${remaining} more ${remaining === 1 ? 'star' : 'stars'} to complete this lesson.`;
             }
         }
 
@@ -1329,24 +1237,44 @@
 
             const title = lessonTopics[lessonId - 1];
             activeLessonId = lessonId;
+            initializeRoleplay(null);
+            accessMessage.textContent = 'Checking your sign-in and lesson access…';
             document.title = `Beanos — Lesson ${lessonId}: ${title}`;
             document.querySelector('#step-1 h1').textContent = title;
             document.querySelector('#step-1 .badge').textContent = `Lesson ${lessonId}`;
-            document.querySelector('.nav-actions .btn-nav-back').href = 'index.html';
-            document.querySelector('#stepIndicatorText').textContent = '1 of 6';
+            document.querySelector('#stepIndicatorText').textContent = '1 of 5';
+
+            let accessCheckTimedOut = false;
+            const accessCheckTimer = window.setTimeout(() => {
+                accessCheckTimedOut = true;
+                accessMessage.textContent = 'The sign-in check did not respond. Reload the page. If this continues, republish beanos-api.js and check the Supabase connection.';
+            }, 12000);
 
             try {
                 const account = await window.BeanosAPI.requireAccount({ completed: true });
-                if (!account) return;
-                lessonAuthUserId = (await window.BeanosAPI.currentUser()).id;
+                window.clearTimeout(accessCheckTimer);
+                if (accessCheckTimedOut) return;
+                if (!account) {
+                    accessMessage.textContent = 'Opening your sign-in or survey page…';
+                    return;
+                }
+                accessMessage.textContent = 'Loading your lesson progress…';
+                lessonAuthUserId = account.authUserId || (await window.BeanosAPI.currentUser()).id;
                 const progress = await window.BeanosAPI.loadLessonProgress(lessonAuthUserId);
-                if (lessonId > progress.unlockedThrough) {
-                    accessMessage.textContent = `Lesson ${lessonId} is locked. Complete available lessons in order, starting with Lesson ${progress.unlockedThrough}, to unlock it.`;
+                if (!progress.unlockedLessonIds.includes(lessonId)) {
+                    accessMessage.textContent = `Lesson ${lessonId} is locked. Continue with Lesson ${progress.nextLessonId} on your path.`;
                     return;
                 }
                 renderLessonTaskProgress(lessonId, progress);
                 document.getElementById('lesson-access-status').hidden = true;
                 document.getElementById('lesson-content').hidden = false;
+                try {
+                    const roleplayConfig = await window.BeanosAPI.loadLessonRoleplayConfig(lessonId);
+                    initializeRoleplay(roleplayConfig);
+                } catch (error) {
+                    initializeRoleplay(null);
+                    document.getElementById('chatStatusText').textContent = window.BeanosAPI?.explain(error) || 'The roleplay scenario could not load.';
+                }
                 let resourcesLoaded = false;
                 try {
                     lessonResources = await window.BeanosAPI.loadLessonResources(lessonId);
@@ -1369,10 +1297,15 @@
                     taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || 'Lesson tasks could not load. Please try again later.';
                 }
             } catch (error) {
+                window.clearTimeout(accessCheckTimer);
                 accessMessage.textContent = window.BeanosAPI?.explain(error) || 'Lesson access could not be checked. Please return home and try again.';
             }
         }
-        window.addEventListener('DOMContentLoaded', loadLesson, { once: true });
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', loadLesson, { once: true });
+        } else {
+            loadLesson();
+        }
 
         // 1. Navigation & Progress Logic
         function goToStep(stepNumber) {
@@ -1404,57 +1337,91 @@
 
         }
 
-        // 2. AI Roleplay Simulator Logic
+        // 2. Lesson-specific AI roleplay
         function handleKeyPress(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
             }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const inputField = document.getElementById('userInput');
             const userText = inputField.value.trim();
-            if (!userText) return;
-
-            const chatBody = document.getElementById('chatBody');
-
-            // Render User Message
-            const userMsgDiv = document.createElement('div');
-            userMsgDiv.className = 'message message-user';
-            userMsgDiv.innerText = userText;
-            chatBody.appendChild(userMsgDiv);
-
+            if (!userText || roleplayBusy || chatTurnCount >= maxRoleplayTurns || !activeLessonId || !activeRoleplayScenario) return;
+            roleplayBusy = true;
+            document.getElementById('sendRoleplayMessage').disabled = true;
+            inputField.disabled = true;
+            appendChatMessage('user', userText);
+            roleplayHistory.push({ role: 'user', text: userText });
             inputField.value = '';
             chatTurnCount++;
-            chatBody.scrollTop = chatBody.scrollHeight;
-
-            // Render Typing Indicator
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.id = 'typingIndicator';
-            typingDiv.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-            chatBody.appendChild(typingDiv);
-            chatBody.scrollTop = chatBody.scrollHeight;
-
-            // Simulate AI Delay & Responses
-            setTimeout(() => {
-                const indicator = document.getElementById('typingIndicator');
-                if (indicator) indicator.remove();
-
-                const aiMsgDiv = document.createElement('div');
-                aiMsgDiv.className = 'message message-ai';
-
-                if (chatTurnCount === 1) {
-                    aiMsgDiv.innerText = "Oh, hi! Yeah, it's actually one of my favorite authors. Have you read any of her other books?";
-                } else if (chatTurnCount >= 2) {
-                    aiMsgDiv.innerText = "That's awesome! I'm really enjoying it so far. Oh look, line is moving up—thanks for recommending that!";
+            document.getElementById('roleplay-turn').textContent = `Turn ${Math.min(chatTurnCount + 1, maxRoleplayTurns)} of ${maxRoleplayTurns}`;
+            document.getElementById('chatStatusText').textContent = 'Your roleplay partner is responding…';
+            const typing = document.createElement('div');
+            typing.className = 'message message-ai';
+            typing.textContent = 'Thinking…';
+            typing.setAttribute('aria-label', 'Roleplay partner is responding');
+            document.getElementById('chatBody').appendChild(typing);
+            try {
+                const result = await window.BeanosAPI.requestLessonRoleplay('chat', activeLessonId, roleplayHistory);
+                typing.remove();
+                roleplayHistory.push({ role: 'assistant', text: result.reply });
+                appendChatMessage('assistant', result.reply);
+                if (chatTurnCount >= maxRoleplayTurns) {
+                    inputField.disabled = true;
+                    document.getElementById('chatStatusText').textContent = 'Roleplay complete. Get your coaching feedback.';
                     document.getElementById('finishRoleplayBtn').style.display = 'inline-flex';
-                    document.getElementById('chatStatusText').innerText = 'Great conversation! Click to get your review.';
+                } else {
+                    inputField.disabled = false;
+                    inputField.focus();
+                    document.getElementById('chatStatusText').textContent = `${maxRoleplayTurns - chatTurnCount} ${maxRoleplayTurns - chatTurnCount === 1 ? 'turn' : 'turns'} remaining. You can finish whenever you’re ready.`;
+                    document.getElementById('finishRoleplayBtn').style.display = 'inline-flex';
                 }
+            } catch (error) {
+                typing.remove();
+                roleplayHistory.pop();
+                chatTurnCount--;
+                appendChatMessage('assistant', window.BeanosAPI?.explain(error) || error.message || 'I couldn’t respond just now. Please try again.');
+                inputField.value = userText;
+                inputField.disabled = false;
+                inputField.focus();
+                document.getElementById('chatStatusText').textContent = 'Your message was not sent. Please try again.';
+            } finally {
+                roleplayBusy = false;
+                document.getElementById('sendRoleplayMessage').disabled = false;
+                document.getElementById('roleplay-turn').textContent = `Turn ${Math.min(chatTurnCount + 1, maxRoleplayTurns)} of ${maxRoleplayTurns}`;
+            }
+        }
 
-                chatBody.appendChild(aiMsgDiv);
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }, 1400);
+        function renderRoleplayReview(messageText) {
+            const container = document.getElementById('roleplay-review');
+            container.replaceChildren();
+            const message = document.createElement('div');
+            message.className = 'message message-ai roleplay-coach-message';
+            message.textContent = messageText;
+            container.appendChild(message);
+        }
+
+        async function finishRoleplay() {
+            if (roleplayBusy || roleplayReviewed || !roleplayHistory.some(message => message.role === 'user')) return;
+            roleplayBusy = true;
+            const button = document.getElementById('finishRoleplayBtn');
+            button.disabled = true;
+            document.getElementById('chatStatusText').textContent = 'Preparing your feedback…';
+            document.getElementById('roleplay-review-status').textContent = 'Your roleplay is being reviewed…';
+            try {
+                const result = await window.BeanosAPI.requestLessonRoleplay('evaluate', activeLessonId, roleplayHistory);
+                renderRoleplayReview(result.message);
+                roleplayReviewed = true;
+                goToStep(4);
+            } catch (error) {
+                document.getElementById('roleplay-review-status').textContent = window.BeanosAPI?.explain(error) || error.message || 'Feedback could not be loaded. Please try again.';
+            } finally {
+                roleplayBusy = false;
+                button.disabled = false;
+                document.getElementById('chatStatusText').textContent = roleplayReviewed ? 'Feedback is ready.' : 'Could not get feedback. You can retry.';
+            }
         }
 
     </script>

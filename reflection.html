@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" href="beanos-favicon.ico" sizes="any">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Take a moment to reflect on a Beanos task.">
@@ -33,11 +34,24 @@
     @media(max-width:560px){.header-inner{padding:12px 14px}.header-note{font-size:.72rem}main{padding:22px 14px 40px}.hero{padding:27px 21px}.hero h1{font-size:1.65rem}.task-card,.reflection-card{padding:19px 16px}.actions{align-items:stretch;flex-direction:column-reverse}.button{width:100%}.input-footer{flex-direction:column;gap:2px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
   </style>
+
+  <style id="beanos-page-navigation-style">
+    .beanos-page-nav{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;justify-content:flex-end;gap:10px;font-family:Arial,sans-serif}
+    .beanos-page-nav a,.beanos-page-nav button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 14px;border:1px solid #d8d5cf;border-radius:6px;background:#fff;color:#1A2A40;text-decoration:none;font:600 .82rem/1.2 Arial,sans-serif;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+    .beanos-page-nav a:hover,.beanos-page-nav button:hover{background:#f4f1e9;border-color:#A65E4F;transform:translateY(-1px)}
+    .beanos-page-nav a:focus-visible,.beanos-page-nav button:focus-visible{outline:3px solid #A65E4F66;outline-offset:2px}
+    @media(max-width:560px){.beanos-page-nav{padding:10px 16px}}
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to your reflection</a>
+  <nav class="beanos-page-nav" aria-label="Page navigation">
+    <button type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = 'index.html'; }" aria-label="Go back to the previous page">← Back</button>
+  </nav>
+
+
   <header class="site-header"><div class="header-inner">
-    <a class="brand" href="tasks.html" aria-label="Beanos tasks">
+    <a class="brand" href="index.html" aria-label="Beanos home">
       <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="6" fill="currentColor"/><path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/><path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/></svg>
       <span>Beanos<span class="brand-dot">.</span></span>
     </a><span class="header-note">A little progress, every day.</span>
@@ -94,14 +108,15 @@
     const saveButton = document.getElementById('save-reflection');
     const status = document.getElementById('form-status');
     const pageError = document.getElementById('page-error');
-    let savedReflection = state.reflections[String(taskId)];
+    let savedReflection = viewOnly ? state.reflections[String(taskId)] : null;
     let showPastReflection = viewOnly;
     let selectedRating = viewOnly ? (Number(savedReflection?.rating) || 0) : 0;
     const ratingButtons = [...document.querySelectorAll('[data-rating]')];
     const ratingLabel = document.getElementById('rating-label');
     const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-    const userId = localStorage.getItem('active_user_id');
+    let userId = null;
+    let authUserId = null;
     document.querySelector('.footer-note').textContent = client
       ? 'Supabase is configured; the task_reflections table must exist for online saving.'
       : 'Your reflection is saved in this browser until Supabase is connected.';
@@ -110,7 +125,7 @@
       try {
         const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
         return { selected: value.selected || {}, completed: value.completed || {}, reflections: value.reflections || {}, taskCatalog: value.taskCatalog || {}, pendingAttempts: value.pendingAttempts || {}, assignmentProgress:value.assignmentProgress || null };
-      } catch { return { selected:{}, completed:{}, reflections:{}, taskCatalog:{} }; }
+      } catch { return { selected:{}, completed:{}, reflections:{}, taskCatalog:{}, pendingAttempts:{}, assignmentProgress:null }; }
     }
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function findTask() {
@@ -158,8 +173,24 @@
         showError('This reflection link is missing a task. Return to the tasks page and open a task from your list.');
         return;
       }
-      if (client && userId && viewOnly) {
-        try {
+      if (!client) {
+        showError('Supabase is not available on this page. Check the project URL, publishable key, and network connection.');
+        return;
+      }
+      try {
+        const { data:authData, error:authError } = await client.auth.getUser();
+        if (authError) throw authError;
+        if (!authData.user) throw new Error('Please sign in before opening or saving a reflection.');
+        authUserId = authData.user.id;
+
+        // Resolve the signed-in account to the numeric user ID used by task_reflections.
+        const { data:account, error:accountError } = await client.rpc('beanos_account');
+        if (accountError) throw accountError;
+        userId = account?.userId ? String(account.userId) : null;
+        if (!userId) throw new Error('Your signed-in account does not have an app user ID.');
+
+        // A new attempt must start with a blank reflection and rating; only view-only links load the past one.
+        if (viewOnly) {
           const { data, error } = await client.from(REFLECTIONS_TABLE)
             .select('task_id,difficulty,rating,reflection,created_at')
             .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
@@ -173,10 +204,11 @@
             selectedRating = Number(data.rating) || 0;
             saveState();
           }
-        } catch (error) {
-          console.error('Could not load the saved reflection from Supabase:', error);
-          if (viewOnly && !savedReflection) announce('Could not load this past reflection from Supabase. Check the task_reflections table and read policy.','error');
         }
+      } catch (error) {
+        console.error('Could not verify the account or load its reflection:', error);
+        showError(`Could not load your reflection from Supabase: ${error?.message || 'Check your sign-in and table access.'}`);
+        return;
       }
       if (!task) {
         showError('The task details could not be found in this browser. Return to the tasks page and choose the task again.');
@@ -224,40 +256,37 @@
       }
       const key = String(taskId);
       const savedAt = new Date().toISOString();
-      if (client) {
-        if (!userId) {
-          announce('Please sign in before saving this reflection.','error');
-          return;
-        }
-        saveButton.disabled = true;
-        saveButton.innerHTML = 'Saving… <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
-        try {
-          const { data:authData, error:authError } = await client.auth.getUser();
-          if (authError) throw authError;
-          const authUserId = authData.user?.id;
-          if (!authUserId) throw new Error('An authenticated account is required to save a rating.');
-          const { error:attemptError } = await client.from('task_rating_attempts').insert({
-            attempt_id:attemptId,
-            auth_user_id:authUserId,
-            task_id:task.id,
-            rating:selectedRating
-          });
-          if (attemptError && attemptError.code !== '23505') throw attemptError;
-          const { error } = await client.from(REFLECTIONS_TABLE).upsert({
-            user_id:userId,
-            task_id:task.id,
-            difficulty,
-            rating:selectedRating,
-            reflection
-          }, { onConflict:'user_id,task_id' });
-          if (error) throw error;
-        } catch (error) {
-          console.error('Could not save the reflection to Supabase:', error);
-          saveButton.innerHTML = 'Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
-          updateCounter();
-          announce('Could not save to Supabase. Check task_rating_attempts and task_reflections table policies, then try again.','error');
-          return;
-        }
+      if (!client || !userId || !authUserId) {
+        announce('Your sign-in could not be verified. Please sign in again before saving.','error');
+        return;
+      }
+      saveButton.disabled = true;
+      saveButton.innerHTML = 'Saving… <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
+      try {
+        const { data:currentAuth, error:currentAuthError } = await client.auth.getUser();
+        if (currentAuthError) throw currentAuthError;
+        if (currentAuth.user?.id !== authUserId) throw new Error('Your signed-in account changed. Please reopen the task and try again.');
+        const { error:attemptError } = await client.from('task_rating_attempts').insert({
+          attempt_id:attemptId,
+          auth_user_id:authUserId,
+          task_id:task.id,
+          rating:selectedRating
+        });
+        if (attemptError && attemptError.code !== '23505') throw attemptError;
+        const { error } = await client.from(REFLECTIONS_TABLE).upsert({
+          user_id:userId,
+          task_id:task.id,
+          difficulty,
+          rating:selectedRating,
+          reflection
+        }, { onConflict:'user_id,task_id' });
+        if (error) throw error;
+      } catch (error) {
+        console.error('Could not save the reflection to Supabase:', error);
+        saveButton.innerHTML = 'Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
+        updateCounter();
+        announce(`Could not save to Supabase: ${error?.message || 'Check task_rating_attempts and task_reflections permissions, then try again.'}`,'error');
+        return;
       }
       state.reflections[key] = { task_id: task.id, difficulty, rating:selectedRating, task, reflection, attempt_id:attemptId, saved_at: savedAt };
       delete state.pendingAttempts[key];
