@@ -37,10 +37,22 @@ h1:focus, main:focus { outline: none; }
 .skip-link:focus { transform: none; }
 .site-header { background: var(--color-white); border-bottom: 1px solid var(--color-gray-200); }
 .header-inner { max-width: 1264px; min-height: 92px; margin: auto; padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.brand { display: flex; align-items: center; gap: 12px; color: var(--color-primary-navy); font: 700 1.65rem/1 var(--font-headings); letter-spacing: -.8px; }
+.brand { display: flex; align-items: center; gap: 12px; color: var(--color-primary-navy); font: 700 1.65rem/1 var(--font-headings); letter-spacing: -.8px; text-decoration: none; }
 .brand-mark { width: 40px; height: 40px; flex-shrink: 0; }
 .brand-dot { color: var(--color-primary-rust); }
-.header-note { color: var(--color-gray-700); font: 400 .8rem var(--font-headings); }
+.header-note { margin-inline-start: auto; color: var(--color-gray-700); font: 400 .8rem var(--font-headings); }
+.header-back {
+  flex: none;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid #d8d5cf;
+  border-radius: var(--border-radius);
+  background: var(--color-white);
+  color: var(--color-primary-navy);
+  font: 600 .82rem/1.2 var(--font-headings);
+  white-space: nowrap;
+}
+.header-back:hover { background: #f4f1e9; border-color: var(--color-primary-rust); }
 .survey-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 40px; max-width: 1264px; margin: 40px auto 0; padding: 0 40px 32px; align-items: start; }
 .journey { position: sticky; top: 32px; padding: 32px 26px 26px; color: var(--color-secondary-tan); background: linear-gradient(150deg, var(--color-primary-navy), #2A3E5C); border-radius: var(--border-radius); }
 .eyebrow { display: block; color: var(--color-primary-rust); font: 600 .68rem/1.5 var(--font-headings); letter-spacing: 1.8px; }
@@ -176,7 +188,7 @@ main { min-width: 0; }
 }
 @media (max-width: 520px) {
   .header-inner { min-height: 76px; padding-inline: 18px; }
-  .header-note { max-width: 110px; text-align: right; font-size: .65rem; }
+  .header-note { display: none; }
   .brand { font-size: 1.4rem; gap: 9px; }
   .brand-mark { width: 34px; height: 34px; }
   .survey-layout { padding-inline: 16px; margin-top: 18px; }
