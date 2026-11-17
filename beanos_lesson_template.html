@@ -522,6 +522,7 @@
 
         .chat-input {
             flex: 1;
+            min-width: 0;
             padding: 10px 14px;
             border: 1px solid var(--color-gray-400);
             border-radius: var(--border-radius);
@@ -790,6 +791,9 @@
             .lesson-step { padding: 24px 20px; }
             .task-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
             .task-select-card { min-height: 150px; padding: 14px; }
+            .chat-input-area { min-width: 0; gap: 8px; padding: 10px; }
+            .chat-input { width: 0; font-size: 16px; padding: 10px; }
+            #sendRoleplayMessage { flex: 0 0 44px; width: 44px; min-width: 44px; min-height: 44px; padding: 0; }
         }
     </style>
 
