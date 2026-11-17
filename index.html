@@ -9,10 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="home.css">
+  <link rel="stylesheet" href="home.css?v=daily-task-1">
+  <style>.button.is-locked{opacity:.58;cursor:not-allowed}</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="beanos-api.js?v=lesson-path-2" defer></script>
-  <script src="home.js?v=lesson-path-1" defer></script>
+  <script src="home.js?v=daily-task-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#home-main">Skip to home</a>
@@ -58,9 +59,20 @@
           <span class="path-icon practice" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 11l2 2 4-4M9 17h6"/></svg></span>
           <h2 id="tasks-title">Tasks</h2>
           <p>Put what you learn into everyday practice.</p>
-          <a class="button button-secondary" href="tasks.html">Go to tasks <span aria-hidden="true">→</span></a>
+          <a class="button button-secondary is-locked" id="home-tasks-link" aria-disabled="true" tabindex="-1">Complete Lesson 1 to unlock tasks</a>
         </section>
       </div>
+      <section class="daily-task-card" id="daily-task-card" aria-labelledby="daily-task-heading" hidden>
+        <div class="daily-task-heading-row">
+          <div><span class="daily-task-eyebrow">TODAY’S PRACTICE</span><h2 id="daily-task-heading">Your daily task</h2></div>
+          <span class="daily-task-difficulty" id="daily-task-difficulty"></span>
+        </div>
+        <h3 class="daily-task-title" id="daily-task-title"></h3>
+        <p class="daily-task-description" id="daily-task-description"></p>
+        <div class="daily-task-meta"><span id="daily-task-estimate"></span><span id="daily-task-lesson"></span></div>
+        <p class="daily-task-status" id="daily-task-status" role="status" hidden></p>
+        <a class="button button-primary daily-task-link" id="daily-task-link" href="tasks.html">View this task <span aria-hidden="true">→</span></a>
+      </section>
       <p class="account-status" id="home-account-status" role="status" hidden></p>
       <footer class="home-footer">A little progress, every day.</footer>
     </div>
