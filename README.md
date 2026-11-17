@@ -1,65 +1,60 @@
 # Beanos
 
-Beanos helps men build confidence with conversations, dating, and relationships
-through lessons and practical tasks.
+Beanos helps men build confidence with conversations, dating, and relationships through personalized lessons and practical tasks.
 
-**Frontend:** HTML, CSS, JavaScript. **Accounts/database:** Supabase Auth and PostgreSQL.
+[Open Beanos](https://section-4-group-8.github.io/Beanos/login_page.html) · [Welcome page](https://section-4-group-8.github.io/Beanos/welcome.html)
 
-## Open URL in your browser
+HTML, CSS, and JavaScript frontend hosted on GitHub Pages. Supabase provides authentication, PostgreSQL, and Edge Functions. Google Gemini powers AI features.
 
-The current URL we have is posted through GitHub pages, open https://section-4-group-8.github.io/Beanos/login_page.html
+## Features
 
-## Account and survey flow
+| Area | Features |
+| --- | --- |
+| Survey | Background, strengths, practice areas, goals, and lesson priorities. Saved answers can be reviewed or updated. |
+| Home | Survey focus, the next available lesson, and a daily task from completed lessons when eligible tasks are available. |
+| Lessons | Six personalized lessons with articles, videos, AI roleplay, and recommended tasks. AI order suggestions save only after **Use this order**. Previously unlocked lessons stay available. |
+| Tasks | Current tasks, difficulty levels, star progress, completed-task history, and repeat attempts. |
+| Reflections | Saved task ratings and written reflections. |
+| Profile | Account details, email/password updates, survey access, logout, and four saved Beanos avatar colors. |
 
-Create an account once, then log in normally. Supabase Auth handles passwords and
-signed sessions. Incomplete surveys route to Survey; completed surveys route to
-Home. Survey Finish waits for a successful database save, and saved answers
-reload on return. Retakes update the same row. After a successful survey save, the app opens Home.
+Users register once. Completing the survey opens Home. Returning users with a completed survey go to Home after login. Password recovery is available from Login.
 
-Survey responses belong to the existing integer USER.user_id. USER.auth_user_id
-links that ID to the Auth account. The browser never chooses another user's ID.
-Home shows the saved survey goal and the next available lesson. The Lessons page
-shows the full sequence and unlock progress. The lesson template loads ordered
-resources from `lesson_resources` and lesson-specific tasks from `task_bank`,
-using each row's `lesson_id`. The signed-in role needs `SELECT` access to both
-tables (with row-level security enabled, allow authenticated users to read the
-lesson and task catalogs).
+## Run locally
 
-Lesson roleplays are configured in the nullable `lesson_resources.roleplay_config`
-JSONB column. Run [the roleplay setup SQL](supabase/lesson_roleplay_config.sql)
-once after adding at least one resource row for each lesson. It stores one
-scenario per lesson, tied to that lesson's skill goal and feedback rubric. The
-lesson page reads its scenario from Supabase, and the Edge Function reads the
-same row under the signed-in user's access token before calling Gemini.
+```sh
+git clone https://github.com/Section-4-Group-8/Beanos.git
+cd Beanos
+python3 -m http.server 8000
+```
 
-Lesson stars and task completion are currently a signed-in-browser prototype:
-each completed task awards stars equal to its difficulty, and 10 stars from a
-lesson unlock the next one. Stars do not carry between lessons. Progress is
-stored in local storage, scoped by Supabase Auth user. The `loadLessonTasks`,
-`loadLessonProgress`, and `completeLessonTask` methods in `beanos-api.js` are
-the integration seams for user-specific task assignments and completions in
-Supabase later.
+Open [the local login page](http://localhost:8000/login_page.html). There is no frontend build step. Local use connects to the team's Supabase project and requires a network connection. Email confirmation and recovery need matching localhost callback URLs configured in Supabase.
 
-Legacy-only accounts require a one-time reviewed account link; see the setup guide.
-Email confirmation is optional and can be enabled later without changing the code.
+## Data and backend setup
 
-- [Database/login deployment and legacy accounts](docs/supabase-survey-setup.md)
-- [Signup notes](docs/account-signup.md)
+- Existing integer `USER.user_id` values link to Supabase Auth through `USER.auth_user_id`.
+- Survey answers, accepted lesson orders, completed lessons, current tasks, task completions, ratings, and reflections save in Supabase. Avatar colors use Auth user metadata.
+- Lesson stars and previously unlocked lesson IDs also use per-user browser storage. Star totals can differ across devices.
+- Database setup requires the team's existing schema and catalog data, plus applicable SQL in [supabase/](supabase/). Start with [account/survey setup and legacy-account linking](docs/supabase-survey-setup.md).
+- Lesson content uses `lesson_resources`, `lesson_task_recommendations`, and `task_bank`. See [roleplay configuration](supabase/lesson_roleplay_config.sql).
+- Set `GEMINI_API_KEY` in Supabase Edge Function secrets and deploy [lesson-roleplay](supabase/functions/lesson-roleplay/index.ts) and [suggest-lesson-order](supabase/functions/suggest-lesson-order/index.ts).
+- Only publishable Supabase keys belong in the frontend. Keep private keys on the backend and enforce account ownership through database permissions and row-level security.
+
+## Development
+
+With Node.js and npm installed, run the frontend tests using simulated services.
+
+```sh
+npm ci
+npm test
+```
+
+[Database tests](tests/database.sql) require a disposable local database. Follow [the test setup](docs/supabase-survey-setup.md#tests).
+
+Fetch the latest `main`, integrate teammates' changes, and review your commit's files before pushing.
+
+## Project references
+
 - [Survey questions and screen flow](docs/survey-questions.md)
-- [Survey page](survey.html) · [Team style guide](Beanos_style_guide.html)
-- [Database migration](supabase/connect_survey_auth.sql)
-
-The standalone Tasks page remains a separate picker; its tasks are not yet part
-of the lesson-star unlock flow.
-
-## Home page
-
-After the survey, you will redirected to the home page. From there you have a few options: Tasks, Lessons, or Profile
-
-From the profile page you can update your email or password
-
-From the Tasks page, you will see a list of tasks that are sorted by difficulty/length
-
-From the Lessons page, you will be able to browse lessons to learn from several media sources, including articles, videos, and an AI chatbot. 
-
-**ERD:** ![ERD](images/erd2.png)
+- [Beanos style guide](Beanos_style_guide.html)
+- [Account signup notes](docs/account-signup.md)
+- [Database diagram](images/erd2.png)
