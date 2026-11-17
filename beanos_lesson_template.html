@@ -295,6 +295,28 @@
             justify-content: flex-end;
         }
 
+        .roleplay-skip-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 18px;
+        }
+
+        .roleplay-skip-link {
+            border: 0;
+            padding: 8px 12px;
+            background: transparent;
+            color: var(--color-primary-rust);
+            font: 600 0.9rem var(--font-headings);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            cursor: pointer;
+        }
+
+        .roleplay-skip-link:hover,
+        .roleplay-skip-link:focus-visible {
+            color: #8C4D40;
+        }
+
         /* Note Callout Boxes */
         .note-box {
             padding: calc(2 * var(--spacing-unit));
@@ -937,6 +959,9 @@
                 <button class="btn btn-success" id="finishRoleplayBtn" style="display: none;" onclick="finishRoleplay()">
                     Complete Roleplay & Get Feedback <i class="fa-solid fa-chart-line"></i>
                 </button>
+            </div>
+            <div class="roleplay-skip-wrap">
+                <button type="button" class="roleplay-skip-link" onclick="goToStep(5)">Click here to skip if broken</button>
             </div>
         </section>
 
