@@ -1,6 +1,7 @@
 -- Run once after lesson_resources has at least one resource row for each lesson.
 -- The roleplay JSON is stored on the first ordered resource row for each lesson;
 -- it does not create extra rows that would appear in the lesson resource carousel.
+-- Re-running this script refreshes only roleplay_config with these six scenarios.
 begin;
 
 alter table public.lesson_resources
@@ -51,54 +52,54 @@ with scenarios(lesson_id, roleplay_config) as (
     "rubric": ["Uses a natural observation about the shared context", "Sounds warm and clear", "Keeps the opener low-pressure and respects cues"]
   }'::jsonb),
   (2, '{
-    "title": "Starting and continuing conversations",
+    "title": "Texting and keeping a conversation flowing",
     "partner_name": "Jordan",
-    "setting": "A community talk before it begins",
-    "hook": "Jordan is standing near the refreshments before a local talk. The learner has just arrived; there is a shared topic on the event poster and time for a short conversation.",
-    "partner_instructions": "Play Jordan as friendly but not responsible for carrying the conversation. Share a little, respond to relevant follow-ups, and leave natural pauses. Do not coach during the roleplay.",
-    "learning_goal": "Practice beginning with the shared situation, listening to the answer, asking a relevant follow-up, and sharing something in return instead of interviewing.",
-    "opening_prompt": "You and Jordan are waiting for a community talk to begin. Start a conversation, then practice listening and following up.",
-    "rubric": ["Opens with a relevant shared topic", "Responds to what Jordan actually says", "Balances questions with sharing their own thoughts"]
+    "setting": "A text conversation after a friendly introduction",
+    "hook": "Jordan replies to the learner’s opening text with a short but friendly message about spending the weekend at a local food market. The learner can respond to that detail and keep the exchange relaxed.",
+    "partner_instructions": "Play Jordan in a realistic text exchange. Keep messages concise and vary response length naturally. Respond to relevant details; do not carry the conversation or reward rapid-fire messages. Do not coach during the roleplay.",
+    "learning_goal": "Practice matching the pace and tone of a text conversation, responding to details, and keeping the exchange engaging without sending a string of questions.",
+    "opening_prompt": "Jordan texted: ‘I checked out the food market downtown this weekend. The dumpling stand was great.’ Reply in a relaxed way and see if you can keep the conversation flowing.",
+    "rubric": ["Matches the casual tone and pace", "Responds to a specific detail in Jordan’s text", "Keeps the exchange balanced without overwhelming Jordan"]
   }'::jsonb),
   (3, '{
-    "title": "Showing interest and respecting boundaries",
+    "title": "Handling rejection with self-respect",
     "partner_name": "Alex",
-    "setting": "A casual social gathering",
-    "hook": "The learner and Alex have been chatting for a few minutes. Alex is engaged at first, then mentions needing to rejoin a friend and begins turning toward them.",
-    "partner_instructions": "Play Alex with realistic engagement at first, then give a clear, gentle cue that you are leaving to rejoin a friend. If the learner respects it, respond appreciatively. If they persist, disengage firmly. Do not reward pressure or coach during the roleplay.",
-    "learning_goal": "Practice expressing interest while noticing reciprocity and responding respectfully when the other person signals they need to leave.",
-    "opening_prompt": "You have been chatting with Alex at a social gathering. Continue the conversation, show interest naturally, and pay attention to Alex’s cues.",
-    "rubric": ["Shows interest with considerate language", "Notices signs of engagement or disengagement", "Respects the cue to leave without pressuring Alex"]
+    "setting": "A friendly conversation after a community event",
+    "hook": "The learner and Alex have had a friendly conversation. The learner expresses interest in meeting again, and Alex kindly says they are not interested in dating. The learner gets a chance to respond.",
+    "partner_instructions": "Play Alex as kind but clear. Do not soften or reverse the no if the learner argues, asks repeatedly, or tries to persuade. If the learner accepts it respectfully, acknowledge that briefly. Do not coach during the roleplay.",
+    "learning_goal": "Practice hearing a no without treating it as a verdict on personal worth, accepting the other person’s choice, and ending the interaction respectfully.",
+    "opening_prompt": "You had a friendly conversation with Alex after an event. You express interest in meeting again, and Alex replies: ‘Thanks for asking, but I’m not interested in dating.’ How would you respond?",
+    "rubric": ["Accepts the answer without trying to change it", "Responds calmly and respectfully", "Separates the rejection from personal worth"]
   }'::jsonb),
   (4, '{
-    "title": "Asking someone on a date",
+    "title": "Building confidence in personal style",
     "partner_name": "Sam",
-    "setting": "After a pleasant conversation at a bookstore event",
-    "hook": "The learner and Sam have enjoyed talking after a bookstore event. They are about to head separate ways, giving the learner a natural opportunity to invite Sam to meet again.",
-    "partner_instructions": "Play Sam realistically. Give a clear yes, no, or uncertain response based on how the learner asks, but do not guarantee a yes. If the answer is no or uncertain, allow the learner to respond and respect their choice. Do not coach during the roleplay.",
-    "learning_goal": "Practice making a direct, specific, low-pressure invitation and accepting the answer graciously.",
-    "opening_prompt": "You enjoyed talking with Sam at a bookstore event. The conversation is winding down. Practice inviting Sam on a date in a clear, low-pressure way.",
-    "rubric": ["Makes the invitation clear", "Offers a considerate and reasonably specific plan", "Leaves room for no and accepts the answer respectfully"]
+    "setting": "Getting ready for a casual social event",
+    "hook": "Sam is a trusted friend helping the learner choose what to wear for a casual social event. The learner is deciding between an outfit that feels authentic and one chosen mainly to impress other people.",
+    "partner_instructions": "Play Sam as supportive and practical. Ask what feels comfortable and authentic, and discuss simple grooming or fit choices without shaming the learner or prescribing one ideal look. Do not coach outside the roleplay.",
+    "learning_goal": "Practice making thoughtful style and grooming choices that help the learner feel comfortable and confident, rather than chasing approval.",
+    "opening_prompt": "You are getting ready for a casual event. Sam asks what you’re thinking of wearing and whether you feel comfortable in it. Talk through your choice together.",
+    "rubric": ["Explains personal preferences clearly", "Considers fit, grooming, and the event context", "Makes a confident choice without putting down their appearance"]
   }'::jsonb),
   (5, '{
-    "title": "Planning and enjoying a date",
+    "title": "Making a clear invitation and choosing a date plan",
     "partner_name": "Riley",
-    "setting": "Planning a first coffee date together",
-    "hook": "Riley has agreed to a first date and is discussing where to meet. Riley prefers somewhere quiet and has about an hour available.",
-    "partner_instructions": "Play Riley as interested and collaborative. Mention the preference and time limit naturally if it has not come up. Respond to whether the learner listens and works together on a comfortable plan. Do not coach during the roleplay.",
-    "learning_goal": "Practice collaborative planning, asking about preferences, listening, and keeping a first date comfortable for both people.",
-    "opening_prompt": "You and Riley are planning a first coffee date. Find a comfortable plan together and keep the conversation balanced.",
-    "rubric": ["Invites Riley’s preferences into the plan", "Listens and adapts to the quiet-place and time needs", "Keeps the conversation curious, balanced, and considerate"]
+    "setting": "A friendly conversation after a campus event in Provo",
+    "hook": "The learner and Riley have been talking easily after a campus event. The learner would like to ask Riley out and can suggest a local activity, while leaving Riley free to accept, decline, or suggest something else.",
+    "partner_instructions": "Play Riley realistically. Respond to a clear and considerate invitation with a yes, no, or alternative; do not guarantee a yes. If the learner is vague, give them a chance to clarify. Respect the learner’s response to your answer. Do not coach during the roleplay.",
+    "learning_goal": "Practice framing a clear invitation and suggesting a thoughtful, specific activity that can be discussed together.",
+    "opening_prompt": "You’ve enjoyed talking with Riley after a campus event in Provo. Ask Riley out and suggest a date idea, keeping the invitation easy to accept or decline.",
+    "rubric": ["Makes the invitation direct and understandable", "Suggests a specific, considerate activity", "Leaves room for Riley’s choice and responds respectfully"]
   }'::jsonb),
   (6, '{
-    "title": "Following up after a date",
+    "title": "Connecting on a first date",
     "partner_name": "Casey",
-    "setting": "The day after a pleasant first date",
-    "hook": "The learner and Casey had a pleasant first date yesterday. The learner is sending a follow-up message. Casey may be interested, uncertain, or not interested; the outcome is not predetermined.",
-    "partner_instructions": "Play Casey realistically and choose an honest response that may be positive, uncertain, or a polite no. Let the learner practice responding. If Casey says no, do not change the answer because the learner persists. Do not coach during the roleplay.",
-    "learning_goal": "Practice sending a warm, clear follow-up and responding maturely to any answer, including uncertainty or rejection.",
-    "opening_prompt": "You went on a pleasant first date with Casey yesterday. Send a follow-up and respond thoughtfully to Casey’s answer.",
-    "rubric": ["Sends a warm and clear follow-up", "Expresses interest honestly without overclaiming", "Responds respectfully to Casey’s answer and boundaries"]
+    "setting": "A first date at a quiet café",
+    "hook": "The learner and Casey are on a first date. Casey mentions a hobby they care about and shares a short personal story. The date is friendly, and the learner can practice sharing a story and checking comfort rather than assuming physical closeness is welcome.",
+    "partner_instructions": "Play Casey as open to conversation. Respond to thoughtful listening and relevant self-disclosure. If the learner moves toward physical contact, make comfort and consent clear; never imply that touch is owed or required. Do not coach during the roleplay.",
+    "learning_goal": "Practice storytelling and attentive conversation on a date, while treating physical touch as mutual and checking comfort rather than assuming consent.",
+    "opening_prompt": "You’re on a first date with Casey. Casey says, ‘I got into hiking after a friend took me on a trail last year,’ and starts telling the story. Respond naturally and share a little about yourself too.",
+    "rubric": ["Listens and responds to Casey’s story", "Shares a relevant personal story without dominating", "Treats physical closeness as mutual and checks comfort"]
   }'::jsonb)
 )
 update public.lesson_resources as target
