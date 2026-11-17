@@ -41,7 +41,8 @@ async function loadRoleplayScenario(lessonId: number, authorization: string | nu
   query.searchParams.set('roleplay_config', 'not.is.null');
   query.searchParams.set('limit', '1');
   const response = await fetch(query, {
-    headers: { apikey: publishableKey, Authorization: authorization, Accept: 'application/json' }
+    headers: { apikey: publishableKey, Authorization: authorization, Accept: 'application/json' },
+    signal: AbortSignal.timeout(5000)
   });
   if (!response.ok) {
     console.error('Roleplay scenario query failed:', response.status);
@@ -100,22 +101,21 @@ Deno.serve(async request => {
     const requestBody = JSON.stringify({
       systemInstruction: { parts: [{ text: instruction }] },
       contents,
-      generationConfig: body.action === 'evaluate' ? { responseMimeType: 'application/json', temperature: 0.3 } : { temperature: 0.8, maxOutputTokens: 180 }
+      generationConfig: body.action === 'evaluate'
+        ? { responseMimeType: 'application/json', temperature: 0.3, thinkingConfig: { thinkingLevel: 'low' }, maxOutputTokens: 700 }
+        : { temperature: 0.8, thinkingConfig: { thinkingLevel: 'low' }, maxOutputTokens: 180 }
     });
     let response: Response | undefined;
-    let responseModel = '';
-    for (const model of ['gemini-3.8-flash', 'gemini-3.6-flash']) {
-      responseModel = model;
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-          body: requestBody
-        });
-        if (![500, 503].includes(response.status) || attempt === 1) break;
-        await new Promise(resolve => setTimeout(resolve, 500 * (2 ** attempt)));
-      }
-      if (response?.ok || !response || ![500, 503].includes(response.status)) break;
+    const responseModel = 'gemini-3.6-flash';
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${responseModel}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: requestBody,
+        signal: AbortSignal.timeout(15000)
+      });
+      if (![500, 503].includes(response.status) || attempt === 1) break;
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
     if (!response) return json({ error: 'Gemini could not respond. Please try again.' }, 502);
     const result = await response.json();
