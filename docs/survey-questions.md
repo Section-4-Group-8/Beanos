@@ -96,20 +96,20 @@ Each answer reveals the next question on the same screen. Previous questions sta
 
 ### What would you like to learn first?
 
-*Put these topics in order, with the topic you’re most interested in at the top.*
+*Rank the six Beanos lessons, with the one you want to take first at the top.*
 
-- Building confidence and handling nerves.
-- Starting and continuing conversations.
-- Showing interest and respecting boundaries.
-- Asking someone on a date.
-- Planning and enjoying a date.
-- Following up after a date.
+- Building confidence and handling nerves
+- Starting and continuing conversations
+- Showing interest and respecting boundaries
+- Asking someone on a date
+- Planning and enjoying a date
+- Following up after a date
 
-**Interaction:** Reorder all six lesson topics into a priority list. Each topic appears once.
+**Interaction:** Reorder all six lessons into a priority list. Each lesson appears once.
 
 **Button:** Finish survey.
 
-**Finish requirement:** All six topics are present in the priority list. Users may keep the starting order if it matches their preferences.
+**Finish requirement:** All six lessons are present in the priority list. Users may keep the starting order if it matches their preferences.
 
 ## Screen 6 — You’re ready to begin!
 

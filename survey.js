@@ -63,12 +63,12 @@
   ];
 
   const lessons = [
-    ['confidence', 'Building confidence and handling nerves.'],
-    ['conversations', 'Starting and continuing conversations.'],
-    ['interest-and-boundaries', 'Showing interest and respecting boundaries.'],
-    ['asking-someone-out', 'Asking someone on a date.'],
-    ['date-planning', 'Planning and enjoying a date.'],
-    ['following-up', 'Following up after a date.']
+    ['confidence', 'Building confidence and handling nerves'],
+    ['conversations', 'Starting and continuing conversations'],
+    ['interest-and-boundaries', 'Showing interest and respecting boundaries'],
+    ['asking-someone-out', 'Asking someone on a date'],
+    ['date-planning', 'Planning and enjoying a date'],
+    ['following-up', 'Following up after a date']
   ];
 
   // Edit in memory; save the completed survey through the signed-in account RPC.
