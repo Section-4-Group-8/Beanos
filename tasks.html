@@ -319,36 +319,26 @@
         completionUserId = account.authUserId;
         const progress = await window.BeanosAPI.loadLessonProgress(completionUserId);
         const completed = new Set((progress.completedLessons || []).map(Number));
-        const requestedLessonId = lessonId ? Number(lessonId) : null;
-
-        if (lessonId && (!Number.isInteger(requestedLessonId) || requestedLessonId < 1 || requestedLessonId > 6)) {
-          lockTasks('That lesson link is not valid. Return to Lessons and choose an available lesson.');
-          return;
-        }
-        if (requestedLessonId && !completed.has(requestedLessonId)) {
-          lockTasks(`Tasks for Lesson ${requestedLessonId} stay locked until you complete that lesson.`);
-          return;
-        }
-        lessonId = requestedLessonId || (progress.lessonOrder || []).filter(id => completed.has(Number(id))).map(Number).at(-1) || null;
-        if (!lessonId) {
+        const completedLessonIds = (progress.lessonOrder || []).map(Number).filter(id => completed.has(id));
+        lessonId = completedLessonIds.at(-1) || null;
+        if (!completedLessonIds.length) {
           lockTasks('Complete Lesson 1 first. Its tasks will unlock here after the lesson is marked complete.');
           return;
         }
         unlockTasks();
         let request = client.from('task_bank')
           .select('id,lesson_id,difficulty,title,description,estimated_minutes')
-          .eq('lesson_id', lessonId)
+          .in('lesson_id', completedLessonIds)
           .order('difficulty', { ascending: true })
           .order('title', { ascending: true });
-        if (recommendedIds.size) request = request.in('id', [...recommendedIds].map(Number));
         const { data, error } = await request;
         if (error) throw error;
         tasks = data || [];
         if (!tasks.length) {
-          announce(`No tasks are currently linked to Lesson ${lessonId}.`, 'error');
+          announce(`No tasks are currently linked to your completed lessons yet.`, 'error');
         } else {
           const note = document.getElementById('recommendation-note');
-          note.textContent = `Showing tasks associated with completed Lesson ${lessonId}.`;
+          note.textContent = `Showing tasks associated with completed Lessons ${completedLessonIds.join(', ')}.`;
           note.hidden = false;
         }
         await loadCompletions();
