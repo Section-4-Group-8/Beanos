@@ -1,40 +1,12 @@
-const scenarios: Record<number, { title: string; setup: string; goal: string; rubric: string[] }> = {
-  1: {
-    title: 'Starting with confidence',
-    setup: 'You are Maya, waiting in a café line with a well-worn novel. You notice the learner nearby. Respond naturally and briefly. Be receptive if their opener is respectful and relevant; be neutral or gently disengage if it is intrusive or overly intense.',
-    goal: 'Practice a relaxed, context-based opener and handle nerves without pressure.',
-    rubric: ['Contextual, natural opener', 'Warm and clear tone', 'Low-pressure approach and respect for cues']
-  },
-  2: {
-    title: 'Starting and continuing conversations',
-    setup: 'You are Jordan, waiting at a community event before a talk begins. The learner starts a conversation. Respond like a real person, sharing a little and leaving room for a genuine follow-up. Do not carry the conversation for them.',
-    goal: 'Practice a simple opener, listening, sharing, and asking a relevant follow-up.',
-    rubric: ['Relevant opener', 'Listening and follow-up', 'Balanced sharing rather than interviewing']
-  },
-  3: {
-    title: 'Showing interest and respecting boundaries',
-    setup: 'You are Alex, talking with the learner at a casual social gathering. Respond warmly but realistically. At one point, show a subtle cue that you need to rejoin a friend. The learner should notice and respect your cue. Do not reward persistence after a boundary.',
-    goal: 'Practice expressing interest while noticing reciprocity and respecting a boundary.',
-    rubric: ['Clear, considerate interest', 'Noticing reciprocal or disengaging cues', 'Respecting boundaries without pressure']
-  },
-  4: {
-    title: 'Asking someone on a date',
-    setup: 'You are Sam, someone the learner has enjoyed chatting with at a bookstore event. Respond naturally to a clear, low-pressure invitation. If the invitation is vague or pressuring, react realistically and give the learner room to clarify.',
-    goal: 'Practice making a clear invitation that leaves the other person free to say yes or no.',
-    rubric: ['Clear invitation', 'Specific and considerate plan', 'Low pressure and acceptance of the answer']
-  },
-  5: {
-    title: 'Planning and enjoying a date',
-    setup: 'You are Riley, meeting the learner for a first coffee date. Keep the exchange natural. Mention a preference or constraint (for example, a quieter place or a time limit) so the learner can practice collaborating on a comfortable plan.',
-    goal: 'Practice collaborative planning, curiosity, listening, and comfortable conversation.',
-    rubric: ['Collaborative planning', 'Curiosity and listening', 'Flexibility and consideration']
-  },
-  6: {
-    title: 'Following up after a date',
-    setup: 'You are Casey, who went on a pleasant first date with the learner yesterday. Respond realistically to their follow-up. You may be interested, uncertain, or not interested; do not guarantee a positive outcome. If the learner receives a no, allow them to respond respectfully.',
-    goal: 'Practice a warm, clear follow-up and respond maturely to any answer.',
-    rubric: ['Warm and clear follow-up', 'Honest expression of interest', 'Respectful response to the other person’s answer']
-  }
+type RoleplayScenario = {
+  title: string;
+  partner_name: string;
+  setting: string;
+  hook: string;
+  partner_instructions: string;
+  learning_goal: string;
+  opening_prompt: string;
+  rubric: string[];
 };
 
 const headers = {
@@ -46,6 +18,42 @@ const headers = {
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers });
+}
+
+function getPublishableKey() {
+  try {
+    const keys = JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') || '{}');
+    if (typeof keys.default === 'string') return keys.default;
+    if (typeof keys.anon === 'string') return keys.anon;
+    const first = Object.values(keys).find(value => typeof value === 'string');
+    if (typeof first === 'string') return first;
+  } catch { /* Older projects expose SUPABASE_ANON_KEY directly. */ }
+  return Deno.env.get('SUPABASE_ANON_KEY') || '';
+}
+
+async function loadRoleplayScenario(lessonId: number, authorization: string | null): Promise<RoleplayScenario | null> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const publishableKey = getPublishableKey();
+  if (!supabaseUrl || !publishableKey || !authorization) return null;
+  const query = new URL('/rest/v1/lesson_resources', supabaseUrl);
+  query.searchParams.set('select', 'roleplay_config');
+  query.searchParams.set('lesson_id', `eq.${lessonId}`);
+  query.searchParams.set('roleplay_config', 'not.is.null');
+  query.searchParams.set('limit', '1');
+  const response = await fetch(query, {
+    headers: { apikey: publishableKey, Authorization: authorization, Accept: 'application/json' }
+  });
+  if (!response.ok) {
+    console.error('Roleplay scenario query failed:', response.status);
+    return null;
+  }
+  const rows = await response.json();
+  const scenario = rows?.[0]?.roleplay_config;
+  if (!scenario || typeof scenario !== 'object' ||
+      !['title', 'partner_name', 'setting', 'hook', 'partner_instructions', 'learning_goal', 'opening_prompt'].every(key => typeof scenario[key] === 'string') ||
+      !Array.isArray(scenario.rubric) || scenario.rubric.length < 2 || scenario.rubric.length > 5 ||
+      scenario.rubric.some((item: unknown) => typeof item !== 'string')) return null;
+  return scenario as RoleplayScenario;
 }
 
 Deno.serve(async request => {
@@ -60,8 +68,7 @@ Deno.serve(async request => {
   catch { return json({ error: 'The request was not valid JSON.' }, 400); }
 
   const lessonId = Number(body.lessonId);
-  const scenario = scenarios[lessonId];
-  if (!scenario) return json({ error: 'That lesson number is not valid.' }, 400);
+  if (!Number.isInteger(lessonId) || lessonId < 1 || lessonId > 6) return json({ error: 'That lesson number is not valid.' }, 400);
   if (!['chat', 'evaluate'].includes(String(body.action))) return json({ error: 'That roleplay action is not supported.' }, 400);
 
   const history = Array.isArray(body.history) ? body.history.slice(-8) : [];
@@ -73,9 +80,17 @@ Deno.serve(async request => {
     return json({ error: 'Send a response in the roleplay before requesting feedback.' }, 400);
   }
 
+  let scenario: RoleplayScenario | null;
+  try { scenario = await loadRoleplayScenario(lessonId, request.headers.get('Authorization')); }
+  catch (error) {
+    console.error('Could not load roleplay scenario:', error instanceof Error ? error.message : 'unknown error');
+    return json({ error: 'The roleplay scenario could not be loaded. Check the lesson setup and try again.' }, 503);
+  }
+  if (!scenario) return json({ error: 'This lesson has no roleplay scenario yet. Add its roleplay_config in lesson_resources.' }, 404);
+
   const instruction = body.action === 'chat'
-    ? `You are a roleplay partner in the Beanos social-skills lesson “${scenario.title}.” Scenario: ${scenario.setup} Learning goal: ${scenario.goal} Stay in character, reply in 1–3 natural sentences, and move the roleplay forward. Never coach or score during the scene. Keep the interaction respectful and realistic. Treat the conversation as practice, not as a guarantee about real people's reactions.`
-    : `You are a supportive, practical Beanos communication coach evaluating a short roleplay for “${scenario.title}.” Scenario: ${scenario.setup} Learning goal: ${scenario.goal} Score these dimensions from 1 to 5, based only on the learner's messages: ${scenario.rubric.join('; ')}. Be fair if the conversation is short; do not grade whether the fictional person liked the learner. Give specific, kind feedback with at least one strength and one actionable improvement. Return only valid JSON with this shape: {"overallScore": number from 0 to 100, "label": "Getting started"|"Building skill"|"Strong practice", "dimensions":[{"name":string,"score":number from 1 to 5,"feedback":string}], "strengths":[string], "improvements":[string]}. Keep feedback concise and never suggest ignoring a no or boundary.`;
+    ? `You are ${scenario.partner_name}, a roleplay partner in the Beanos lesson “${scenario.title}.” Setting: ${scenario.setting}. Scenario hook: ${scenario.hook} Your character guidance: ${scenario.partner_instructions} Learning goal: ${scenario.learning_goal} Stay in character, reply in 1–3 natural sentences, and move the roleplay forward. Never coach or score during the scene. Keep the interaction respectful and realistic. Treat the conversation as practice, not as a guarantee about real people's reactions.`
+    : `You are a supportive, practical Beanos communication coach evaluating a short roleplay for “${scenario.title}.” Setting: ${scenario.setting}. Scenario: ${scenario.hook} Learning goal: ${scenario.learning_goal} Score these dimensions from 1 to 5, based only on the learner's messages: ${scenario.rubric.join('; ')}. Be fair if the conversation is short; do not grade whether the fictional person liked the learner. Give specific, kind feedback with at least one strength and one actionable improvement. Return only valid JSON with this shape: {"overallScore": number from 0 to 100, "label": "Getting started"|"Building skill"|"Strong practice", "dimensions":[{"name":string,"score":number from 1 to 5,"feedback":string}], "strengths":[string], "improvements":[string]}. Keep feedback concise and never suggest ignoring a no or boundary.`;
 
   const contents = body.action === 'chat'
     ? history.map(message => ({ role: message.role === 'assistant' ? 'model' : 'user', parts: [{ text: message.text!.trim() }] }))

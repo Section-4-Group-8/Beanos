@@ -25,6 +25,13 @@ using each row's `lesson_id`. The signed-in role needs `SELECT` access to both
 tables (with row-level security enabled, allow authenticated users to read the
 lesson and task catalogs).
 
+Lesson roleplays are configured in the nullable `lesson_resources.roleplay_config`
+JSONB column. Run [the roleplay setup SQL](supabase/lesson_roleplay_config.sql)
+once after adding at least one resource row for each lesson. It stores one
+scenario per lesson, tied to that lesson's skill goal and feedback rubric. The
+lesson page reads its scenario from Supabase, and the Edge Function reads the
+same row under the signed-in user's access token before calling Gemini.
+
 Lesson stars and task completion are currently a signed-in-browser prototype:
 each completed task awards stars equal to its difficulty, and 10 stars from a
 lesson unlock the next one. Stars do not carry between lessons. Progress is

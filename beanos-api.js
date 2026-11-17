@@ -75,6 +75,16 @@
     return data || [];
   }
 
+  async function loadLessonRoleplayConfig(lessonId) {
+    const { data, error } = await ready().from('lesson_resources')
+      .select('roleplay_config')
+      .eq('lesson_id', lessonId)
+      .not('roleplay_config', 'is', null)
+      .maybeSingle();
+    if (error) throw new Error(explain(error));
+    return data?.roleplay_config || null;
+  }
+
   async function loadLessonTasks(lessonId) {
     // Future assignment hook: replace this catalog filter with a user-specific
     // assigned-task query once those account records are available.
@@ -177,6 +187,7 @@
     // Ownership comes exclusively from auth.uid() inside the database function.
     saveSurvey: answers => rpc('beanos_save_survey', { p_answers: answers }),
     loadLessonResources,
+    loadLessonRoleplayConfig,
     loadLessonTasks,
     requestLessonRoleplay,
     loadLessonProgress,
