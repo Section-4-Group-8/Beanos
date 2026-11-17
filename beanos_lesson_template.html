@@ -989,24 +989,15 @@
              =================================================================== -->
         <section class="lesson-step" id="step-5">
             <span class="badge badge-navy">Real-World Execution</span>
-            <h2>Tasks for this lesson</h2>
+            <h2>Tasks to put this lesson into practice</h2>
             <p style="color: var(--color-gray-700);">
-                Complete tasks to earn stars equal to their difficulty. Ten stars complete this lesson.
+                You’ve been assigned tasks for this lesson to help you learn and put into practice the content from the lesson.
             </p>
-
-            <div class="lesson-task-progress" aria-live="polite">
-                <div class="lesson-task-progress-head">
-                    <strong id="lesson-task-progress-label">Loading this lesson’s tasks…</strong>
-                    <span>10 stars complete this lesson</span>
-                </div>
-                <div class="lesson-task-progress-track" id="lesson-task-progress-track" role="progressbar" aria-label="Stars earned for this lesson" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="lesson-task-progress-fill" id="lesson-task-progress-fill"></div></div>
-                <p id="lesson-task-completion-status" role="status">Tasks completed in this lesson only count toward its next lesson.</p>
-            </div>
-            <div class="lesson-task-grid" id="taskGridContainer" aria-label="Tasks associated with this lesson"></div>
-            <p class="lesson-task-storage-note">Assigned tasks and completion status are saved to your account.</p>
+            <p id="lesson-task-completion-status" role="status" aria-live="polite"></p>
 
             <div class="step-footer-actions">
                 <a class="btn btn-secondary" href="index.html">Home</a>
+                <a class="btn btn-primary" href="tasks.html">See tasks</a>
             </div>
         </section>
 
@@ -1210,21 +1201,17 @@
 
         function renderLessonTaskProgress(lessonId, progress) {
             const stars = progress.starsByLesson[lessonId] || 0;
-            document.getElementById('lesson-task-progress-label').textContent = `${stars} / 10 stars earned`;
-            document.getElementById('lesson-task-progress-fill').style.width = `${Math.min(100, stars * 10)}%`;
-            document.getElementById('lesson-task-progress-track').setAttribute('aria-valuenow', String(Math.min(10, stars)));
-            if (stars >= 10) {
-                taskCompletionStatus.textContent = progress.nextLessonId
-                    ? `Lesson complete. Continue your path with Lesson ${progress.nextLessonId}.`
-                    : 'You’ve completed all six lessons.';
-            } else {
-                const remaining = 10 - stars;
-                taskCompletionStatus.textContent = `${remaining} more ${remaining === 1 ? 'star' : 'stars'} to complete this lesson.`;
-            }
+            const label = document.getElementById('lesson-task-progress-label');
+            const fill = document.getElementById('lesson-task-progress-fill');
+            const track = document.getElementById('lesson-task-progress-track');
+            if (label) label.textContent = `${stars} / 10 stars earned`;
+            if (fill) fill.style.width = `${Math.min(100, stars * 10)}%`;
+            if (track) track.setAttribute('aria-valuenow', String(Math.min(10, stars)));
         }
 
         function renderLessonTasks(lessonId, tasks, progress) {
             renderLessonTaskProgress(lessonId, progress);
+            if (!lessonTaskGrid) return;
             lessonTaskGrid.replaceChildren();
             if (!tasks.length) {
                 const empty = document.createElement('p');
