@@ -91,7 +91,8 @@
       }
       const again = document.createElement('a');
       again.className = 'button button-primary';
-      again.href = `tasks.html?repeat_task_id=${encodeURIComponent(String(item.task.id))}`;
+      const redoQuery = new URLSearchParams({ task:String(item.task.id), difficulty:String(difficulty) });
+      again.href = `reflection.html?${redoQuery.toString()}`;
       again.textContent = 'Do this task again';
       actions.appendChild(again);
       card.appendChild(actions);
