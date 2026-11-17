@@ -1228,6 +1228,16 @@
             });
         }
 
+        function withTimeout(promise, timeoutMs, message) {
+            let timer;
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => {
+                    timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+                })
+            ]).finally(() => window.clearTimeout(timer));
+        }
+
         async function loadLesson() {
             const lessonId = Number(new URLSearchParams(window.location.search).get('lesson'));
             const status = document.getElementById('lesson-resource-status');
@@ -1248,7 +1258,11 @@
             document.querySelector('#stepIndicatorText').textContent = '1 of 5';
 
             try {
-                const account = await window.BeanosAPI.requireAccount({ completed: true });
+                const account = await withTimeout(
+                    window.BeanosAPI.requireAccount({ completed: true }),
+                    12000,
+                    'The sign-in check did not respond. Reload the page; if this continues, republish beanos-api.js and check the Supabase connection.'
+                );
                 if (!account) {
                     accessMessage.textContent = 'Opening your sign-in or survey page…';
                     return;
