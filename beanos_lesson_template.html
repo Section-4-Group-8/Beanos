@@ -1228,16 +1228,6 @@
             });
         }
 
-        function withTimeout(promise, timeoutMs, message) {
-            let timer;
-            return Promise.race([
-                promise,
-                new Promise((_, reject) => {
-                    timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
-                })
-            ]).finally(() => window.clearTimeout(timer));
-        }
-
         async function loadLesson() {
             const lessonId = Number(new URLSearchParams(window.location.search).get('lesson'));
             const status = document.getElementById('lesson-resource-status');
@@ -1257,12 +1247,16 @@
             document.querySelector('.nav-actions .btn-nav-back').href = 'index.html';
             document.querySelector('#stepIndicatorText').textContent = '1 of 5';
 
+            let accessCheckTimedOut = false;
+            const accessCheckTimer = window.setTimeout(() => {
+                accessCheckTimedOut = true;
+                accessMessage.textContent = 'The sign-in check did not respond. Reload the page. If this continues, republish beanos-api.js and check the Supabase connection.';
+            }, 12000);
+
             try {
-                const account = await withTimeout(
-                    window.BeanosAPI.requireAccount({ completed: true }),
-                    12000,
-                    'The sign-in check did not respond. Reload the page; if this continues, republish beanos-api.js and check the Supabase connection.'
-                );
+                const account = await window.BeanosAPI.requireAccount({ completed: true });
+                window.clearTimeout(accessCheckTimer);
+                if (accessCheckTimedOut) return;
                 if (!account) {
                     accessMessage.textContent = 'Opening your sign-in or survey page…';
                     return;
@@ -1306,6 +1300,7 @@
                     taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || 'Lesson tasks could not load. Please try again later.';
                 }
             } catch (error) {
+                window.clearTimeout(accessCheckTimer);
                 accessMessage.textContent = window.BeanosAPI?.explain(error) || 'Lesson access could not be checked. Please return home and try again.';
             }
         }
