@@ -3,6 +3,59 @@
   const api = window.BeanosAPI;
   const content = document.getElementById('account-content');
   const status = document.getElementById('status-box');
+  const colorPicker = document.getElementById('bean-color-picker');
+  const colorStatus = document.getElementById('bean-color-status');
+  const beanColors = {
+    tan: { name: 'Tan', fill: '#EBD9C1', seam: '#A65E4F' },
+    rust: { name: 'Rust', fill: '#A65E4F', seam: '#EBD9C1' },
+    sage: { name: 'Sage', fill: '#5D9B7B', seam: '#1A2A40' },
+    blue: { name: 'Blue', fill: '#4F8EA6', seam: '#1A2A40' }
+  };
+  let selectedColor = 'tan';
+
+  function showBeanColor(color) {
+    const choice = beanColors[color];
+    const avatar = document.querySelector('.profile-avatar');
+    avatar.style.setProperty('--bean-color', choice.fill);
+    avatar.style.setProperty('--bean-seam', choice.seam);
+    avatar.setAttribute('aria-label', `Beanos logo with a ${choice.name.toLowerCase()} bean`);
+    document.getElementById('bean-color-name').textContent = choice.name;
+    colorPicker.querySelector(`input[value="${color}"]`).checked = true;
+    selectedColor = color;
+  }
+
+  async function loadBeanColor() {
+    try {
+      const user = await api.currentUser();
+      const color = user.user_metadata?.beanos_bean_color;
+      showBeanColor(Object.hasOwn(beanColors, color) ? color : 'tan');
+    } catch {
+      colorStatus.textContent = 'Your saved color could not load. Choose a color to save it.';
+    } finally {
+      colorPicker.disabled = false;
+    }
+  }
+
+  colorPicker.addEventListener('change', async event => {
+    const color = event.target.value;
+    if (!Object.hasOwn(beanColors, color)) return;
+    const previousColor = selectedColor;
+    showBeanColor(color);
+    colorPicker.disabled = true;
+    colorStatus.dataset.failed = 'false';
+    colorStatus.textContent = 'Saving bean color…';
+    try {
+      const { error } = await api.client.auth.updateUser({ data: { beanos_bean_color: color } });
+      if (error) throw error;
+      colorStatus.textContent = 'Bean color saved.';
+    } catch (error) {
+      showBeanColor(previousColor);
+      colorStatus.dataset.failed = 'true';
+      colorStatus.textContent = `Your bean color could not be saved. ${api.explain(error)}`;
+    } finally {
+      colorPicker.disabled = false;
+    }
+  });
 
   function message(text, failed = false, target = status) {
     target.hidden = false;
@@ -60,13 +113,10 @@
     document.getElementById('current-email').textContent = account.email;
     document.getElementById('profile-email').textContent = account.email;
     document.getElementById('current-user-id').textContent = account.userId;
-    const initials = account.email.split('@')[0].split(/[._+\s-]+/).filter(Boolean);
-    document.getElementById('profile-initials').textContent = (
-      initials.length > 1 ? initials[0][0] + initials[1][0] : account.email.slice(0, 2)
-    ).toUpperCase();
     status.hidden = true;
     content.hidden = false;
     loadProgress(account.authUserId);
+    loadBeanColor();
   }
   initialize().catch(error => message(api.explain(error), true));
 })();

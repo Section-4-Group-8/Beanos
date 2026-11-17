@@ -341,6 +341,7 @@ test('profile preserves account identity and submits email and password changes 
       return { lessonOrder: [1, 3, 2, 4, 5, 6], completedLessons: [1, 3], starsByLesson: { 1: 10, 3: 12 } };
     },
     signOut: async () => { signedOut++; },
+    currentUser: async () => ({ user_metadata: {} }),
     explain: error => error.message,
     client: { auth: {
       onAuthStateChange() {},
@@ -353,7 +354,7 @@ test('profile preserves account identity and submits email and password changes 
   assert.equal(d.getElementById('account-content').hidden, false);
   assert.equal(d.getElementById('current-user-id').textContent, '9007199254740994');
   assert.equal(d.getElementById('current-email').textContent, 'luke.melanson@example.com');
-  assert.equal(d.getElementById('profile-initials').textContent, 'LM');
+  assert.equal(d.querySelector('.profile-avatar').getAttribute('aria-label'), 'Beanos logo with a tan bean');
   assert.equal(d.getElementById('lesson-count').textContent, '6');
   assert.equal(d.getElementById('completed-count').textContent, '2');
   assert.equal(d.getElementById('star-count').textContent, '22');
@@ -407,6 +408,7 @@ test('profile account settings remain available when progress fails and hidden w
         return { email: 'longusername@example.com', userId: 42, authUserId: 'auth-one' };
       },
       loadLessonProgress: async () => { throw new Error('Progress unavailable'); },
+      currentUser: async () => ({ user_metadata: {} }),
       explain: error => error.message,
       client: { auth: { onAuthStateChange() {} } }
     };
@@ -417,11 +419,67 @@ test('profile account settings remain available when progress fails and hidden w
     if (accountFails) {
       assert.equal(d.getElementById('status-box').textContent, 'Account unavailable');
     } else {
-      assert.equal(d.getElementById('profile-initials').textContent, 'LO');
+      assert.equal(d.getElementById('bean-color-picker').disabled, false);
       assert.equal(d.getElementById('completed-count').textContent, '—');
       assert.equal(d.getElementById('progress-note').textContent, 'Lesson progress is currently unavailable.');
       assert.equal(d.getElementById('new-email').disabled, false);
     }
     dom.window.close();
   }
+});
+
+test('profile saves only approved bean colors, restores the saved color, and rolls back failed saves', async () => {
+  let metadata = { other_preference: 'keep' };
+  let nextError = null;
+  const updates = [];
+  async function openProfile() {
+    const dom = page('profile.html');
+    const { window: w } = dom;
+    w.BeanosAPI = {
+      requireAccount: async () => ({ email: 'sample@example.com', userId: '42', authUserId: 'auth-one' }),
+      currentUser: async () => ({ user_metadata: metadata }),
+      loadLessonProgress: async () => ({ lessonOrder: [1,2,3,4,5,6], completedLessons: [], starsByLesson: {} }),
+      explain: error => error.message,
+      client: { auth: {
+        onAuthStateChange() {},
+        updateUser: async attributes => {
+          updates.push(JSON.parse(JSON.stringify(attributes)));
+          if (!nextError) metadata = { ...metadata, ...attributes.data };
+          return { error: nextError };
+        }
+      } }
+    };
+    w.eval(read('profile.js'));
+    await tick();
+    return dom;
+  }
+  let dom = await openProfile();
+  let d = dom.window.document;
+  assert.equal(d.getElementById('bean-color-picker').disabled, false);
+  assert.equal(d.querySelectorAll('input[name="bean-color"]').length, 4);
+  assert.equal(d.querySelector('input[name="bean-color"]:checked').value, 'tan');
+  d.querySelector('input[value="blue"]').click();
+  await tick();
+  assert.deepEqual(updates, [{ data: { beanos_bean_color: 'blue' } }]);
+  assert.equal(d.querySelector('.profile-avatar').style.getPropertyValue('--bean-color'), '#4F8EA6');
+  assert.equal(d.getElementById('bean-color-status').textContent, 'Bean color saved.');
+  assert.equal(metadata.other_preference, 'keep');
+  dom.window.close();
+  dom = await openProfile();
+  d = dom.window.document;
+  assert.equal(d.querySelector('input[name="bean-color"]:checked').value, 'blue');
+  assert.equal(updates.length, 1, 'loading a saved preference must not write to the account');
+  nextError = { message: 'Connection failed' };
+  d.querySelector('input[value="rust"]').click();
+  await tick();
+  assert.equal(d.querySelector('input[name="bean-color"]:checked').value, 'blue');
+  assert.equal(d.getElementById('bean-color-picker').disabled, false);
+  assert.equal(d.getElementById('bean-color-status').dataset.failed, 'true');
+  assert.equal(metadata.beanos_bean_color, 'blue');
+  dom.window.close();
+  metadata.beanos_bean_color = '__proto__';
+  dom = await openProfile();
+  assert.equal(dom.window.document.querySelector('input[name="bean-color"]:checked').value, 'tan');
+  assert.equal(updates.length, 2, 'invalid saved colors must fall back without an account write');
+  dom.window.close();
 });

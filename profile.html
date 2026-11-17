@@ -9,10 +9,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="profile.css?v=profile-1">
+  <link rel="stylesheet" href="profile.css?v=profile-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="beanos-api.js" defer></script>
-  <script src="profile.js?v=profile-1" defer></script>
+  <script src="profile.js?v=profile-2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#profile-main">Skip to your profile</a>
@@ -36,10 +36,22 @@
     <p id="status-box" class="feedback account-status" role="status" aria-live="polite">Loading your account…</p>
     <div id="account-content" hidden>
       <header class="profile-summary">
-        <div class="profile-avatar" aria-hidden="true"><span id="profile-initials"></span></div>
+        <div class="profile-avatar" role="img" aria-label="Beanos logo with a tan bean">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="6" fill="#1A2A40"/><path class="avatar-bean" d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z"/><path class="avatar-seam" d="M24 13c-6 2-1 9-10 13" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
         <div class="profile-heading">
           <h1>My Beanos Profile</h1>
           <p id="profile-email" class="profile-email"></p>
+          <fieldset id="bean-color-picker" class="bean-colors" disabled>
+            <legend>Bean color <span aria-hidden="true">·</span> <span id="bean-color-name">Tan</span></legend>
+            <div class="bean-swatches">
+              <label class="bean-swatch" style="--swatch: #EBD9C1" title="Tan"><input type="radio" name="bean-color" value="tan" aria-label="Tan" checked><span aria-hidden="true"></span></label>
+              <label class="bean-swatch" style="--swatch: #A65E4F" title="Rust"><input type="radio" name="bean-color" value="rust" aria-label="Rust"><span aria-hidden="true"></span></label>
+              <label class="bean-swatch" style="--swatch: #5D9B7B" title="Sage"><input type="radio" name="bean-color" value="sage" aria-label="Sage"><span aria-hidden="true"></span></label>
+              <label class="bean-swatch" style="--swatch: #4F8EA6" title="Blue"><input type="radio" name="bean-color" value="blue" aria-label="Blue"><span aria-hidden="true"></span></label>
+            </div>
+          </fieldset>
+          <p id="bean-color-status" class="bean-color-status" role="status" aria-live="polite"></p>
         </div>
         <button type="button" id="signout-button" class="button logout-button">Log out</button>
         <dl class="profile-stats" aria-describedby="progress-note">

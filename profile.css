@@ -32,7 +32,21 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 .profile-main { max-width: 1040px; margin: 0 auto; padding: 52px 24px 72px; }
 .profile-summary { display: grid; grid-template-columns: 144px minmax(0, 1fr) auto; column-gap: 42px; align-items: start; padding: 0 0 40px; }
 .profile-avatar { width: 132px; height: 132px; grid-row: 1 / span 5; border: 2px solid var(--rust); padding: 6px; border-radius: 50%; margin-top: 8px; }
-.profile-avatar span { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; border-radius: 50%; background: #F4E9DB; font-size: 42px; font-weight: 500; }
+.profile-avatar svg { display: block; width: 100%; height: 100%; border-radius: 50%; }
+.avatar-bean { fill: var(--bean-color, #EBD9C1); }
+.avatar-seam { stroke: var(--bean-seam, #A65E4F); }
+.bean-colors { border: 0; padding: 0; margin: 14px 0 0; min-width: 0; }
+.bean-colors legend { padding: 0; color: var(--muted); font-size: 11px; }
+.bean-swatches { display: flex; gap: 2px; margin-left: -8px; }
+.bean-swatch { position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; cursor: pointer; }
+.bean-swatch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit; }
+.bean-swatch > span { width: 28px; height: 28px; background: var(--swatch); border-radius: 50%; border: 1px solid #00000015; pointer-events: none; }
+.bean-swatch input:checked + span { outline: 2px solid var(--navy); outline-offset: 3px; }
+.bean-swatch input:focus-visible + span { outline: 3px solid var(--rust); outline-offset: 4px; }
+.bean-colors:disabled .bean-swatch { cursor: wait; opacity: .6; }
+.bean-color-status { color: var(--muted); font-size: 10px; }
+.bean-color-status[data-failed="true"] { color: var(--rust); }
+.bean-color-status:empty { display: none; }
 h1, h2, p, dl, dd { margin: 0; }
 h1 { font-size: clamp(22px, 2.6vw, 28px); font-weight: 600; line-height: 1.35; letter-spacing: -.7px; }
 .profile-heading { min-width: 0; }
@@ -40,15 +54,16 @@ h1 { font-size: clamp(22px, 2.6vw, 28px); font-weight: 600; line-height: 1.35; l
 .button { display: inline-flex; justify-content: center; align-items: center; min-height: 44px; border: 1px solid #D8DCE0; padding: 10px 22px; border-radius: 6px; background: white; color: var(--navy); text-decoration: none; font-size: 12px; font-weight: 600; }
 .button:hover { background: var(--background); border-color: var(--rust); }
 .button:disabled { opacity: .6; cursor: wait; }
-.logout-button { min-width: 112px; }
+.logout-button { min-width: 112px; background: var(--rust); border-color: var(--rust); color: #fff; }
+.logout-button:hover { background: #8C4D40; border-color: #8C4D40; }
 .profile-stats { grid-column: 2 / 4; display: flex; flex-wrap: wrap; gap: 12px 44px; margin-top: 24px; }
 .profile-stats div { display: flex; align-items: baseline; flex-direction: row-reverse; gap: 9px; }
 .profile-stats dt { font-size: 12px; }
 .profile-stats dd { font-size: 21px; font-weight: 600; }
 .progress-note { grid-column: 2 / 4; color: var(--muted); font-size: 10px; margin-top: 3px; }
 .profile-tagline { grid-column: 2 / 4; margin-top: 16px; color: var(--muted); font-size: 12px; }
-.survey-link { grid-column: 2 / 4; justify-self: start; color: var(--rust); font-size: 12px; font-weight: 600; margin-top: 14px; text-decoration: none; }
-.survey-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.survey-link { grid-column: 2 / 4; justify-self: start; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid #D8DCE0; border-radius: 6px; padding: 10px 18px; color: var(--rust); font-size: 12px; font-weight: 600; margin-top: 14px; text-decoration: none; text-align: center; }
+.survey-link:hover { border-color: var(--rust); background: #FCF7F5; }
 .profile-sections { display: flex; gap: 38px; border-block: 1px solid var(--line); }
 .profile-sections a { padding: 16px 10px; margin-bottom: -1px; text-decoration: none; font-size: 12px; color: var(--muted); }
 .profile-sections a[aria-current] { font-weight: 600; color: var(--navy); border-bottom: 2px solid var(--navy); }
@@ -81,7 +96,6 @@ h2 { font-size: 17px; line-height: 1.5; font-weight: 600; letter-spacing: -.2px;
   .profile-main { padding: 28px 24px 40px; }
   .profile-summary { grid-template-columns: 80px minmax(0, 1fr); gap: 0 20px; padding-bottom: 28px; }
   .profile-avatar { width: 80px; height: 80px; grid-row: 1; margin-top: 0; padding: 4px; }
-  .profile-avatar span { font-size: 27px; }
   .profile-heading { align-self: center; }
   h1 { font-size: 20px; line-height: 1.35; letter-spacing: -.5px; }
   .profile-email { font-size: 11px; margin-top: 7px; }
@@ -91,7 +105,7 @@ h2 { font-size: 17px; line-height: 1.5; font-weight: 600; letter-spacing: -.2px;
   .profile-stats dd { font-size: 21px; }
   .progress-note { grid-column: 1 / -1; grid-row: 3; text-align: center; margin-top: 12px; }
   .profile-tagline { grid-column: 1 / -1; grid-row: 4; margin-top: 20px; }
-  .survey-link { grid-column: 1 / -1; grid-row: 5; margin-top: 16px; font-size: 12px; padding: 10px 0; }
+  .survey-link { grid-column: 1 / -1; grid-row: 5; justify-self: stretch; margin-top: 16px; font-size: 12px; padding: 10px 18px; }
   .logout-button { grid-column: 1 / -1; grid-row: 6; justify-self: stretch; margin-top: 12px; }
   .profile-sections { gap: 24px; }
   .user-details { padding: 26px 0; }
