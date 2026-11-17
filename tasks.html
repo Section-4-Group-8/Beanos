@@ -236,22 +236,20 @@
         .find(input => input.getAttribute('aria-label') === `Mark ${task.title} complete`);
       if (checkbox) checkbox.disabled = true;
       try {
-        if (client) {
-          const { data:authData, error:authError } = await client.auth.getUser();
-          if (authError) throw authError;
-          completionUserId = authData.user?.id || null;
-          if (completionUserId) {
-            const { error } = await client.from('task_completions').upsert({
-              auth_user_id:completionUserId,
-              task_id:key,
-              task_title:task.title,
-              difficulty:Number(task.difficulty),
-              completed:true,
-              completed_at:completedAt
-            }, { onConflict:'auth_user_id,task_id' });
-            if (error) throw error;
-          }
-        }
+        if (!client) throw new Error('Supabase is not configured on this page.');
+        const { data:authData, error:authError } = await client.auth.getUser();
+        if (authError) throw authError;
+        completionUserId = authData.user?.id || null;
+        if (!completionUserId) throw new Error('Please sign in before completing a task so it can be saved to your account.');
+        const { error:saveError } = await client.from('task_completions').upsert({
+          auth_user_id:completionUserId,
+          task_id:key,
+          task_title:task.title,
+          difficulty:Number(task.difficulty),
+          completed:true,
+          completed_at:completedAt
+        }, { onConflict:'auth_user_id,task_id' });
+        if (saveError) throw saveError;
         state.completed[key] = { difficulty:Number(task.difficulty), title:task.title, task, completed:true, completed_at:completedAt };
         saveCatalog();
         renderTasks();
@@ -264,11 +262,17 @@
       }
     }
     async function loadCompletions() {
+      // Supabase is authoritative; discard stale browser-only completion flags before loading.
+      state.completed = {};
+      completionUserId = null;
       if (!client) return;
       const { data:authData, error:authError } = await client.auth.getUser();
       if (authError) throw authError;
       completionUserId = authData.user?.id || null;
-      if (!completionUserId) return;
+      if (!completionUserId) {
+        announce('Sign in to load and save task completions to your account.','error');
+        return;
+      }
       const { data, error } = await client.from('task_completions')
         .select('task_id,task_title,difficulty,completed,completed_at')
         .eq('auth_user_id',completionUserId)
@@ -292,6 +296,7 @@
           : 'Supabase is configured for the task bank. Sign in to load reflection history.';
       }
       if (!client) {
+        state.completed = {};
         if (recommendedIds.size) tasks = sampleTasks.filter(task => recommendedIds.has(String(task.id)));
         saveCatalog(); renderTasks();
         if (lessonId) announce('Connect Supabase to load the tasks linked to this lesson.','error');
