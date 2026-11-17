@@ -223,7 +223,7 @@
     } catch { return {}; }
   }
 
-  function lessonTaskProgress(saved, lessonOrder) {
+  function lessonTaskProgress(saved, lessonOrder, savedCompletedLessons = []) {
     const completedTasks = saved && typeof saved.completedTasks === 'object' && saved.completedTasks ? saved.completedTasks : {};
     const starsByLesson = {};
     const completedTaskIdsByLesson = {};
@@ -233,8 +233,12 @@
       completedTaskIdsByLesson[lessonId] = entries.map(([taskId]) => taskId);
       starsByLesson[lessonId] = entries.reduce((sum, [, difficulty]) => sum + difficulty, 0);
     }
-    const completedLessons = lessonOrder.filter(id => starsByLesson[id] >= 10);
-    const nextIndex = lessonOrder.findIndex(id => starsByLesson[id] < 10);
+    const completedSet = new Set([
+      ...lessonOrder.filter(id => starsByLesson[id] >= 10),
+      ...savedCompletedLessons.map(Number).filter(id => lessonOrder.includes(id))
+    ]);
+    const completedLessons = lessonOrder.filter(id => completedSet.has(id));
+    const nextIndex = lessonOrder.findIndex(id => !completedSet.has(id));
     const unlocked = new Set(lessonOrder.slice(0, nextIndex < 0 ? lessonOrder.length : nextIndex + 1));
     const previouslyUnlocked = saved.unlockedLessonIds;
     if (Array.isArray(previouslyUnlocked)) {
@@ -263,11 +267,24 @@
     if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
     const storageKey = `beanos_lesson_tasks:${user.id}`;
     const saved = readLessonTaskState(storageKey);
-    const progress = lessonTaskProgress(saved, getLessonOrder(answers));
+    const completedLessons = await rpc('beanos_get_completed_lessons');
+    const progress = lessonTaskProgress(saved, getLessonOrder(answers), Array.isArray(completedLessons) ? completedLessons : []);
     if (JSON.stringify(saved.unlockedLessonIds) !== JSON.stringify(progress.unlockedLessonIds)) {
       localStorage.setItem(storageKey, JSON.stringify({ ...saved, unlockedLessonIds: progress.unlockedLessonIds }));
     }
     return progress;
+  }
+
+  async function finishLesson(lessonId, taskIds, expectedUserId) {
+    if (!Number.isInteger(Number(lessonId)) || Number(lessonId) < 1 || Number(lessonId) > 6) {
+      throw new Error('That lesson number is not valid.');
+    }
+    const user = await currentUser();
+    if (expectedUserId && user.id !== expectedUserId) throw new Error('Your login changed. Return to the lesson using your current account.');
+    await addCurrentTasks(taskIds);
+    await rpc('beanos_mark_lesson_completed', { p_lesson_id: Number(lessonId) });
+    if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
+    return loadLessonProgress(user.id);
   }
 
   async function completeLessonTask(lessonId, task, assignmentId, expectedUserId) {
@@ -331,6 +348,7 @@
     loadCurrentTaskIds,
     addCurrentTasks,
     removeCurrentTask,
+    finishLesson,
     startLessonTaskAssignment,
     requestLessonRoleplay,
     suggestLessonOrder,

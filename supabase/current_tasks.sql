@@ -1,6 +1,7 @@
 -- Run once in the Supabase SQL Editor to persist each user's active task IDs.
 alter table public."USER"
-  add column if not exists current_tasks jsonb not null default '[]'::jsonb;
+  add column if not exists current_tasks jsonb not null default '[]'::jsonb,
+  add column if not exists completed_lessons jsonb not null default '[]'::jsonb;
 
 do $$
 begin
@@ -13,6 +14,15 @@ begin
       add constraint "USER_current_tasks_is_array"
       check (jsonb_typeof(current_tasks) = 'array');
   end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public."USER"'::regclass
+      and conname = 'USER_completed_lessons_is_array'
+  ) then
+    alter table public."USER"
+      add constraint "USER_completed_lessons_is_array"
+      check (jsonb_typeof(completed_lessons) = 'array');
+  end if;
 end;
 $$;
 
@@ -24,6 +34,42 @@ begin
   select coalesce(u.current_tasks, '[]'::jsonb) into result
   from public."USER" u
   where u.auth_user_id = auth.uid();
+  if not found then raise exception 'Please log in to continue.' using errcode = '28000'; end if;
+  return result;
+end;
+$$;
+
+create or replace function public.beanos_get_completed_lessons()
+returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare result jsonb;
+begin
+  select coalesce(u.completed_lessons, '[]'::jsonb) into result
+  from public."USER" u where u.auth_user_id = auth.uid();
+  if not found then raise exception 'Please log in to continue.' using errcode = '28000'; end if;
+  return result;
+end;
+$$;
+
+create or replace function public.beanos_mark_lesson_completed(p_lesson_id bigint)
+returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare result jsonb;
+begin
+  if p_lesson_id < 1 or p_lesson_id > 6 then
+    raise exception 'That lesson number is not valid.' using errcode = '22023';
+  end if;
+  update public."USER" u
+  set completed_lessons = (
+    select coalesce(jsonb_agg(to_jsonb(lesson_id) order by lesson_id), '[]'::jsonb)
+    from (
+      select distinct value::bigint as lesson_id
+      from jsonb_array_elements_text(u.completed_lessons || to_jsonb(p_lesson_id::text)) as item(value)
+      where value ~ '^[1-6]$'
+    ) completed
+  ), updated_at = now()
+  where u.auth_user_id = auth.uid()
+  returning u.completed_lessons into result;
   if not found then raise exception 'Please log in to continue.' using errcode = '28000'; end if;
   return result;
 end;
@@ -74,8 +120,10 @@ end;
 $$;
 
 revoke all on function public.beanos_get_current_tasks(),
+  public.beanos_get_completed_lessons(), public.beanos_mark_lesson_completed(bigint),
   public.beanos_add_current_tasks(bigint[]), public.beanos_remove_current_task(bigint)
   from public, anon;
 grant execute on function public.beanos_get_current_tasks(),
+  public.beanos_get_completed_lessons(), public.beanos_mark_lesson_completed(bigint),
   public.beanos_add_current_tasks(bigint[]), public.beanos_remove_current_task(bigint)
   to authenticated;

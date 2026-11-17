@@ -1183,6 +1183,7 @@
         let lessonAuthUserId = null;
         let activeLessonAssignmentId = null;
         let loadedLessonTasks = [];
+        let lessonEndSavePending = false;
 
         document.getElementById('select-lesson-tasks').addEventListener('click', async event => {
             const button = event.currentTarget;
@@ -1389,6 +1390,25 @@
             // Scroll to top of step container gracefully
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
+            if (stepNumber === 5) persistLessonEnd();
+
+        }
+
+        async function persistLessonEnd() {
+            if (lessonEndSavePending || !activeLessonId || !lessonAuthUserId || !loadedLessonTasks.length) return;
+            lessonEndSavePending = true;
+            taskCompletionStatus.textContent = 'Saving your tasks and lesson progress…';
+            try {
+                const progress = await window.BeanosAPI.finishLesson(
+                    activeLessonId, loadedLessonTasks.map(task => task.id), lessonAuthUserId
+                );
+                renderLessonTaskProgress(activeLessonId, progress);
+                taskCompletionStatus.textContent = 'Lesson completed. All of its tasks are now on your task page.';
+            } catch (error) {
+                taskCompletionStatus.textContent = `${window.BeanosAPI?.explain(error) || 'Your lesson could not be saved.'} You can return to this task step to retry.`;
+            } finally {
+                lessonEndSavePending = false;
+            }
         }
 
         // 2. Lesson-specific AI roleplay
