@@ -189,13 +189,27 @@
         .card-body { padding: calc(3 * var(--spacing-unit)); }
         [hidden] { display: none !important; }
     </style>
+
+  <style id="beanos-page-navigation-style">
+    .beanos-page-nav{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;justify-content:flex-end;gap:10px;font-family:Arial,sans-serif}
+    .beanos-page-nav a,.beanos-page-nav button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 14px;border:1px solid #d8d5cf;border-radius:6px;background:#fff;color:#1A2A40;text-decoration:none;font:600 .82rem/1.2 Arial,sans-serif;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+    .beanos-page-nav a:hover,.beanos-page-nav button:hover{background:#f4f1e9;border-color:#A65E4F;transform:translateY(-1px)}
+    .beanos-page-nav a:focus-visible,.beanos-page-nav button:focus-visible{outline:3px solid #A65E4F66;outline-offset:2px}
+    @media(max-width:560px){.beanos-page-nav{padding:10px 16px}}
+  </style>
 </head>
 <body>
+  <nav class="beanos-page-nav" aria-label="Page navigation">
+    <button type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = 'index.html'; }" aria-label="Go back to the previous page">← Back</button>
+    <a href="index.html" aria-label="Go to Beanos home">⌂ Home</a>
+  </nav>
+
 
     <div class="container">
         
         <!-- Navigation Menu -->
-        <nav style="margin-bottom: 25px; display: flex; gap: 10px; font-family: var(--font-headings); font-size: 0.9rem;">
+        <nav style="margin-bottom: 25px; display: flex; align-items:center; gap: 10px; font-family: var(--font-headings); font-size: 0.9rem;">
+            <a href="index.html" aria-label="Beanos home" style="display:inline-flex;align-items:center;text-decoration:none;margin-right:8px"><svg viewBox="0 0 40 40" aria-hidden="true" style="width:34px;height:34px;vertical-align:middle"><rect width="40" height="40" rx="6" fill="#1A2A40"/><path d="M25 9c7 3 8 13 2 19-5 5-13 6-17 1-4-5-1-12 4-13 6-2 3-10 11-7Z" fill="#EBD9C1"/><path d="M24 13c-6 2-1 9-10 13" fill="none" stroke="#A65E4F" stroke-width="2" stroke-linecap="round"/></svg></a>
             <a href="index.html" style="color: var(--color-primary-navy); text-decoration: none; font-weight: 600;">Home</a>
             <span style="color: var(--color-gray-400);">/</span>
             <span style="color: var(--color-primary-rust); font-weight: 600;"><i class="fa-solid fa-user"></i> Profile Settings</span>
