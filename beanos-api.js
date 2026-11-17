@@ -140,36 +140,72 @@
     return data;
   }
 
-  function readLessonTaskProgress(userId) {
-    const storageKey = `beanos_lesson_tasks:${userId}`;
-    let saved;
-    try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); }
-    catch { saved = {}; }
+  // The index maps the survey's stable choice key to the existing lesson ID.
+  const lessonPriorityKeys = [
+    'confidence', 'conversations', 'interest-and-boundaries',
+    'asking-someone-out', 'date-planning', 'following-up'
+  ];
+  const defaultLessonOrder = lessonPriorityKeys.map((_, index) => index + 1);
+
+  function getLessonOrder(survey) {
+    const priorities = survey?.lessonPriorities;
+    if (!Array.isArray(priorities) || priorities.length !== defaultLessonOrder.length) return defaultLessonOrder;
+    const order = priorities.map(key => lessonPriorityKeys.indexOf(key) + 1);
+    return order.includes(0) || new Set(order).size !== order.length ? defaultLessonOrder : order;
+  }
+
+  function readLessonTaskState(storageKey) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+    } catch { return {}; }
+  }
+
+  function lessonTaskProgress(saved, lessonOrder) {
     const completedTasks = saved && typeof saved.completedTasks === 'object' && saved.completedTasks ? saved.completedTasks : {};
     const starsByLesson = {};
     const completedTaskIdsByLesson = {};
-    for (let lessonId = 1; lessonId <= 6; lessonId += 1) {
+    for (const lessonId of defaultLessonOrder) {
       const tasks = completedTasks[lessonId] && typeof completedTasks[lessonId] === 'object' ? completedTasks[lessonId] : {};
       const entries = Object.entries(tasks).filter(([, difficulty]) => Number.isInteger(difficulty) && difficulty >= 1 && difficulty <= 5);
       completedTaskIdsByLesson[lessonId] = entries.map(([taskId]) => taskId);
       starsByLesson[lessonId] = entries.reduce((sum, [, difficulty]) => sum + difficulty, 0);
     }
-    let unlockedThrough = 1;
-    while (unlockedThrough < 6 && starsByLesson[unlockedThrough] >= 10) unlockedThrough += 1;
-    const nextLessonId = starsByLesson[unlockedThrough] >= 10 ? null : unlockedThrough;
+    const completedLessons = lessonOrder.filter(id => starsByLesson[id] >= 10);
+    const nextIndex = lessonOrder.findIndex(id => starsByLesson[id] < 10);
+    const unlocked = new Set(lessonOrder.slice(0, nextIndex < 0 ? lessonOrder.length : nextIndex + 1));
+    const previouslyUnlocked = saved.unlockedLessonIds;
+    if (Array.isArray(previouslyUnlocked)) {
+      for (const id of previouslyUnlocked) if (defaultLessonOrder.includes(id)) unlocked.add(id);
+    } else if (defaultLessonOrder.some(id => starsByLesson[id] > 0)) {
+      // Restore access earned under the original numeric sequence once per browser.
+      const firstIncomplete = defaultLessonOrder.findIndex(id => starsByLesson[id] < 10);
+      const legacyUnlocked = firstIncomplete < 0 ? defaultLessonOrder : defaultLessonOrder.slice(0, firstIncomplete + 1);
+      for (const id of legacyUnlocked) unlocked.add(id);
+    }
+    for (const id of defaultLessonOrder) if (starsByLesson[id] > 0) unlocked.add(id);
     return {
-      completedLessons: Object.keys(starsByLesson).map(Number).filter(id => starsByLesson[id] >= 10),
+      lessonOrder,
+      completedLessons,
       completedTaskIdsByLesson,
       starsByLesson,
-      nextLessonId,
-      unlockedThrough
+      nextLessonId: lessonOrder[nextIndex] ?? null,
+      unlockedLessonIds: lessonOrder.filter(id => unlocked.has(id))
     };
   }
 
-  async function loadLessonProgress(expectedUserId) {
+  async function loadLessonProgress(expectedUserId, survey) {
     const user = expectedUserId ? await currentSessionUser() : await currentUser();
     if (expectedUserId && user.id !== expectedUserId) throw new Error('Your login changed. Return to the lesson using your current account.');
-    return readLessonTaskProgress(user.id);
+    const answers = survey === undefined ? await rpc('beanos_get_survey') : survey;
+    if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
+    const storageKey = `beanos_lesson_tasks:${user.id}`;
+    const saved = readLessonTaskState(storageKey);
+    const progress = lessonTaskProgress(saved, getLessonOrder(answers));
+    if (JSON.stringify(saved.unlockedLessonIds) !== JSON.stringify(progress.unlockedLessonIds)) {
+      localStorage.setItem(storageKey, JSON.stringify({ ...saved, unlockedLessonIds: progress.unlockedLessonIds }));
+    }
+    return progress;
   }
 
   async function completeLessonTask(lessonId, task, expectedUserId) {
@@ -183,23 +219,26 @@
     }
     const user = await currentUser();
     if (expectedUserId && user.id !== expectedUserId) throw new Error('Your login changed. Return to the lesson using your current account.');
-    const progress = readLessonTaskProgress(user.id);
-    if (lessonId > progress.unlockedThrough) {
+    const answers = await rpc('beanos_get_survey');
+    if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
+    const lessonOrder = getLessonOrder(answers);
+    const storageKey = `beanos_lesson_tasks:${user.id}`;
+    const saved = readLessonTaskState(storageKey);
+    const progress = lessonTaskProgress(saved, lessonOrder);
+    if (!progress.unlockedLessonIds.includes(lessonId)) {
       throw new Error('Complete tasks for the available lesson before opening this lesson.');
     }
     if (progress.starsByLesson[lessonId] >= 10) return progress;
-    const storageKey = `beanos_lesson_tasks:${user.id}`;
-    let saved;
-    try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); }
-    catch { saved = {}; }
-    if (!saved || typeof saved !== 'object') saved = {};
     if (!saved.completedTasks || typeof saved.completedTasks !== 'object') saved.completedTasks = {};
     saved.completedTasks[lessonId] = saved.completedTasks[lessonId] || {};
     if (!saved.completedTasks[lessonId][taskId]) saved.completedTasks[lessonId][taskId] = difficulty;
+    saved.unlockedLessonIds = progress.unlockedLessonIds;
+    const updated = lessonTaskProgress(saved, lessonOrder);
+    saved.unlockedLessonIds = updated.unlockedLessonIds;
     // Prototype storage seam: replace this local save with a Supabase RPC
     // (for example, beanos_complete_lesson_task) when user task records exist.
     localStorage.setItem(storageKey, JSON.stringify(saved));
-    return readLessonTaskProgress(user.id);
+    return updated;
   }
 
   window.BeanosAPI = Object.freeze({

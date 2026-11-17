@@ -112,6 +112,7 @@ test('signup supports both immediate sessions and later email confirmation',asyn
   for(const session of [null,{user:{id:'auth-one'}}]) {
     const dom=page('login_page.html');const w=dom.window;let destinationCalls=0;let signupArgs;
     w.BeanosAPI={explain:e=>e.message,callbackUrl:'https://example.test/Beanos/login_page.html',
+      currentUser:async()=>session?.user,
       destination:async()=>{destinationCalls++;throw new Error('Navigation checked');},
       client:{auth:{onAuthStateChange:()=>{},getSession:async()=>({data:{session:null}}),
         signUp:async args=>{signupArgs=args;return {data:{session}};}}}};
@@ -150,6 +151,11 @@ async function home({allowed=true,focusError=false,accountError=false}={}) {
     requireAccount:async options=>{calls.push(options);if(accountError)throw new Error('Account service unavailable');return allowed?{userId:'9007199254740994'}:null;},
     currentUser:async()=>({id:'auth-one'}),
     loadSurvey:async()=>{if(focusError)throw new Error('Offline');return {mainGoal:'ask-on-date'};},
+    loadLessonProgress:async(userId, survey)=>{
+      assert.equal(userId,'auth-one');
+      assert.equal(survey.mainGoal,'ask-on-date');
+      return {nextLessonId:5};
+    },
     explain:e=>e.message,
     signOut:async()=>{throw new Error('Could not log out. Try again.');},
     client:{auth:{onAuthStateChange:callback=>{authChanged=callback;return {data:{subscription:{unsubscribe(){}}}};}}}
@@ -164,7 +170,8 @@ test('home gates content on a completed account and shows only the saved focus',
   assert.equal(h.d.getElementById('home-content').hidden,false);
   assert.equal(h.d.getElementById('home-goal').textContent,'Ask someone on a date.');
   assert.equal(h.d.querySelector('a[href="tasks.html"]').textContent.trim(),'Go to tasks →');
-  assert.equal(h.d.querySelector('a[href="lessons.html"]').textContent.trim(),'Go to lessons →');
+  assert.ok(h.d.querySelector('a[href="lessons.html"]'));
+  assert.match(h.d.querySelector('#home-lesson-list a[href$="?lesson=5"]').textContent,/Planning and enjoying a date/);
   h.d.getElementById('home-signout').click();await tick();
   assert.equal(h.d.getElementById('home-signout').disabled,false);
   assert.match(h.d.getElementById('home-account-status').textContent,/Could not log out/);
@@ -184,4 +191,81 @@ test('home fails closed on account errors but can show navigation if only focus 
   assert.equal(partial.d.getElementById('home-content').hidden,false);
   assert.match(partial.d.getElementById('home-account-status').textContent,/focus couldn’t load/);
   partial.dom.window.close();
+});
+
+const lessonKeys = ['confidence', 'conversations', 'interest-and-boundaries',
+  'asking-someone-out', 'date-planning', 'following-up'];
+
+function lessonSession(file = 'lessons.html') {
+  const dom = page(file);
+  const { window: w } = dom;
+  let user = { id: 'auth-one' };
+  const surveys = new Map();
+  w.supabase = { createClient: () => ({
+    auth: {
+      getUser: async () => ({ data: { user } }),
+      getSession: async () => ({ data: { session: { user } } })
+    },
+    rpc: async (name) => ({ data: name === 'beanos_account'
+      ? { surveyCompleted: true }
+      : surveys.get(user.id) })
+  }) };
+  w.eval(read('beanos-api.js'));
+  return {
+    dom, w, api: w.BeanosAPI,
+    setUser(id) { user = { id }; },
+    rank(ids) { surveys.set(user.id, { lessonPriorities: ids.map(id => lessonKeys[id - 1]) }); }
+  };
+}
+
+test('survey order drives the rendered path and 10 stars unlock the next ranked lesson', async () => {
+  const session = lessonSession();
+  const { dom, w, api } = session;
+  session.rank([5, 2, 1, 3, 4, 6]);
+  w.eval(read('lessons.js'));
+  await tick();
+  const cards = [...w.document.querySelectorAll('#lesson-cards > *')];
+  assert.deepEqual(cards.map(card => card.querySelector('.lesson-choice-number').textContent),
+    ['LESSON 05', 'LESSON 02', 'LESSON 01', 'LESSON 03', 'LESSON 04', 'LESSON 06']);
+  assert.equal(cards[0].getAttribute('href'), 'beanos_lesson_template.html?lesson=5');
+  assert.equal(cards[1].getAttribute('aria-disabled'), 'true');
+  const task = (id, lessonId) => ({ id, difficulty: 5, lesson_id: lessonId });
+  await assert.rejects(api.completeLessonTask(2, task('early', 2), 'auth-one'), /available lesson/);
+  await api.completeLessonTask(5, task('first', 5), 'auth-one');
+  const duplicate = await api.completeLessonTask(5, task('first', 5), 'auth-one');
+  assert.equal(duplicate.starsByLesson[5], 5);
+  assert.equal(duplicate.nextLessonId, 5);
+  const unlocked = await api.completeLessonTask(5, task('second', 5), 'auth-one');
+  assert.equal(unlocked.nextLessonId, 2);
+  assert.deepEqual(Array.from(unlocked.unlockedLessonIds), [5, 2]);
+
+  session.setUser('auth-two');
+  session.rank([4, 3, 2, 1, 5, 6]);
+  const other = await api.loadLessonProgress('auth-two');
+  assert.equal(other.nextLessonId, 4);
+  assert.deepEqual(Array.from(other.unlockedLessonIds), [4]);
+  assert.equal(other.starsByLesson[5], 0);
+  dom.window.close();
+});
+
+test('legacy unlocks and earned stars survive survey reordering, including unlocks with zero stars', async () => {
+  const session = lessonSession();
+  const { dom, w, api } = session;
+  const storageKey = 'beanos_lesson_tasks:auth-one';
+  w.localStorage.setItem(storageKey, JSON.stringify({ completedTasks: { 1: { a: 5, b: 5 } } }));
+  session.rank([6, 3, 2, 1, 4, 5]);
+  const migrated = await api.loadLessonProgress('auth-one');
+  assert.equal(migrated.nextLessonId, 6);
+  assert.deepEqual(Array.from(migrated.unlockedLessonIds), [6, 2, 1]);
+  assert.equal(migrated.starsByLesson[1], 10);
+  assert.equal(migrated.starsByLesson[2], 0);
+
+  session.rank([4, 2, 6, 1, 3, 5]);
+  const reordered = await api.loadLessonProgress('auth-one');
+  assert.equal(reordered.nextLessonId, 4);
+  assert.deepEqual(Array.from(reordered.unlockedLessonIds), [4, 2, 6, 1]);
+  const revisit = await api.completeLessonTask(2, { id: 'old-access', difficulty: 3, lesson_id: 2 }, 'auth-one');
+  assert.equal(revisit.starsByLesson[2], 3);
+  assert.equal(revisit.nextLessonId, 4);
+  dom.window.close();
 });
