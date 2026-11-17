@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beanos — Lesson: Mastering the Warm Opener</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="beanos-api.js" defer></script>
+    <script src="beanos-api.js?v=lesson-path-2" defer></script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -965,13 +965,13 @@
             <span class="badge badge-navy">Real-World Execution</span>
             <h2>Tasks for this lesson</h2>
             <p style="color: var(--color-gray-700);">
-                Complete tasks to earn stars equal to their difficulty. Ten stars unlock the next lesson.
+                Complete tasks to earn stars equal to their difficulty. Ten stars complete this lesson.
             </p>
 
             <div class="lesson-task-progress" aria-live="polite">
                 <div class="lesson-task-progress-head">
                     <strong id="lesson-task-progress-label">Loading this lesson’s tasks…</strong>
-                    <span>10 stars unlock the next lesson</span>
+                    <span>10 stars complete this lesson</span>
                 </div>
                 <div class="lesson-task-progress-track" id="lesson-task-progress-track" role="progressbar" aria-label="Stars earned for this lesson" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="lesson-task-progress-fill" id="lesson-task-progress-fill"></div></div>
                 <p id="lesson-task-completion-status" role="status">Tasks completed in this lesson only count toward its next lesson.</p>
@@ -980,7 +980,7 @@
             <p class="lesson-task-storage-note">Task completion is saved in this browser for now.</p>
 
             <div class="step-footer-actions">
-                <button class="btn btn-success" id="complete-lesson-tasks" type="button" disabled>Complete tasks to unlock next lesson</button>
+                <button class="btn btn-success" id="complete-lesson-tasks" type="button" disabled>Complete lesson tasks</button>
                 <a class="btn btn-secondary" href="lessons.html">View lessons</a>
             </div>
         </section>
@@ -1158,19 +1158,16 @@
 
         function renderLessonTaskProgress(lessonId, progress) {
             const stars = progress.starsByLesson[lessonId] || 0;
-            document.querySelector('.lesson-task-progress-head span').textContent = lessonId === 6 ? '10 stars complete the final lesson' : '10 stars unlock the next lesson';
             document.getElementById('lesson-task-progress-label').textContent = `${stars} / 10 stars earned`;
             document.getElementById('lesson-task-progress-fill').style.width = `${Math.min(100, stars * 10)}%`;
             document.getElementById('lesson-task-progress-track').setAttribute('aria-valuenow', String(Math.min(10, stars)));
             if (stars >= 10) {
-                taskCompletionStatus.textContent = lessonId === 6
-                    ? 'You’ve earned enough stars to complete all six lessons. Extra stars do not carry over.'
-                    : `Lesson ${lessonId + 1} is unlocked. Extra stars from this lesson do not carry over.`;
+                taskCompletionStatus.textContent = progress.nextLessonId
+                    ? `Lesson complete. Continue your path with Lesson ${progress.nextLessonId}.`
+                    : 'You’ve completed all six lessons.';
             } else {
                 const remaining = 10 - stars;
-                taskCompletionStatus.textContent = lessonId === 6
-                    ? `${remaining} more ${remaining === 1 ? 'star' : 'stars'} needed to complete the final lesson.`
-                    : `${remaining} more ${remaining === 1 ? 'star' : 'stars'} needed to unlock Lesson ${lessonId + 1}. Only this lesson’s stars count toward that unlock.`;
+                taskCompletionStatus.textContent = `${remaining} more ${remaining === 1 ? 'star' : 'stars'} to complete this lesson.`;
             }
         }
 
@@ -1264,8 +1261,8 @@
                 accessMessage.textContent = 'Loading your lesson progress…';
                 lessonAuthUserId = account.authUserId || (await window.BeanosAPI.currentUser()).id;
                 const progress = await window.BeanosAPI.loadLessonProgress(lessonAuthUserId);
-                if (lessonId > progress.unlockedThrough) {
-                    accessMessage.textContent = `Lesson ${lessonId} is locked. Complete available lessons in order, starting with Lesson ${progress.unlockedThrough}, to unlock it.`;
+                if (!progress.unlockedLessonIds.includes(lessonId)) {
+                    accessMessage.textContent = `Lesson ${lessonId} is locked. Continue with Lesson ${progress.nextLessonId} on your path.`;
                     return;
                 }
                 renderLessonTaskProgress(lessonId, progress);

@@ -69,6 +69,15 @@ h1 { margin: 12px 0 12px; font: 600 clamp(28px, 4vw, 38px)/1.25 var(--headings);
 .lesson-page-card.locked .lesson-choice-number, .lesson-page-card.locked .lesson-choice-title, .lesson-page-card.locked .lesson-page-detail, .lesson-page-card.locked .lesson-page-arrow { color: #858585; }
 .lesson-page-card.locked:hover { border-color: #E1E1E1; background: #F1F1F1; }
 .lesson-list-status { margin-top: 20px; color: var(--muted); font: 400 12px/1.7 var(--headings); }
+.lesson-suggestion { margin-top: 24px; }
+.lesson-suggestion button { cursor: pointer; }
+.lesson-suggestion button:disabled { cursor: wait; opacity: .64; }
+.lesson-suggestion h3 { font: 600 16px/1.5 var(--headings); color: var(--navy); }
+.lesson-suggestion ol { padding-inline-start: 24px; font: 500 13px/1.85 var(--headings); }
+.lesson-suggestion-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+#suggestion-status { margin: 12px 0 0; }
+#suggestion-status:empty { display: none; }
+#lesson-order-preview { margin-top: 20px; border-top: 1px solid var(--line); }
 .button { display: inline-flex; justify-content: center; align-items: center; gap: 22px; border-radius: 6px; padding: 11px 18px; min-height: 46px; font: 600 12px/1.5 var(--headings); text-decoration: none; border: 1px solid transparent; }
 .button-primary { background: var(--rust); color: white; }
 .button-primary:hover { background: #8C4D40; }

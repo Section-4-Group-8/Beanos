@@ -88,8 +88,9 @@
       subscription = api.client.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT' || (session && session.user.id !== user.id)) loginChanged();
       }).data.subscription;
+      let survey;
       try {
-        const survey = await api.loadSurvey();
+        survey = await api.loadSurvey();
         document.getElementById('home-goal').textContent = goals.get(survey?.mainGoal) || 'Your next step, at your pace.';
       } catch {
         status.textContent = 'Your saved focus couldn’t load. You can still explore lessons and tasks.';
@@ -97,10 +98,13 @@
       }
       // A second tab can switch accounts while the survey request is in flight.
       if ((await api.currentUser()).id !== user.id) return loginChanged();
-      const lessonProgress = await api.loadLessonProgress(account.authUserId);
+      lessonList.replaceChildren();
+      if (survey !== undefined) {
+        const lessonProgress = await api.loadLessonProgress(user.id, survey);
+        renderLessons(lessonProgress.nextLessonId);
+      }
       loading.hidden = true;
       content.hidden = false;
-      renderLessons(lessonProgress.nextLessonId);
       signout.disabled = false;
     } catch (error) {
       content.hidden = true;
