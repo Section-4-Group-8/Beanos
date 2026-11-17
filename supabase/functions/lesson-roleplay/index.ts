@@ -102,7 +102,7 @@ Deno.serve(async request => {
       systemInstruction: { parts: [{ text: instruction }] },
       contents,
       generationConfig: body.action === 'evaluate'
-        ? { responseMimeType: 'text/plain', temperature: 0.55, thinkingConfig: { thinkingLevel: 'low' }, maxOutputTokens: 300 }
+        ? { responseMimeType: 'text/plain', temperature: 0.55, thinkingConfig: { thinkingLevel: 'minimal' }, maxOutputTokens: 65536 }
         : { temperature: 0.85, thinkingConfig: { thinkingLevel: 'low' }, maxOutputTokens: 65536 }
     });
     let response: Response | undefined;
