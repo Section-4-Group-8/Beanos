@@ -329,6 +329,7 @@
     loadLessonRoleplayConfig,
     loadLessonTasks,
     loadCurrentTaskIds,
+    addCurrentTasks,
     removeCurrentTask,
     startLessonTaskAssignment,
     requestLessonRoleplay,

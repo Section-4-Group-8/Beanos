@@ -1006,8 +1006,7 @@
             <p class="lesson-task-storage-note">Assigned tasks and completion status are saved to your account.</p>
 
             <div class="step-footer-actions">
-                <button class="btn btn-success" id="complete-lesson-tasks" type="button" disabled>Complete lesson tasks</button>
-                <a class="btn btn-secondary" href="lessons.html">View lessons</a>
+                <a class="btn btn-secondary" href="index.html">Home</a>
             </div>
         </section>
 
@@ -1344,6 +1343,9 @@
                 try {
                     loadedLessonTasks = await window.BeanosAPI.loadLessonTasks(lessonId);
                     renderLessonTasks(lessonId, loadedLessonTasks, progress);
+                    if ((progress.starsByLesson[lessonId] || 0) >= 10) {
+                        await window.BeanosAPI.addCurrentTasks(loadedLessonTasks.map(task => task.id));
+                    }
                 } catch (error) {
                     lessonTaskGrid.replaceChildren();
                     taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || 'Lesson tasks could not load. Please try again later.';
