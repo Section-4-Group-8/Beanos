@@ -97,7 +97,7 @@
       }
       // A second tab can switch accounts while the survey request is in flight.
       if ((await api.currentUser()).id !== user.id) return loginChanged();
-      const lessonProgress = await api.loadLessonProgress();
+      const lessonProgress = await api.loadLessonProgress(account.authUserId);
       loading.hidden = true;
       content.hidden = false;
       renderLessons(lessonProgress.nextLessonId);

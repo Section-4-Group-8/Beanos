@@ -72,7 +72,7 @@
     try {
       const account = await window.BeanosAPI.requireAccount({ completed: true });
       if (!account) return;
-      render(await window.BeanosAPI.loadLessonProgress());
+      render(await window.BeanosAPI.loadLessonProgress(account.authUserId));
     } catch (error) {
       status.textContent = window.BeanosAPI?.explain(error) || 'Your lesson progress could not load. Please return home and try again.';
     }

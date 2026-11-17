@@ -13,6 +13,20 @@
     return client;
   }
 
+  async function waitForResponse(promise, action) {
+    let timer;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise((resolve, reject) => {
+          timer = window.setTimeout(() => reject(new Error(`${action} is taking too long. Check your connection and try again.`)), 15000);
+        })
+      ]);
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+
   function explain(error) {
     const message = error?.message || 'Something went wrong. Please try again.';
     if (message.includes('LEGACY_ACCOUNT_LINK_REQUIRED')) {
@@ -25,20 +39,29 @@
   }
 
   async function rpc(name, args) {
-    const { data, error } = await ready().rpc(name, args);
+    const { data, error } = await waitForResponse(ready().rpc(name, args), 'Loading your account details');
     if (error) throw new Error(explain(error));
     return data;
   }
 
   async function currentUser() {
-    const { data, error } = await ready().auth.getUser();
+    const { data, error } = await waitForResponse(ready().auth.getUser(), 'Checking your login');
     if (error || !data.user) throw new Error('Please log in to continue.');
     return data.user;
   }
 
+  async function currentSessionUser() {
+    const { data, error } = await waitForResponse(ready().auth.getSession(), 'Reading your saved login');
+    if (error || !data.session?.user) throw new Error('Please log in to continue.');
+    return data.session.user;
+  }
+
   async function requireAccount({ completed = false } = {}) {
-    // The server validates the Auth token; localStorage IDs are never used.
-    try { await currentUser(); } catch (error) {
+    // The local session supplies only the auth UUID for browser progress. The
+    // account RPC validates the token with Supabase before granting access.
+    let user;
+    try { user = await currentSessionUser(); } catch (error) {
+      if (error?.message?.includes('taking too long')) throw error;
       if (!client) throw error;
       window.location.replace('login_page.html');
       return null;
@@ -48,7 +71,7 @@
       window.location.replace('survey.html');
       return null;
     }
-    return account;
+    return { ...account, authUserId: user.id };
   }
 
   async function destination() {
@@ -66,21 +89,21 @@
   }
 
   async function loadLessonResources(lessonId) {
-    const { data, error } = await ready().from('lesson_resources')
+    const { data, error } = await waitForResponse(ready().from('lesson_resources')
       .select('id,lesson_id,title,type,platform,url,focus_summary,sort_order')
       .eq('lesson_id', lessonId)
       .order('sort_order', { ascending: true })
-      .order('title', { ascending: true });
+      .order('title', { ascending: true }), 'Loading lesson resources');
     if (error) throw new Error(explain(error));
     return data || [];
   }
 
   async function loadLessonRoleplayConfig(lessonId) {
-    const { data, error } = await ready().from('lesson_resources')
+    const { data, error } = await waitForResponse(ready().from('lesson_resources')
       .select('roleplay_config')
       .eq('lesson_id', lessonId)
       .not('roleplay_config', 'is', null)
-      .maybeSingle();
+      .maybeSingle(), 'Loading the roleplay scenario');
     if (error) throw new Error(explain(error));
     return data?.roleplay_config || null;
   }
@@ -91,11 +114,11 @@
     if (!Number.isInteger(Number(lessonId)) || Number(lessonId) < 1 || Number(lessonId) > 6) {
       throw new Error('That lesson number is not valid.');
     }
-    const { data, error } = await ready().from('task_bank')
+    const { data, error } = await waitForResponse(ready().from('task_bank')
       .select('id,lesson_id,difficulty,title,description,estimated_minutes')
       .eq('lesson_id', lessonId)
       .order('difficulty', { ascending: true })
-      .order('title', { ascending: true });
+      .order('title', { ascending: true }), 'Loading lesson tasks');
     if (error) throw new Error(explain(error));
     return data || [];
   }
@@ -144,7 +167,7 @@
   }
 
   async function loadLessonProgress(expectedUserId) {
-    const user = await currentUser();
+    const user = expectedUserId ? await currentSessionUser() : await currentUser();
     if (expectedUserId && user.id !== expectedUserId) throw new Error('Your login changed. Return to the lesson using your current account.');
     return readLessonTaskProgress(user.id);
   }

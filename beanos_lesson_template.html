@@ -1249,7 +1249,7 @@
             try {
                 const account = await window.BeanosAPI.requireAccount({ completed: true });
                 if (!account) return;
-                lessonAuthUserId = (await window.BeanosAPI.currentUser()).id;
+                lessonAuthUserId = account.authUserId || (await window.BeanosAPI.currentUser()).id;
                 const progress = await window.BeanosAPI.loadLessonProgress(lessonAuthUserId);
                 if (lessonId > progress.unlockedThrough) {
                     accessMessage.textContent = `Lesson ${lessonId} is locked. Complete available lessons in order, starting with Lesson ${progress.unlockedThrough}, to unlock it.`;
