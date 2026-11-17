@@ -106,14 +106,14 @@
     const saveButton = document.getElementById('save-reflection');
     const status = document.getElementById('form-status');
     const pageError = document.getElementById('page-error');
-    let savedReflection = state.reflections[String(taskId)];
-    let showPastReflection = viewOnly || Boolean(savedReflection);
+    let savedReflection = null;
+    let showPastReflection = viewOnly;
     let selectedRating = Number(savedReflection?.rating) || 0;
     const ratingButtons = [...document.querySelectorAll('[data-rating]')];
     const ratingLabel = document.getElementById('rating-label');
     const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-    const userId = localStorage.getItem('active_user_id');
+    let userId = null;
     document.querySelector('.footer-note').textContent = client
       ? 'Supabase is configured; the task_reflections table must exist for online saving.'
       : 'Your reflection is saved in this browser until Supabase is connected.';
@@ -170,25 +170,38 @@
         showError('This reflection link is missing a task. Return to the tasks page and open a task from your list.');
         return;
       }
-      if (client && userId) {
-        try {
-          const { data, error } = await client.from(REFLECTIONS_TABLE)
-            .select('task_id,difficulty,rating,reflection,created_at')
-            .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
-          if (error) throw error;
-          if (data) {
-            savedReflection = { ...data, task:task || { id:data.task_id,difficulty:data.difficulty,title:'Completed task',description:'',estimated_minutes:0 } };
-            state.reflections[String(taskId)] = savedReflection;
-            state.completed[String(taskId)] = { difficulty:Number(data.difficulty), title:savedReflection.task.title, task:savedReflection.task, completed_at:data.created_at };
-            task = savedReflection.task;
-            showPastReflection = true;
-            selectedRating = Number(data.rating) || 0;
-            saveState();
-          }
-        } catch (error) {
-          console.error('Could not load the saved reflection from Supabase:', error);
-          if (viewOnly && !savedReflection) announce('Could not load this past reflection from Supabase. Check the task_reflections table and read policy.','error');
+      if (!client) {
+        showError('Supabase is not available on this page. Check the project URL, publishable key, and network connection.');
+        return;
+      }
+      try {
+        const { data:authData, error:authError } = await client.auth.getUser();
+        if (authError) throw authError;
+        if (!authData.user) throw new Error('Please sign in before opening or saving a reflection.');
+
+        // This RPC maps the signed-in Supabase Auth UUID to the numeric USER.user_id.
+        const { data:account, error:accountError } = await client.rpc('beanos_account');
+        if (accountError) throw accountError;
+        userId = account?.userId ? String(account.userId) : null;
+        if (!userId) throw new Error('Your signed-in account does not have an app user ID.');
+
+        const { data, error } = await client.from(REFLECTIONS_TABLE)
+          .select('task_id,difficulty,rating,reflection,created_at')
+          .eq('user_id',userId).eq('task_id',taskId).maybeSingle();
+        if (error) throw error;
+        if (data) {
+          savedReflection = { ...data, task:task || { id:data.task_id,difficulty:data.difficulty,title:'Completed task',description:'',estimated_minutes:0 } };
+          state.reflections[String(taskId)] = savedReflection;
+          state.completed[String(taskId)] = { difficulty:Number(data.difficulty), title:savedReflection.task.title, task:savedReflection.task, completed_at:data.created_at };
+          task = savedReflection.task;
+          showPastReflection = true;
+          selectedRating = Number(data.rating) || 0;
+          saveState();
         }
+      } catch (error) {
+        console.error('Could not verify the account or load its reflection:', error);
+        showError(`Could not load your reflection from Supabase: ${error?.message || 'Check your sign-in and table access.'}`);
+        return;
       }
       if (!task) {
         showError('The task details could not be found in this browser. Return to the tasks page and choose the task again.');
@@ -236,29 +249,27 @@
       }
       const key = String(taskId);
       const savedAt = new Date().toISOString();
-      if (client) {
-        if (!userId) {
-          announce('Please sign in before saving this reflection.','error');
-          return;
-        }
-        saveButton.disabled = true;
-        saveButton.innerHTML = 'Saving… <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
-        try {
-          const { error } = await client.from(REFLECTIONS_TABLE).upsert({
-            user_id:userId,
-            task_id:task.id,
-            difficulty,
-            rating:selectedRating,
-            reflection
-          }, { onConflict:'user_id,task_id' });
-          if (error) throw error;
-        } catch (error) {
-          console.error('Could not save the reflection to Supabase:', error);
-          saveButton.innerHTML = 'Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
-          updateCounter();
-          announce('Could not save to Supabase. Check your connection and the task_reflections table policies, then try again.','error');
-          return;
-        }
+      if (!client || !userId) {
+        announce('Your sign-in could not be verified. Please sign in again before saving.','error');
+        return;
+      }
+      saveButton.disabled = true;
+      saveButton.innerHTML = 'Saving… <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
+      try {
+        const { error } = await client.from(REFLECTIONS_TABLE).upsert({
+          user_id:userId,
+          task_id:task.id,
+          difficulty,
+          rating:selectedRating,
+          reflection
+        }, { onConflict:'user_id,task_id' });
+        if (error) throw error;
+      } catch (error) {
+        console.error('Could not save the reflection to Supabase:', error);
+        saveButton.innerHTML = 'Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
+        updateCounter();
+        announce(`Could not save to Supabase: ${error?.message || 'Check table permissions and try again.'}`,'error');
+        return;
       }
       state.reflections[key] = { task_id: task.id, difficulty, rating:selectedRating, task, reflection, saved_at: savedAt };
       state.completed[key] = { difficulty, title: task.title, task, completed_at: savedAt };
