@@ -1240,6 +1240,7 @@
             const title = lessonTopics[lessonId - 1];
             activeLessonId = lessonId;
             initializeRoleplay(null);
+            accessMessage.textContent = 'Checking your sign-in and lesson access…';
             document.title = `Beanos — Lesson ${lessonId}: ${title}`;
             document.querySelector('#step-1 h1').textContent = title;
             document.querySelector('#step-1 .badge').textContent = `Lesson ${lessonId}`;
@@ -1248,7 +1249,11 @@
 
             try {
                 const account = await window.BeanosAPI.requireAccount({ completed: true });
-                if (!account) return;
+                if (!account) {
+                    accessMessage.textContent = 'Opening your sign-in or survey page…';
+                    return;
+                }
+                accessMessage.textContent = 'Loading your lesson progress…';
                 lessonAuthUserId = account.authUserId || (await window.BeanosAPI.currentUser()).id;
                 const progress = await window.BeanosAPI.loadLessonProgress(lessonAuthUserId);
                 if (lessonId > progress.unlockedThrough) {
@@ -1290,7 +1295,11 @@
                 accessMessage.textContent = window.BeanosAPI?.explain(error) || 'Lesson access could not be checked. Please return home and try again.';
             }
         }
-        window.addEventListener('DOMContentLoaded', loadLesson, { once: true });
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', loadLesson, { once: true });
+        } else {
+            loadLesson();
+        }
 
         // 1. Navigation & Progress Logic
         function goToStep(stepNumber) {
