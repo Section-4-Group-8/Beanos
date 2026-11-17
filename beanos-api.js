@@ -109,18 +109,32 @@
   }
 
   async function loadLessonTasks(lessonId) {
-    // Future assignment hook: replace this catalog filter with a user-specific
-    // assigned-task query once those account records are available.
     if (!Number.isInteger(Number(lessonId)) || Number(lessonId) < 1 || Number(lessonId) > 6) {
       throw new Error('That lesson number is not valid.');
     }
+    const { data: recommendation, error: recommendationError } = await waitForResponse(ready()
+      .from('lesson_task_recommendations').select('task_ids').eq('lesson_id', lessonId).single(), 'Loading recommended lesson tasks');
+    if (recommendationError) throw new Error(explain(recommendationError));
+    const ids = recommendation?.task_ids || [];
+    if (!ids.length) return [];
     const { data, error } = await waitForResponse(ready().from('task_bank')
       .select('id,lesson_id,difficulty,title,description,estimated_minutes')
-      .eq('lesson_id', lessonId)
-      .order('difficulty', { ascending: true })
-      .order('title', { ascending: true }), 'Loading lesson tasks');
+      .in('id', ids), 'Loading recommended lesson tasks');
     if (error) throw new Error(explain(error));
-    return data || [];
+    const byId = new Map((data || []).map(task => [String(task.id), task]));
+    return ids.map(id => byId.get(String(id))).filter(Boolean);
+  }
+
+  async function startLessonTaskAssignment(lessonId, expectedUserId) {
+    if (!Number.isInteger(Number(lessonId)) || Number(lessonId) < 1 || Number(lessonId) > 6) {
+      throw new Error('That lesson number is not valid.');
+    }
+    const user = await currentUser();
+    if (expectedUserId && user.id !== expectedUserId) throw new Error('Your login changed. Return to the lesson using your current account.');
+    const assignmentId = await rpc('beanos_assign_lesson_tasks', { p_lesson_id: Number(lessonId) });
+    if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
+    if (!assignmentId) throw new Error('The recommended tasks could not be assigned. Please try again.');
+    return assignmentId;
   }
 
   async function invokeLessonFunction(name, body, fallbackMessage) {
@@ -241,8 +255,8 @@
     return progress;
   }
 
-  async function completeLessonTask(lessonId, task, expectedUserId) {
-    if (!Number.isInteger(lessonId) || lessonId < 1 || lessonId > 6 || Number(task?.lesson_id) !== lessonId) {
+  async function completeLessonTask(lessonId, task, assignmentId, expectedUserId) {
+    if (!Number.isInteger(lessonId) || lessonId < 1 || lessonId > 6) {
       throw new Error('That lesson number is not valid.');
     }
     const taskId = String(task?.id ?? '');
@@ -252,6 +266,13 @@
     }
     const user = await currentUser();
     if (expectedUserId && user.id !== expectedUserId) throw new Error('Your login changed. Return to the lesson using your current account.');
+    if (!assignmentId) throw new Error('The task assignment could not be verified. Return to the task list and try again.');
+    const recorded = await rpc('beanos_complete_assigned_lesson_task', {
+      p_assignment_id: assignmentId,
+      p_task_id: Number(taskId)
+    });
+    if (!recorded) throw new Error('This task was not part of the current assignment. Return to the task list and try again.');
+    if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
     const answers = await rpc('beanos_get_survey');
     if ((await currentSessionUser()).id !== user.id) throw new Error('Your login changed. Return to the lesson using your current account.');
     const lessonOrder = getLessonOrder(answers);
@@ -268,8 +289,8 @@
     saved.unlockedLessonIds = progress.unlockedLessonIds;
     const updated = lessonTaskProgress(saved, lessonOrder);
     saved.unlockedLessonIds = updated.unlockedLessonIds;
-    // Prototype storage seam: replace this local save with a Supabase RPC
-    // (for example, beanos_complete_lesson_task) when user task records exist.
+    // Assignment and global completion records are saved through Supabase above;
+    // this browser copy still drives lesson unlock progress.
     localStorage.setItem(storageKey, JSON.stringify(saved));
     return updated;
   }
@@ -284,6 +305,7 @@
     loadLessonResources,
     loadLessonRoleplayConfig,
     loadLessonTasks,
+    startLessonTaskAssignment,
     requestLessonRoleplay,
     suggestLessonOrder,
     acceptLessonOrder,

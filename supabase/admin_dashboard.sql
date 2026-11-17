@@ -1,3 +1,102 @@
+-- Per-assignment lesson task history powers OKR 1.
+create table if not exists public.lesson_task_assignments (
+  assignment_id uuid not null,
+  auth_user_id uuid not null references auth.users(id) on delete cascade,
+  lesson_id bigint not null references public.lesson_task_recommendations(lesson_id) on delete restrict,
+  task_id bigint not null references public.task_bank(id) on delete restrict,
+  assigned_at timestamptz not null default statement_timestamp(),
+  completed_at timestamptz,
+  primary key (assignment_id, task_id)
+);
+create index if not exists lesson_task_assignments_user_time_idx
+  on public.lesson_task_assignments (auth_user_id, assigned_at desc);
+create index if not exists lesson_task_assignments_lesson_idx
+  on public.lesson_task_assignments (lesson_id);
+create index if not exists lesson_task_assignments_task_idx
+  on public.lesson_task_assignments (task_id);
+create index if not exists lesson_task_assignments_completion_idx
+  on public.lesson_task_assignments (completed_at) where completed_at is not null;
+alter table public.lesson_task_assignments enable row level security;
+revoke all on public.lesson_task_assignments from public, anon;
+grant select on public.lesson_task_assignments to authenticated;
+drop policy if exists "Users read own lesson task assignments" on public.lesson_task_assignments;
+create policy "Users read own lesson task assignments" on public.lesson_task_assignments
+  for select to authenticated using ((select auth.uid()) = auth_user_id);
+
+create or replace function public.beanos_assign_lesson_tasks(p_lesson_id bigint)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  actor uuid := auth.uid();
+  new_assignment_id uuid := pg_catalog.gen_random_uuid();
+  inserted_count bigint;
+begin
+  if actor is null then
+    raise exception 'AUTHENTICATION_REQUIRED' using errcode = '42501';
+  end if;
+  insert into public.lesson_task_assignments (assignment_id, auth_user_id, lesson_id, task_id)
+  select new_assignment_id, actor, p_lesson_id, recommended.task_id
+  from public.lesson_task_recommendations recommendation
+  cross join lateral unnest(recommendation.task_ids) as recommended(task_id)
+  join public.task_bank task on task.id = recommended.task_id
+  where recommendation.lesson_id = p_lesson_id;
+  get diagnostics inserted_count = row_count;
+  if inserted_count <> 10 then
+    raise exception 'LESSON_TASK_RECOMMENDATIONS_INCOMPLETE' using errcode = '23514';
+  end if;
+  return new_assignment_id;
+end;
+$$;
+
+create or replace function public.beanos_complete_assigned_lesson_task(
+  p_assignment_id uuid,
+  p_task_id bigint
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  actor uuid := auth.uid();
+  matched_task_id bigint;
+  matched_title text;
+  matched_difficulty smallint;
+  completion_time timestamptz := statement_timestamp();
+begin
+  if actor is null then
+    raise exception 'AUTHENTICATION_REQUIRED' using errcode = '42501';
+  end if;
+  update public.lesson_task_assignments assignment
+  set completed_at = coalesce(assignment.completed_at, completion_time)
+  where assignment.assignment_id = p_assignment_id
+    and assignment.task_id = p_task_id
+    and assignment.auth_user_id = actor
+  returning assignment.task_id into matched_task_id;
+  if matched_task_id is null then return false; end if;
+  select task.title, task.difficulty into matched_title, matched_difficulty
+  from public.task_bank task where task.id = matched_task_id;
+  insert into public.task_completions (
+    auth_user_id, task_id, task_title, difficulty, completed, completed_at
+  ) values (
+    actor, matched_task_id::text, matched_title, matched_difficulty, true, completion_time
+  )
+  on conflict (auth_user_id, task_id) do update
+    set task_title = excluded.task_title,
+        difficulty = excluded.difficulty,
+        completed = true,
+        completed_at = excluded.completed_at;
+  return true;
+end;
+$$;
+revoke all on function public.beanos_assign_lesson_tasks(bigint) from public, anon;
+grant execute on function public.beanos_assign_lesson_tasks(bigint) to authenticated;
+revoke all on function public.beanos_complete_assigned_lesson_task(uuid, bigint) from public, anon;
+grant execute on function public.beanos_complete_assigned_lesson_task(uuid, bigint) to authenticated;
+
 -- Admin-only aggregate metrics for the Beanos presentation dashboard.
 -- Append-only rating history enables same-task comparisons across attempts.
 create table if not exists public.task_rating_attempts (
@@ -55,6 +154,10 @@ declare
   repeat_rating_count bigint;
   average_rating_change numeric;
   rating_trend jsonb;
+  assigned_task_count bigint;
+  completed_assigned_task_count bigint;
+  assigned_task_users bigint;
+  assigned_task_completion_rate numeric;
 begin
   if actor is null or not exists (
     select 1 from public.admin_users a where a.auth_user_id = actor
@@ -102,6 +205,12 @@ begin
   where c.completed and lower(c.task_title) like '%girlfriend%';
 
   select count(*) into rating_attempt_count from public.task_rating_attempts;
+  select count(*), count(*) filter (where a.completed_at is not null), count(distinct a.auth_user_id)
+    into assigned_task_count, completed_assigned_task_count, assigned_task_users
+  from public.lesson_task_assignments a;
+  assigned_task_completion_rate := case when assigned_task_count > 0
+    then round(completed_assigned_task_count::numeric * 100 / assigned_task_count, 1)
+    else null end;
   with ordered_ratings as (
     select rated_at, rating,
       lag(rating) over (partition by auth_user_id, task_id order by rated_at, id) as previous_rating
@@ -136,8 +245,11 @@ begin
       'users_with_completed_tasks', (select count(distinct auth_user_id) from public.task_completions where completed)
     ),
     'okr1', jsonb_build_object(
-      'status', 'needs_tracking',
-      'message', 'User-specific task assignments are not recorded yet.'
+      'status', case when assigned_task_count > 0 then 'tracking' else 'waiting_for_assignments' end,
+      'assigned_tasks', assigned_task_count,
+      'completed_assigned_tasks', completed_assigned_task_count,
+      'users_assigned_tasks', assigned_task_users,
+      'completion_rate', assigned_task_completion_rate
     ),
     'okr2', jsonb_build_object(
       'status', case when repeat_rating_count > 0 then 'tracking'

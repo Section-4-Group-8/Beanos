@@ -952,7 +952,7 @@
             </div>
 
             <div class="step-footer-actions">
-                <button class="btn btn-primary" onclick="goToStep(5)">
+                <button class="btn btn-primary" id="select-lesson-tasks" type="button">
                     Select Daily Action Tasks <i class="fa-solid fa-tasks"></i>
                 </button>
             </div>
@@ -977,7 +977,7 @@
                 <p id="lesson-task-completion-status" role="status">Tasks completed in this lesson only count toward its next lesson.</p>
             </div>
             <div class="lesson-task-grid" id="taskGridContainer" aria-label="Tasks associated with this lesson"></div>
-            <p class="lesson-task-storage-note">Task completion is saved in this browser for now.</p>
+            <p class="lesson-task-storage-note">Assigned tasks and completion status are saved to your account.</p>
 
             <div class="step-footer-actions">
                 <button class="btn btn-success" id="complete-lesson-tasks" type="button" disabled>Complete lesson tasks</button>
@@ -1155,6 +1155,31 @@
         const taskCompletionStatus = document.getElementById('lesson-task-completion-status');
         let activeLessonId = null;
         let lessonAuthUserId = null;
+        let activeLessonAssignmentId = null;
+        let loadedLessonTasks = [];
+
+        document.getElementById('select-lesson-tasks').addEventListener('click', async event => {
+            const button = event.currentTarget;
+            if (!activeLessonId || !lessonAuthUserId || !loadedLessonTasks.length) return;
+            if (activeLessonAssignmentId) {
+                goToStep(5);
+                return;
+            }
+            button.disabled = true;
+            button.textContent = 'Assigning your tasks…';
+            try {
+                activeLessonAssignmentId = await window.BeanosAPI.startLessonTaskAssignment(activeLessonId, lessonAuthUserId);
+                taskCompletionStatus.textContent = `${loadedLessonTasks.length} tasks assigned for this lesson. Mark tasks complete as you finish them.`;
+                const progress = await window.BeanosAPI.loadLessonProgress(lessonAuthUserId);
+                renderLessonTasks(activeLessonId, loadedLessonTasks, progress);
+                goToStep(5);
+            } catch (error) {
+                taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || 'Tasks could not be assigned. Please try again.';
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Select Daily Action Tasks <i class="fa-solid fa-tasks"></i>';
+            }
+        });
 
         function renderLessonTaskProgress(lessonId, progress) {
             const stars = progress.starsByLesson[lessonId] || 0;
@@ -1202,7 +1227,7 @@
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.checked = completed;
-                checkbox.disabled = completed || thresholdMet;
+                checkbox.disabled = completed || thresholdMet || !activeLessonAssignmentId;
                 checkbox.setAttribute('aria-label', `Mark ${task.title} complete for ${task.difficulty} stars`);
                 const controlLabel = document.createElement('span');
                 controlLabel.textContent = completed ? 'Completed' : thresholdMet ? 'Unlock earned' : 'Mark complete';
@@ -1212,7 +1237,7 @@
                     checkbox.disabled = true;
                     controlLabel.textContent = 'Saving…';
                     try {
-                        const updated = await window.BeanosAPI.completeLessonTask(lessonId, task, lessonAuthUserId);
+                        const updated = await window.BeanosAPI.completeLessonTask(lessonId, task, activeLessonAssignmentId, lessonAuthUserId);
                         renderLessonTasks(lessonId, tasks, updated);
                     } catch (error) {
                         checkbox.checked = false;
@@ -1290,8 +1315,8 @@
                     renderLessonResource();
                 }
                 try {
-                    const tasks = await window.BeanosAPI.loadLessonTasks(lessonId);
-                    renderLessonTasks(lessonId, tasks, progress);
+                    loadedLessonTasks = await window.BeanosAPI.loadLessonTasks(lessonId);
+                    renderLessonTasks(lessonId, loadedLessonTasks, progress);
                 } catch (error) {
                     lessonTaskGrid.replaceChildren();
                     taskCompletionStatus.textContent = window.BeanosAPI?.explain(error) || 'Lesson tasks could not load. Please try again later.';

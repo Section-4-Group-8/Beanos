@@ -45,6 +45,15 @@
     document.getElementById('completed-tasks').textContent = number(overview.completed_task_records);
     document.getElementById('active-task-users').textContent = number(overview.users_with_completed_tasks);
 
+    const assignments = data.okr1 || {};
+    const assignmentStatus = assignments.status || 'waiting_for_assignments';
+    if (assignmentStatus === 'tracking') setBadge('okr1-status', 'Tracking', 'ready');
+    else setBadge('okr1-status', 'Waiting for assignments', 'partial');
+    const completionRate = assignments.completion_rate == null ? null : Number(assignments.completion_rate);
+    document.getElementById('okr1-rate').textContent = Number.isFinite(completionRate)
+      ? `${completionRate.toFixed(1)}% completed` : '—';
+    document.getElementById('okr1-counts').textContent = `${number(assignments.completed_assigned_tasks)} of ${number(assignments.assigned_tasks)} assigned tasks completed · ${number(assignments.users_assigned_tasks)} users assigned`;
+
     const ratings = data.okr2 || {};
     const ratingStatus = ratings.status || 'waiting_for_ratings';
     if (ratingStatus === 'tracking') setBadge('okr2-status', 'Tracking', 'ready');
