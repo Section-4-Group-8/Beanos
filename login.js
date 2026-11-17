@@ -2,8 +2,9 @@
   'use strict';
   const api = window.BeanosAPI;
   const form = document.getElementById('auth-form');
+  const resetForm = document.getElementById('reset-password-form');
   const status = document.getElementById('status-message');
-  const buttons = [...form.querySelectorAll('button')];
+  const buttons = [...form.querySelectorAll('button'), ...resetForm.querySelectorAll('button')];
   let busy = false;
   let recovery = new URLSearchParams(window.location.search).has('recovery') ||
     new URLSearchParams(window.location.hash.slice(1)).get('type') === 'recovery';
@@ -19,6 +20,7 @@
     document.getElementById('signup-btn').hidden = true;
     document.getElementById('login-btn').hidden = true;
     document.getElementById('reset-password-btn').hidden = true;
+    resetForm.hidden = true;
     document.getElementById('save-password-btn').hidden = false;
     document.getElementById('email').required = false;
     document.getElementById('password').autocomplete = 'new-password';
@@ -59,15 +61,22 @@
     event.preventDefault();
     document.getElementById(recovery ? 'save-password-btn' : 'login-btn').click();
   });
-  document.getElementById('reset-password-btn').addEventListener('click', () => run(async () => {
-    const emailInput = document.getElementById('email');
-    if (!emailInput.reportValidity()) return;
+  document.getElementById('reset-password-btn').addEventListener('click', () => {
+    resetForm.hidden = false;
+    document.getElementById('reset-email').focus();
+  });
+  resetForm.addEventListener('submit', event => {
+    event.preventDefault();
+    run(async () => {
+    const emailInput = document.getElementById('reset-email');
+    if (!resetForm.reportValidity()) return;
     const redirectTo = new URL(api.callbackUrl);
     redirectTo.searchParams.set('recovery', '1');
     const { error } = await api.client.auth.resetPasswordForEmail(emailInput.value.trim(), { redirectTo: redirectTo.href });
     if (error) throw error;
     message('If that email has an account, a password reset link will arrive shortly.');
-  }));
+    });
+  });
   document.getElementById('save-password-btn').addEventListener('click', () => run(async () => {
     const password = document.getElementById('password').value;
     if (password.length < 8) throw new Error('Choose a password with at least 8 characters.');
