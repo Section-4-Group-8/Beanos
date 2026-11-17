@@ -45,6 +45,30 @@
     document.getElementById('completed-tasks').textContent = number(overview.completed_task_records);
     document.getElementById('active-task-users').textContent = number(overview.users_with_completed_tasks);
 
+    const ratings = data.okr2 || {};
+    const ratingStatus = ratings.status || 'waiting_for_ratings';
+    if (ratingStatus === 'tracking') setBadge('okr2-status', 'Tracking', 'ready');
+    else if (ratingStatus === 'waiting_for_repeats') setBadge('okr2-status', 'Waiting for repeat ratings', 'partial');
+    else setBadge('okr2-status', 'Waiting for ratings', 'partial');
+    const avgChange = ratings.average_rating_change == null ? null : Number(ratings.average_rating_change);
+    document.getElementById('okr2-average-change').textContent = Number.isFinite(avgChange)
+      ? `${avgChange > 0 ? '+' : ''}${avgChange.toFixed(2)} stars per repeat attempt` : '—';
+    document.getElementById('okr2-attempt-count').textContent = `${number(ratings.repeat_attempts)} repeat ratings · ${number(ratings.rated_attempts)} total ratings`;
+    const trend = Array.isArray(ratings.rating_trend) ? ratings.rating_trend : [];
+    const trendBody = document.getElementById('okr2-trend');
+    trendBody.replaceChildren();
+    trend.forEach(point => {
+      const row = document.createElement('tr');
+      const week = document.createElement('td'); week.textContent = point.week_start || '';
+      const change = document.createElement('td');
+      const amount = Number(point.average_change);
+      change.textContent = Number.isFinite(amount) ? `${amount > 0 ? '+' : ''}${amount.toFixed(2)} stars` : '—';
+      const count = document.createElement('td'); count.textContent = number(point.repeat_attempts);
+      row.append(week, change, count); trendBody.append(row);
+    });
+    document.getElementById('okr2-trend-table').hidden = trend.length === 0;
+    document.getElementById('okr2-trend-empty').hidden = trend.length > 0;
+
     const date = data.okr3 || {};
     document.getElementById('plan-date-completions').textContent = `Plan a date: ${number(date.plan_date_task_completions)} completions · ${number(date.users_with_plan_date_completion)} users`;
     document.getElementById('go-date-completions').textContent = `Go on a date: ${number(date.go_on_date_task_completions)} completions · ${number(date.users_with_go_on_date_completion)} users`;

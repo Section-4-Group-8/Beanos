@@ -85,6 +85,8 @@
     const taskId = query.get('task');
     const difficulty = Number(query.get('difficulty'));
     const viewOnly = query.get('view') === '1';
+    const attemptId = query.get('attempt_id') || (viewOnly ? null : crypto.randomUUID());
+    const assignmentId = query.get('assignment_id');
     const state = readState();
     let task = findTask();
     const form = document.getElementById('reflection-form');
@@ -93,8 +95,8 @@
     const status = document.getElementById('form-status');
     const pageError = document.getElementById('page-error');
     let savedReflection = state.reflections[String(taskId)];
-    let showPastReflection = viewOnly || Boolean(savedReflection);
-    let selectedRating = Number(savedReflection?.rating) || 0;
+    let showPastReflection = viewOnly;
+    let selectedRating = viewOnly ? (Number(savedReflection?.rating) || 0) : 0;
     const ratingButtons = [...document.querySelectorAll('[data-rating]')];
     const ratingLabel = document.getElementById('rating-label');
     const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
@@ -107,7 +109,7 @@
     function readState() {
       try {
         const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        return { selected: value.selected || {}, completed: value.completed || {}, reflections: value.reflections || {}, taskCatalog: value.taskCatalog || {} };
+        return { selected: value.selected || {}, completed: value.completed || {}, reflections: value.reflections || {}, taskCatalog: value.taskCatalog || {}, pendingAttempts: value.pendingAttempts || {}, assignmentProgress:value.assignmentProgress || null };
       } catch { return { selected:{}, completed:{}, reflections:{}, taskCatalog:{} }; }
     }
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
@@ -156,7 +158,7 @@
         showError('This reflection link is missing a task. Return to the tasks page and open a task from your list.');
         return;
       }
-      if (client && userId) {
+      if (client && userId && viewOnly) {
         try {
           const { data, error } = await client.from(REFLECTIONS_TABLE)
             .select('task_id,difficulty,rating,reflection,created_at')
@@ -230,6 +232,17 @@
         saveButton.disabled = true;
         saveButton.innerHTML = 'Saving… <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
         try {
+          const { data:authData, error:authError } = await client.auth.getUser();
+          if (authError) throw authError;
+          const authUserId = authData.user?.id;
+          if (!authUserId) throw new Error('An authenticated account is required to save a rating.');
+          const { error:attemptError } = await client.from('task_rating_attempts').insert({
+            attempt_id:attemptId,
+            auth_user_id:authUserId,
+            task_id:task.id,
+            rating:selectedRating
+          });
+          if (attemptError && attemptError.code !== '23505') throw attemptError;
           const { error } = await client.from(REFLECTIONS_TABLE).upsert({
             user_id:userId,
             task_id:task.id,
@@ -242,11 +255,15 @@
           console.error('Could not save the reflection to Supabase:', error);
           saveButton.innerHTML = 'Save reflection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
           updateCounter();
-          announce('Could not save to Supabase. Check your connection and the task_reflections table policies, then try again.','error');
+          announce('Could not save to Supabase. Check task_rating_attempts and task_reflections table policies, then try again.','error');
           return;
         }
       }
-      state.reflections[key] = { task_id: task.id, difficulty, rating:selectedRating, task, reflection, saved_at: savedAt };
+      state.reflections[key] = { task_id: task.id, difficulty, rating:selectedRating, task, reflection, attempt_id:attemptId, saved_at: savedAt };
+      delete state.pendingAttempts[key];
+      if (assignmentId && state.assignmentProgress?.id === assignmentId) {
+        state.assignmentProgress.attemptIds[key] = attemptId;
+      }
       state.completed[key] = { difficulty, title: task.title, task, completed_at: savedAt };
       saveState();
       showPastReflection = true;

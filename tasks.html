@@ -83,13 +83,24 @@
     const client = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     let completionUserId = null;
+    const completedInAssignment = new Set();
     const sections = document.getElementById('difficulty-sections');
     const statusMessage = document.getElementById('status-message');
     const params = new URLSearchParams(window.location.search);
     const lessonId = params.get('lesson_id');
     let recommendedIds = readRecommendedIds(params);
+    const assignmentId = params.get('assignment_id') || crypto.randomUUID();
+    if (!params.has('assignment_id')) {
+      params.set('assignment_id', assignmentId);
+      history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    }
     let tasks = sampleTasks;
     let state = readState();
+    if (state.assignmentProgress?.id !== assignmentId) {
+      state.assignmentProgress = { id:assignmentId, completed:[], attemptIds:{} };
+      saveState();
+    }
+    const completedInAssignment = new Set(state.assignmentProgress.completed || []);
 
     function readRecommendedIds(searchParams) {
       const ids = new Set(searchParams.getAll('task_id'));
@@ -105,8 +116,8 @@
     function readState() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        return { completed:saved.completed || {}, reflections:saved.reflections || {}, taskCatalog:saved.taskCatalog || {} };
-      } catch { return { completed:{}, reflections:{}, taskCatalog:{} }; }
+        return { completed:saved.completed || {}, reflections:saved.reflections || {}, taskCatalog:saved.taskCatalog || {}, pendingAttempts:saved.pendingAttempts || {}, assignmentProgress:saved.assignmentProgress || null };
+      } catch { return { completed:{}, reflections:{}, taskCatalog:{}, pendingAttempts:{}, assignmentProgress:null }; }
     }
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
@@ -119,7 +130,14 @@
     }
     function openReflection(task, readOnly=false) {
       const query = new URLSearchParams({ task:String(task.id), difficulty:String(task.difficulty) });
+      query.set('assignment_id', assignmentId);
       if (readOnly) query.set('view','1');
+      else {
+        const key = String(task.id);
+        state.pendingAttempts[key] ||= crypto.randomUUID();
+        query.set('attempt_id', state.pendingAttempts[key]);
+        saveState();
+      }
       window.location.href = `${REFLECTION_PAGE_URL}?${query.toString()}`;
     }
     function renderProgress() {
@@ -162,9 +180,9 @@
     }
     function createTaskCard(task, level) {
       const key = String(task.id);
-      const completed = isComplete(task);
-      const reflected = hasReflection(task);
       const recommended = recommendedIds.has(key);
+      const completed = completedInAssignment.has(key) || (!recommended && isComplete(task));
+      const reflected = hasReflection(task) && (!recommended || state.reflections[key]?.attempt_id === state.assignmentProgress.attemptIds[key]);
       const card = document.createElement('article');
       card.className = `task-card${recommended ? ' is-recommended' : ''}${reflected ? ' is-reflected' : ''}`;
       card.style.setProperty('--accent', level.color);
@@ -238,6 +256,10 @@
             if (error) throw error;
           }
         }
+        completedInAssignment.add(key);
+        state.assignmentProgress.completed = [...completedInAssignment];
+        state.pendingAttempts[key] ||= crypto.randomUUID();
+        state.assignmentProgress.attemptIds[key] = state.pendingAttempts[key];
         state.completed[key] = { difficulty:Number(task.difficulty), title:task.title, task, completed:true, completed_at:completedAt };
         saveCatalog();
         renderTasks();
