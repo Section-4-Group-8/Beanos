@@ -125,6 +125,21 @@
     return ids.map(id => byId.get(String(id))).filter(Boolean);
   }
 
+  async function loadCurrentTaskIds() {
+    const ids = await rpc('beanos_get_current_tasks');
+    return Array.isArray(ids) ? [...new Set(ids.map(String))] : [];
+  }
+
+  async function addCurrentTasks(taskIds) {
+    const ids = [...new Set((taskIds || []).map(Number).filter(id => Number.isInteger(id) && id > 0))];
+    if (!ids.length) return loadCurrentTaskIds();
+    return rpc('beanos_add_current_tasks', { p_task_ids: ids });
+  }
+
+  async function removeCurrentTask(taskId) {
+    return rpc('beanos_remove_current_task', { p_task_id: Number(taskId) });
+  }
+
   async function startLessonTaskAssignment(lessonId, expectedUserId) {
     if (!Number.isInteger(Number(lessonId)) || Number(lessonId) < 1 || Number(lessonId) > 6) {
       throw new Error('That lesson number is not valid.');
@@ -282,13 +297,21 @@
     if (!progress.unlockedLessonIds.includes(lessonId)) {
       throw new Error('Complete tasks for the available lesson before opening this lesson.');
     }
-    if (progress.starsByLesson[lessonId] >= 10) return progress;
+    if (progress.starsByLesson[lessonId] >= 10) {
+      const lessonTasks = await loadLessonTasks(lessonId);
+      await addCurrentTasks(lessonTasks.map(item => item.id));
+      return progress;
+    }
     if (!saved.completedTasks || typeof saved.completedTasks !== 'object') saved.completedTasks = {};
     saved.completedTasks[lessonId] = saved.completedTasks[lessonId] || {};
     if (!saved.completedTasks[lessonId][taskId]) saved.completedTasks[lessonId][taskId] = difficulty;
     saved.unlockedLessonIds = progress.unlockedLessonIds;
     const updated = lessonTaskProgress(saved, lessonOrder);
     saved.unlockedLessonIds = updated.unlockedLessonIds;
+    if (updated.starsByLesson[lessonId] >= 10) {
+      const lessonTasks = await loadLessonTasks(lessonId);
+      await addCurrentTasks(lessonTasks.map(item => item.id));
+    }
     // Assignment and global completion records are saved through Supabase above;
     // this browser copy still drives lesson unlock progress.
     localStorage.setItem(storageKey, JSON.stringify(saved));
@@ -305,6 +328,8 @@
     loadLessonResources,
     loadLessonRoleplayConfig,
     loadLessonTasks,
+    loadCurrentTaskIds,
+    removeCurrentTask,
     startLessonTaskAssignment,
     requestLessonRoleplay,
     suggestLessonOrder,

@@ -66,7 +66,7 @@
     <section class="task-lock" id="task-lock" role="status" hidden></section>
     <div id="difficulty-sections"></div>
     <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
-    <p class="footer-note">Task completion and reflections are saved in this browser for now.</p>
+    <p class="footer-note">Your current tasks and completed tasks are saved to your account.</p>
   </main>
   <script src="beanos-api.js"></script>
   <script>
@@ -254,6 +254,7 @@
           completed_at:completedAt
         }, { onConflict:'auth_user_id,task_id' });
         if (saveError) throw saveError;
+        await window.BeanosAPI.removeCurrentTask(key);
         state.completed[key] = { difficulty:Number(task.difficulty), title:task.title, task, completed:true, completed_at:completedAt };
         saveCatalog();
         renderTasks();
@@ -317,28 +318,24 @@
           return;
         }
         completionUserId = account.authUserId;
-        const progress = await window.BeanosAPI.loadLessonProgress(completionUserId);
-        const completed = new Set((progress.completedLessons || []).map(Number));
-        const completedLessonIds = (progress.lessonOrder || []).map(Number).filter(id => completed.has(id));
-        lessonId = completedLessonIds.at(-1) || null;
-        if (!completedLessonIds.length) {
-          lockTasks('Complete Lesson 1 first. Its tasks will unlock here after the lesson is marked complete.');
+        const currentTaskIds = await window.BeanosAPI.loadCurrentTaskIds();
+        if (!currentTaskIds.length) {
+          lockTasks('You have no current tasks. Complete a lesson to add its tasks here.');
           return;
         }
         unlockTasks();
-        let request = client.from('task_bank')
+        const { data, error } = await client.from('task_bank')
           .select('id,lesson_id,difficulty,title,description,estimated_minutes')
-          .in('lesson_id', completedLessonIds)
+          .in('id', currentTaskIds)
           .order('difficulty', { ascending: true })
           .order('title', { ascending: true });
-        const { data, error } = await request;
         if (error) throw error;
         tasks = data || [];
         if (!tasks.length) {
-          announce(`No tasks are currently linked to your completed lessons yet.`, 'error');
+          announce('Your current task IDs could not be matched to tasks.', 'error');
         } else {
           const note = document.getElementById('recommendation-note');
-          note.textContent = `Showing tasks associated with completed Lessons ${completedLessonIds.join(', ')}.`;
+          note.textContent = 'Showing your current tasks.';
           note.hidden = false;
         }
         await loadCompletions();
