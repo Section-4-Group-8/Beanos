@@ -20,25 +20,7 @@
     el.className = `badge ${kind}`;
   }
 
-  async function initialize() {
-    if (!client) return showError('The account service could not load. Check your connection and try again.');
-    signout.disabled = false;
-    signout.addEventListener('click', async () => {
-      signout.disabled = true;
-      await client.auth.signOut();
-      window.location.replace('login_page.html');
-    });
-
-    const { data:authData, error:authError } = await client.auth.getUser();
-    if (authError || !authData.user) return showError('Sign in with the team admin account to view this dashboard.');
-    const { data, error } = await client.rpc('beanos_admin_dashboard_metrics');
-    if (error) {
-      if (error.message?.includes('ADMIN_ACCESS_REQUIRED')) {
-        return showError('This signed-in account is not on the Beanos admin allowlist. Ask the project owner to add it.');
-      }
-      return showError('Dashboard metrics could not load. Check the admin setup and try again.');
-    }
-
+  function renderMetrics(data) {
     const overview = data.overview || {};
     document.getElementById('total-users').textContent = number(overview.total_users);
     document.getElementById('survey-users').textContent = number(overview.survey_completed_users);
@@ -88,13 +70,62 @@
     } else {
       setBadge('okr3-status', 'Task setup needed', 'missing');
     }
-    document.getElementById('okr3-copy').textContent = 'Counts completions and users for the “Ask a girl on a date” and “Go on a date” tasks.';
+    document.getElementById('okr3-copy').textContent = 'Completion totals count each saved task attempt; user totals count each person once.';
     const girlfriend = data.okr4 || {};
-    document.getElementById('girlfriend-completions').textContent = `${number(girlfriend.completed_task_records)} completions · ${number(girlfriend.users_completed)} users`;
+    document.getElementById('girlfriend-completions').textContent = `${number(girlfriend.completion_attempts)} completion attempts · ${number(girlfriend.users_completed)} users`;
+    document.getElementById('okr4-copy').textContent = 'Completion totals count each saved task attempt, including repeats; user totals count each person once.';
     if (girlfriend.girlfriend_task_available) setBadge('okr4-status', 'Tracking available', 'ready');
 
-    loading.hidden = true;
-    dashboard.hidden = false;
+  }
+
+  let refreshInProgress = false;
+  async function refreshMetrics() {
+    if (!client || refreshInProgress) return;
+    refreshInProgress = true;
+    try {
+      const { data, error } = await client.rpc('beanos_admin_dashboard_metrics');
+      if (error) {
+        if (dashboard.hidden && error.message?.includes('ADMIN_ACCESS_REQUIRED')) {
+          showError('This signed-in account is not on the Beanos admin allowlist. Ask the project owner to add it.');
+        } else if (dashboard.hidden) {
+          showError('Dashboard metrics could not load. Check the admin setup and try again.');
+        } else {
+          console.warn('Could not refresh dashboard metrics:', error);
+        }
+        return;
+      }
+      renderMetrics(data);
+      loading.hidden = true;
+      dashboard.hidden = false;
+    } catch (error) {
+      if (dashboard.hidden) {
+        showError('Dashboard metrics could not load. Check the admin setup and try again.');
+      } else {
+        console.warn('Could not refresh dashboard metrics:', error);
+      }
+    } finally {
+      refreshInProgress = false;
+    }
+  }
+
+  async function initialize() {
+    if (!client) return showError('The account service could not load. Check your connection and try again.');
+    signout.disabled = false;
+    signout.addEventListener('click', async () => {
+      signout.disabled = true;
+      await client.auth.signOut();
+      window.location.replace('login_page.html');
+    });
+
+    const { data:authData, error:authError } = await client.auth.getUser();
+    if (authError || !authData.user) return showError('Sign in with the team admin account to view this dashboard.');
+    await refreshMetrics();
+    window.setInterval(() => {
+      if (document.visibilityState === 'visible') refreshMetrics();
+    }, 10000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refreshMetrics();
+    });
   }
   initialize().catch(error => {
     console.error('Could not load the Beanos admin dashboard:', error);

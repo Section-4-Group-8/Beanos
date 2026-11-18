@@ -149,7 +149,7 @@ declare
   ask_out_task_exists boolean;
   go_on_date_exists boolean;
   girlfriend_task_exists boolean;
-  girlfriend_task_count bigint;
+  girlfriend_attempt_count bigint;
   rating_attempt_count bigint;
   repeat_rating_count bigint;
   average_rating_change numeric;
@@ -165,12 +165,11 @@ begin
     raise exception 'ADMIN_ACCESS_REQUIRED' using errcode = '42501';
   end if;
 
-  select count(*), count(distinct c.auth_user_id)
+  select count(*), count(distinct r.auth_user_id)
     into ask_out_task_count, ask_out_task_users
-  from public.task_completions c
-  where c.completed
-    and c.task_id in (
-      select t.id::text from public.task_bank t
+  from public.task_rating_attempts r
+  where r.task_id in (
+      select t.id from public.task_bank t
       where lower(trim(t.title)) = 'ask a girl on a date'
     );
 
@@ -179,12 +178,11 @@ begin
     where lower(trim(t.title)) = 'ask a girl on a date'
   ) into ask_out_task_exists;
 
-  select count(*), count(distinct c.auth_user_id)
+  select count(*), count(distinct r.auth_user_id)
     into go_on_date_task_count, go_on_date_task_users
-  from public.task_completions c
-  where c.completed
-    and c.task_id in (
-      select t.id::text from public.task_bank t
+  from public.task_rating_attempts r
+  where r.task_id in (
+      select t.id from public.task_bank t
       where lower(t.title) like '%go on a date%'
     );
 
@@ -195,12 +193,15 @@ begin
 
   select exists (
     select 1 from public.task_bank t
-    where lower(t.title) like '%girlfriend%'
+    where lower(trim(t.title)) = 'get a girlfriend'
   ) into girlfriend_task_exists;
 
-  select count(*) into girlfriend_task_count
-  from public.task_completions c
-  where c.completed and lower(c.task_title) like '%girlfriend%';
+  select count(*) into girlfriend_attempt_count
+  from public.task_rating_attempts r
+  where r.task_id in (
+    select t.id from public.task_bank t
+    where lower(trim(t.title)) = 'get a girlfriend'
+  );
 
   select count(*) into rating_attempt_count from public.task_rating_attempts;
   select count(*), count(*) filter (where a.completed_at is not null), count(distinct a.auth_user_id)
@@ -270,8 +271,13 @@ begin
     'okr4', jsonb_build_object(
       'status', case when girlfriend_task_exists then 'tracking' else 'needs_task' end,
       'girlfriend_task_available', girlfriend_task_exists,
-      'completed_task_records', girlfriend_task_count,
-      'users_completed', (select count(distinct auth_user_id) from public.task_completions where completed and lower(task_title) like '%girlfriend%')
+      'completion_attempts', girlfriend_attempt_count,
+      'users_completed', (
+        select count(distinct r.auth_user_id)
+        from public.task_rating_attempts r
+        join public.task_bank t on t.id = r.task_id
+        where lower(trim(t.title)) = 'get a girlfriend'
+      )
     )
   );
 end;
