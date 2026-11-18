@@ -3,11 +3,11 @@
 
   const lessons = [
     'Building confidence and handling nerves',
-    'Starting and continuing conversations',
-    'Showing interest and respecting boundaries',
-    'Asking someone on a date',
-    'Planning and enjoying a date',
-    'Following up after a date'
+    'Texting and keeping conversations flowing',
+    'Handling rejection with self-respect',
+    'Personal style and grooming',
+    'Asking someone out and planning a date',
+    'How to have good dates'
   ];
   const cards = document.getElementById('lesson-cards');
   const status = document.getElementById('lesson-list-status');

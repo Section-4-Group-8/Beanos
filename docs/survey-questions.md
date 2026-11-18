@@ -99,11 +99,11 @@ Each answer reveals the next question on the same screen. Previous questions sta
 *Rank the six Beanos lessons, with the one you want to take first at the top.*
 
 - Building confidence and handling nerves
-- Starting and continuing conversations
-- Showing interest and respecting boundaries
-- Asking someone on a date
-- Planning and enjoying a date
-- Following up after a date
+- Texting and keeping conversations flowing
+- Handling rejection with self-respect
+- Personal style and grooming
+- Asking someone out and planning a date
+- How to have good dates
 
 **Interaction:** Reorder all six lessons into a priority list. Each lesson appears once.
 
