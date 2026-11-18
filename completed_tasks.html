@@ -34,7 +34,7 @@
     <p class="status" id="history-status" role="status" aria-live="polite">Loading your completed tasks…</p>
     <section class="history-list" id="history-list" aria-label="Your completed task attempts"></section>
   </main>
-  <script src="beanos-api.js"></script>
+  <script src="beanos-api.js?v=lesson-numbering-1"></script>
   <script>
     'use strict';
     const statusText = document.getElementById('history-status');
@@ -107,7 +107,7 @@
       card.appendChild(actions);
       return card;
     }
-    function renderGroupedHistory(items) {
+    function renderGroupedHistory(items, lessonOrder) {
       const groups = new Map();
       items.forEach(item => {
         const lessonId = Number(item.lessonId);
@@ -118,7 +118,7 @@
       const orderedKeys = [...groups.keys()].sort((a, b) => {
         if (a === 'other') return 1;
         if (b === 'other') return -1;
-        return Number(a) - Number(b);
+        return window.BeanosAPI.getLessonNumber(a, lessonOrder) - window.BeanosAPI.getLessonNumber(b, lessonOrder);
       });
       const sections = orderedKeys.map(key => {
         const section = document.createElement('section');
@@ -130,7 +130,7 @@
         headingCopy.className = 'lesson-heading-copy';
         const numberHeading = document.createElement('span');
         numberHeading.className = 'lesson-heading-number';
-        numberHeading.textContent = lessonId ? `LESSON ${lessonId}` : 'OTHER TASKS';
+        numberHeading.textContent = lessonId ? `LESSON ${window.BeanosAPI.getLessonNumber(lessonId, lessonOrder)}` : 'OTHER TASKS';
         headingCopy.appendChild(numberHeading);
         if (lessonId && lessonNames[lessonId]) {
           const lessonName = document.createElement('span');
@@ -210,7 +210,8 @@
             })
           };
         });
-        renderGroupedHistory(completedItems);
+        const lessonOrder = window.BeanosAPI.getLessonOrder(await window.BeanosAPI.loadSurvey());
+        renderGroupedHistory(completedItems, lessonOrder);
         statusText.textContent = `${records.length} completed ${records.length === 1 ? 'attempt' : 'attempts'}`;
       } catch (error) {
         console.error('Could not load completed task history:', error);

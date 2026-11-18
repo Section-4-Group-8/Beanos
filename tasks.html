@@ -70,7 +70,7 @@
     <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
     <p class="footer-note">Completed tasks move to your history, where you can revisit each reflection or try a task again.</p>
   </main>
-  <script src="beanos-api.js"></script>
+  <script src="beanos-api.js?v=lesson-numbering-1"></script>
   <script>
     'use strict';
     // Add the Supabase project URL and public anon key when the task table is ready.
@@ -161,7 +161,7 @@
       const nextLessonId = lessonProgress.lessonOrder?.[currentIndex + 1];
       const remaining = 10 - progress;
       unlock.textContent = nextLessonId
-        ? `${remaining} more ${remaining === 1 ? 'star' : 'stars'} in Lesson ${targetLessonId} to unlock Lesson ${nextLessonId}.`
+        ? `${remaining} more ${remaining === 1 ? 'star' : 'stars'} in Lesson ${currentIndex + 1} to unlock Lesson ${currentIndex + 2}.`
         : `${remaining} more ${remaining === 1 ? 'star' : 'stars'} to complete the final lesson.`;
       unlock.classList.toggle('unlocked', progress >= 10);
     }
