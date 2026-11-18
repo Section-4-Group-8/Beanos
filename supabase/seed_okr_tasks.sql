@@ -13,3 +13,16 @@ where not exists (
   select 1 from public.task_bank existing
   where lower(trim(existing.title)) = lower(trim(incoming.title))
 );
+
+-- Add the date-invitation task to Lesson 4's catalog.
+insert into public.task_bank (difficulty, title, description, estimated_minutes, lesson_id)
+select
+  5,
+  'Ask a girl on a date',
+  'When you feel a genuine connection and the moment feels comfortable, ask clearly and respectfully if she would like to go on a date. Suggest a simple plan, give her room to answer, and accept her response graciously.',
+  15,
+  4
+where not exists (
+  select 1 from public.task_bank existing
+  where lower(trim(existing.title)) = lower(trim('Ask a girl on a date'))
+);

@@ -142,11 +142,11 @@ set search_path = ''
 as $$
 declare
   actor uuid := auth.uid();
-  plan_date_task_count bigint;
-  plan_date_task_users bigint;
+  ask_out_task_count bigint;
+  ask_out_task_users bigint;
   go_on_date_task_count bigint;
   go_on_date_task_users bigint;
-  plan_date_task_exists boolean;
+  ask_out_task_exists boolean;
   go_on_date_exists boolean;
   girlfriend_task_exists boolean;
   girlfriend_task_count bigint;
@@ -166,20 +166,18 @@ begin
   end if;
 
   select count(*), count(distinct c.auth_user_id)
-    into plan_date_task_count, plan_date_task_users
+    into ask_out_task_count, ask_out_task_users
   from public.task_completions c
   where c.completed
     and c.task_id in (
       select t.id::text from public.task_bank t
-      where (lower(t.title) like '%date%plan%')
-         or (lower(t.title) like '%plan%date%')
+      where lower(trim(t.title)) = 'ask a girl on a date'
     );
 
   select exists (
     select 1 from public.task_bank t
-    where lower(t.title) like '%date%plan%'
-       or lower(t.title) like '%plan%date%'
-  ) into plan_date_task_exists;
+    where lower(trim(t.title)) = 'ask a girl on a date'
+  ) into ask_out_task_exists;
 
   select count(*), count(distinct c.auth_user_id)
     into go_on_date_task_count, go_on_date_task_users
@@ -260,10 +258,11 @@ begin
       'rating_trend', rating_trend
     ),
     'okr3', jsonb_build_object(
-      'status', case when go_on_date_exists then 'partial' else 'needs_task' end,
-      'plan_date_task_completions', plan_date_task_count,
-      'users_with_plan_date_completion', plan_date_task_users,
-      'plan_date_task_available', plan_date_task_exists,
+      'status', case when ask_out_task_exists and go_on_date_exists then 'tracking'
+        when ask_out_task_exists or go_on_date_exists then 'partial' else 'needs_task' end,
+      'ask_out_task_completions', ask_out_task_count,
+      'users_with_ask_out_completion', ask_out_task_users,
+      'ask_out_task_available', ask_out_task_exists,
       'go_on_date_task_completions', go_on_date_task_count,
       'users_with_go_on_date_completion', go_on_date_task_users,
       'go_on_date_task_available', go_on_date_exists

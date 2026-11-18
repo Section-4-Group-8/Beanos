@@ -79,12 +79,16 @@
     document.getElementById('okr2-trend-empty').hidden = trend.length > 0;
 
     const date = data.okr3 || {};
-    document.getElementById('plan-date-completions').textContent = `Plan a date: ${number(date.plan_date_task_completions)} completions · ${number(date.users_with_plan_date_completion)} users`;
+    document.getElementById('ask-out-completions').textContent = `Ask a girl out: ${number(date.ask_out_task_completions)} completions · ${number(date.users_with_ask_out_completion)} users`;
     document.getElementById('go-date-completions').textContent = `Go on a date: ${number(date.go_on_date_task_completions)} completions · ${number(date.users_with_go_on_date_completion)} users`;
-    if (!date.plan_date_task_available || !date.go_on_date_task_available) {
+    if (date.ask_out_task_available && date.go_on_date_task_available) {
+      setBadge('okr3-status', 'Tracking available', 'ready');
+    } else if (date.ask_out_task_available || date.go_on_date_task_available) {
+      setBadge('okr3-status', 'Task setup incomplete', 'partial');
+    } else {
       setBadge('okr3-status', 'Task setup needed', 'missing');
     }
-    document.getElementById('okr3-copy').textContent = 'Counts marked-complete task records across all users.';
+    document.getElementById('okr3-copy').textContent = 'Counts completions and users for the “Ask a girl on a date” and “Go on a date” tasks.';
     const girlfriend = data.okr4 || {};
     document.getElementById('girlfriend-completions').textContent = `${number(girlfriend.completed_task_records)} completions · ${number(girlfriend.users_completed)} users`;
     if (girlfriend.girlfriend_task_available) setBadge('okr4-status', 'Tracking available', 'ready');
