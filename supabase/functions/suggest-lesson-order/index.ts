@@ -8,11 +8,11 @@ const headers = {
 
 const lessons = [
   { id: 1, key: 'confidence', title: 'Building confidence and handling nerves' },
-  { id: 2, key: 'conversations', title: 'Starting and continuing conversations' },
-  { id: 3, key: 'interest-and-boundaries', title: 'Showing interest and respecting boundaries' },
-  { id: 4, key: 'asking-someone-out', title: 'Asking someone on a date' },
-  { id: 5, key: 'date-planning', title: 'Planning and enjoying a date' },
-  { id: 6, key: 'following-up', title: 'Following up after a date' }
+  { id: 2, key: 'conversations', title: 'Texting and keeping conversations flowing' },
+  { id: 3, key: 'interest-and-boundaries', title: 'Handling rejection with self-respect' },
+  { id: 4, key: 'asking-someone-out', title: 'Personal style and grooming' },
+  { id: 5, key: 'date-planning', title: 'Asking someone out and planning a date' },
+  { id: 6, key: 'following-up', title: 'How to have good dates' }
 ];
 
 function json(body: unknown, status = 200) {

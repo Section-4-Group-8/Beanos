@@ -854,20 +854,11 @@
              STEP 1: LESSON INTRODUCTION (ARTICLE HEADER & BASE INFO)
              =================================================================== -->
         <section class="lesson-step active" id="step-1">
-            <span class="badge">Module 1 · Lesson 3</span>
-            <h1 style="font-size: var(--size-font-xl); margin-bottom: 16px;">Mastering the Warm Opener</h1>
-            
-            <p style="margin-bottom: 20px;">
-                Most social anxiety around initiating conversations comes from believing you need a clever, perfectly engineered line. In reality, warm openers succeed because they focus on low-pressure observation rather than performance.
-            </p>
-
-            <blockquote style="border-left: 4px solid var(--color-primary-rust); padding-left: 16px; margin: 24px 0; font-style: italic; color: var(--color-gray-700); background: var(--color-gray-100); padding: 16px; border-radius: 0 var(--border-radius) var(--border-radius) 0;">
-                "A warm opener doesn't try to impress. It simply invites the other person to share a moment of contextual reality with you."
-            </blockquote>
-
-            <p>
-                In this lesson, you will learn how to identify situational anchors in your environment, formulate zero-pressure questions, and practice transitioning into natural dialog using our real-time AI roleplay engine.
-            </p>
+            <span class="badge">Lesson</span>
+            <h1 style="font-size: var(--size-font-xl); margin-bottom: 16px;">Your lesson</h1>
+            <p id="lesson-intro" style="margin-bottom: 20px;"></p>
+            <blockquote id="lesson-principle" style="border-left: 4px solid var(--color-primary-rust); margin: 24px 0; color: var(--color-gray-700); background: var(--color-gray-100); padding: 16px; border-radius: 0 var(--border-radius) var(--border-radius) 0;"></blockquote>
+            <p id="lesson-outcome"></p>
 
             <div class="lesson-resource-viewer" aria-label="Lesson resource slides">
                 <p class="lesson-resource-status" id="lesson-resource-status" role="status" aria-live="polite">Loading lesson resources…</p>
@@ -899,26 +890,20 @@
              =================================================================== -->
         <section class="lesson-step" id="step-2">
             <span class="badge">Core Concept</span>
-            <h2>The 3-Second Context Framework</h2>
-            
-            <p>
-                When initiating in casual settings, employ the <strong>Observation + Opinion</strong> formula. Rather than complimenting personal appearance right away (which creates high pressure), comment on something in the immediate surroundings.
-            </p>
-
-            <!-- Callout Note Boxes -->
+            <h2 id="lesson-framework-title"></h2>
+            <p id="lesson-framework"></p>
             <div class="note-box note-tip">
-                <i class="fa-solid fa-lightbulb"></i>
+                <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
                 <div class="note-content">
-                    <div class="note-title">Pro Dating Tip</div>
-                    <div>Framing questions as mild observations ("You look like you're deeply focused on that espresso menu") lowers defenses much faster than direct interrogation ("What drink are you getting?").</div>
+                    <div class="note-title">Try this</div>
+                    <div id="lesson-tip"></div>
                 </div>
             </div>
-
             <div class="note-box note-warning">
-                <i class="fa-solid fa-triangle-exclamation"></i>
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                 <div class="note-content">
-                    <div class="note-title">Mindset Caveat</div>
-                    <div>Never wait longer than 3 seconds after making eye contact. The longer you wait, the more your brain fabricates artificial threat responses.</div>
+                    <div class="note-title">Keep in mind</div>
+                    <div id="lesson-caution"></div>
                 </div>
             </div>
 
@@ -1074,14 +1059,69 @@
             footer.prepend(backButton);
         });
 
-        const lessonTopics = [
-            'Building confidence and handling nerves',
-            'Starting and continuing conversations',
-            'Showing interest and respecting boundaries',
-            'Asking someone on a date',
-            'Planning and enjoying a date',
-            'Following up after a date'
+        const lessonCopy = [
+            {
+                "title": "Building confidence and handling nerves",
+                "intro": "Starting a conversation can feel difficult when you are focused on finding the perfect opening line. This lesson helps you make a small, respectful first move while giving yourself room to feel nervous.",
+                "principle": "A first conversation can begin with a simple observation and room for the other person to respond.",
+                "outcome": "Use the resources to explore confidence and nerves, then practice a relaxed introduction in the café roleplay.",
+                "framework": "A calmer first conversation",
+                "concept": "Pause for a comfortable breath, notice something you genuinely share in the setting, and offer a brief comment or question. Listen to the response before deciding whether to continue.",
+                "tip": "At a café, a question about the menu or a book can give the other person an easy way to respond. Choose something you are actually curious about.",
+                "caution": "There is no three-second deadline. Give yourself time, and respect signs that someone is busy or wants to keep to themselves."
+            },
+            {
+                "title": "Texting and keeping conversations flowing",
+                "intro": "Texting gives you time to think, but it can also make you overthink every word or send more messages than the conversation needs. This lesson focuses on responding to what someone actually shares and finding a comfortable pace.",
+                "principle": "A balanced text exchange gives both people something to respond to and space to respond.",
+                "outcome": "Explore the texting resources, then practice keeping a casual exchange going with Jordan after a friendly introduction.",
+                "framework": "A balanced text exchange",
+                "concept": "Pick up on one detail in the message, add a relevant thought of your own, and leave room for a reply. Match the tone of the exchange without treating response times as a score.",
+                "tip": "If someone mentions a food market, respond to that detail before changing the topic. A short comment and a genuine follow-up can be enough.",
+                "caution": "A delayed or short reply can have many explanations. Avoid repeated follow-ups or pressuring someone to respond."
+            },
+            {
+                "title": "Handling rejection with self-respect",
+                "intro": "Hearing that someone is not interested can sting, even when they are kind about it. This lesson focuses on accepting their answer, responding with respect, and caring for yourself afterward.",
+                "principle": "Someone declining a date is making a choice about that connection. Your worth extends beyond their answer.",
+                "outcome": "Use the rejection resources to consider your response, then practice accepting a clear no from Alex after a community event.",
+                "framework": "Responding to a no",
+                "concept": "Listen to the answer, acknowledge it without bargaining, and let the interaction end. Afterward, give yourself time to feel disappointed and choose a constructive next step.",
+                "tip": "A simple response such as “Thanks for being honest. It was nice talking with you” can acknowledge their choice and close the conversation respectfully.",
+                "caution": "Repeated requests, persuasion, or demands for an explanation can put pressure on the other person. Accept the boundary they have stated."
+            },
+            {
+                "title": "Personal style and grooming",
+                "intro": "Getting ready for a social event can become stressful when you feel you have to look a certain way to be accepted. This lesson helps you make practical style and grooming choices that feel comfortable and authentic.",
+                "principle": "Your clothes and grooming can help you feel prepared while still reflecting your own preferences.",
+                "outcome": "Explore the style and grooming resources, then talk through an outfit choice with Sam in the roleplay.",
+                "framework": "Choosing what works for you",
+                "concept": "Consider the setting, check the fit and comfort of your clothes, and choose grooming steps you can realistically maintain. Use your own preferences to make the final decision.",
+                "tip": "For a casual event, start with clean clothes that fit comfortably and shoes suited to the activity. Small, practical choices can make getting ready more manageable.",
+                "caution": "Appearance advice is not a rule about your value or a guarantee of attraction. Avoid comparing your body or budget with someone else’s."
+            },
+            {
+                "title": "Asking someone out and planning a date",
+                "intro": "Asking someone out can feel vague when you are unsure how to express interest or suggest a plan. This lesson helps you make an understandable invitation and discuss an activity that works for both people.",
+                "principle": "A considerate invitation makes your interest clear and leaves the other person free to choose.",
+                "outcome": "Review the invitation and date-planning resources, then ask Riley out and suggest an activity after a campus event in Provo.",
+                "framework": "A clear invitation and a shared plan",
+                "concept": "Say you would like to go on a date, suggest a specific activity and possible time, and ask whether that works for them. Discuss alternatives together when there is mutual interest.",
+                "tip": "“Would you like to get coffee with me on Saturday afternoon?” gives the other person a clear invitation to consider. Check preferences before finalizing a plan.",
+                "caution": "A thoughtful plan does not create an obligation to accept. Respect a decline and avoid making reservations or commitments on someone else’s behalf before they agree."
+            },
+            {
+                "title": "How to have good dates",
+                "intro": "A first date is a chance to learn about each other. This lesson focuses on listening, sharing stories, and checking comfort so the conversation and any physical closeness feel mutual.",
+                "principle": "Connection grows through attention and mutual participation, with room for each person’s boundaries.",
+                "outcome": "Explore the first-date resources, then practice responding to Casey’s hiking story and sharing a little about yourself in the café roleplay.",
+                "framework": "Conversation and comfort on a date",
+                "concept": "Listen for a detail that interests you, invite the other person to expand on it, and share a relevant experience of your own. Check comfort directly before moving toward physical contact.",
+                "tip": "If your date mentions how they began a hobby, ask what they enjoyed about that first experience. Share a brief related story while leaving space for theirs.",
+                "caution": "A friendly conversation or a successful date does not establish consent to touch. Ask clearly, respect the answer, and welcome a change of mind."
+            }
         ];
+        const lessonTopics = lessonCopy.map(lesson => lesson.title);
 
         function youtubeEmbed(url) {
             try {
@@ -1286,6 +1326,14 @@
             document.title = `Beanos — Lesson ${lessonId}: ${title}`;
             document.querySelector('#step-1 h1').textContent = title;
             document.querySelector('#step-1 .badge').textContent = `Lesson ${lessonId}`;
+            const copy = lessonCopy[lessonId - 1];
+            document.getElementById('lesson-intro').textContent = copy.intro;
+            document.getElementById('lesson-principle').textContent = copy.principle;
+            document.getElementById('lesson-outcome').textContent = copy.outcome;
+            document.getElementById('lesson-framework-title').textContent = copy.framework;
+            document.getElementById('lesson-framework').textContent = copy.concept;
+            document.getElementById('lesson-tip').textContent = copy.tip;
+            document.getElementById('lesson-caution').textContent = copy.caution;
             document.querySelector('#stepIndicatorText').textContent = '1 of 5';
 
             let accessCheckTimedOut = false;

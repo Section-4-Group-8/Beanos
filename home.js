@@ -16,11 +16,11 @@
   const dailyTaskStatus = document.getElementById('daily-task-status');
   const lessons = [
     ['Building confidence and handling nerves', 'confidence'],
-    ['Starting and continuing conversations', 'conversations'],
-    ['Showing interest and respecting boundaries', 'interest-and-boundaries'],
-    ['Asking someone on a date', 'asking-someone-out'],
-    ['Planning and enjoying a date', 'date-planning'],
-    ['Following up after a date', 'following-up']
+    ['Texting and keeping conversations flowing', 'conversations'],
+    ['Handling rejection with self-respect', 'interest-and-boundaries'],
+    ['Personal style and grooming', 'asking-someone-out'],
+    ['Asking someone out and planning a date', 'date-planning'],
+    ['How to have good dates', 'following-up']
   ];
   const goals = new Map([
     ['conversation-confidence', 'Feel more confident talking to someone I’m interested in.'],

@@ -171,7 +171,7 @@ test('home gates content on a completed account and shows only the saved focus',
   assert.equal(h.d.getElementById('home-goal').textContent,'Ask someone on a date.');
   assert.equal(h.d.querySelector('a[href="tasks.html"]').textContent.trim(),'Go to tasks →');
   assert.ok(h.d.querySelector('a[href="lessons.html"]'));
-  assert.match(h.d.querySelector('#home-lesson-list a[href$="?lesson=5"]').textContent,/Planning and enjoying a date/);
+  assert.match(h.d.querySelector('#home-lesson-list a[href$="?lesson=5"]').textContent,/Asking someone out and planning a date/);
   h.d.getElementById('home-signout').click();await tick();
   assert.equal(h.d.getElementById('home-signout').disabled,false);
   assert.match(h.d.getElementById('home-account-status').textContent,/Could not log out/);
@@ -304,7 +304,7 @@ test('AI suggestion previews and dismissals never save, but accepting changes th
   d.getElementById('suggest-lesson-order').click();
   await tick();
   assert.equal(d.getElementById('lesson-order-preview').hidden, false);
-  assert.equal(d.querySelector('#suggested-lessons li').textContent, 'Planning and enjoying a date');
+  assert.equal(d.querySelector('#suggested-lessons li').textContent, 'Asking someone out and planning a date');
   assert.match(firstCard(), /lesson=1$/);
   assert.equal(saveCalls, 0);
   d.getElementById('keep-lesson-order').click();
@@ -482,4 +482,39 @@ test('profile saves only approved bean colors, restores the saved color, and rol
   assert.equal(dom.window.document.querySelector('input[name="bean-color"]:checked').value, 'tan');
   assert.equal(updates.length, 2, 'invalid saved colors must fall back without an account write');
   dom.window.close();
+});
+
+test('each lesson route renders distinct copy while retaining its resource and roleplay loaders', async () => {
+  const titles = ['Building confidence and handling nerves', 'Texting and keeping conversations flowing',
+    'Handling rejection with self-respect', 'Personal style and grooming',
+    'Asking someone out and planning a date', 'How to have good dates'];
+  const intros = new Set();
+  const frameworks = new Set();
+  for (let id = 1; id <= 6; id++) {
+    const dom = new JSDOM(read('beanos_lesson_template.html'), {
+      url: `https://example.test/Beanos/beanos_lesson_template.html?lesson=${id}`, runScripts: 'outside-only'
+    });
+    const w = dom.window;
+    const loaded = [];
+    w.BeanosAPI = {
+      requireAccount: async () => ({ authUserId: 'auth-one' }),
+      loadLessonProgress: async () => ({ unlockedLessonIds: [1,2,3,4,5,6], completedLessons: [], starsByLesson: {}, completedTaskIdsByLesson: {} }),
+      loadLessonRoleplayConfig: async lessonId => { loaded.push(['roleplay', lessonId]); return null; },
+      loadLessonResources: async lessonId => { loaded.push(['resources', lessonId]); return []; },
+      loadLessonTasks: async () => [], explain: e => e.message
+    };
+    for (const script of w.document.querySelectorAll('script:not([src])')) w.eval(script.textContent);
+    await tick();
+    assert.equal(w.document.querySelector('#step-1 h1').textContent, titles[id - 1]);
+    assert.equal(w.document.getElementById('lesson-content').hidden, false);
+    assert.ok(loaded.some(([kind, lessonId]) => kind === 'resources' && lessonId === id));
+    assert.ok(loaded.some(([kind, lessonId]) => kind === 'roleplay' && lessonId === id));
+    intros.add(w.document.getElementById('lesson-intro').textContent);
+    frameworks.add(w.document.getElementById('lesson-framework').textContent);
+    assert.ok(w.document.getElementById('lesson-tip').textContent);
+    assert.ok(w.document.getElementById('lesson-caution').textContent);
+    dom.window.close();
+  }
+  assert.equal(intros.size, 6);
+  assert.equal(frameworks.size, 6);
 });
