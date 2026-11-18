@@ -34,7 +34,8 @@
   let subscription;
   let initializing = false;
 
-  function renderLessons(nextLessonId) {
+  function renderLessons(progress) {
+    const { nextLessonId } = progress;
     lessonList.replaceChildren();
     if (!nextLessonId) {
       const done = document.createElement('p');
@@ -50,7 +51,7 @@
     link.href = `beanos_lesson_template.html?lesson=${nextLessonId}`;
     const number = document.createElement('span');
     number.className = 'lesson-choice-number';
-    number.textContent = `LESSON ${nextLessonId}`;
+    number.textContent = `LESSON ${api.getLessonNumber(nextLessonId, progress.lessonOrder)}`;
     const name = document.createElement('span');
     name.className = 'lesson-choice-title';
     name.textContent = title;
@@ -127,7 +128,7 @@
       document.getElementById('daily-task-description').textContent = task.description || '';
       document.getElementById('daily-task-difficulty').textContent = `${'★'.repeat(Number(task.difficulty) || 0)}${'☆'.repeat(Math.max(0, 5 - (Number(task.difficulty) || 0)))} · ${task.difficulty}-star difficulty`;
       document.getElementById('daily-task-estimate').textContent = Number(task.estimated_minutes) ? `About ${task.estimated_minutes} minutes` : 'Go at your own pace';
-      document.getElementById('daily-task-lesson').textContent = `Lesson ${task.lesson_id}`;
+      document.getElementById('daily-task-lesson').textContent = `Lesson ${api.getLessonNumber(task.lesson_id, progress.lessonOrder)}`;
       const taskLink = document.getElementById('daily-task-link');
       taskLink.href = `tasks.html?task_id=${encodeURIComponent(String(task.id))}`;
       taskLink.hidden = false;
@@ -184,7 +185,7 @@
       lessonList.replaceChildren();
       if (survey !== undefined) {
         const lessonProgress = await api.loadLessonProgress(user.id, survey);
-        renderLessons(lessonProgress.nextLessonId);
+        renderLessons(lessonProgress);
         renderTaskAccess(lessonProgress);
         await renderDailyTask(lessonProgress, user.id);
       }

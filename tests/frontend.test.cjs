@@ -154,8 +154,9 @@ async function home({allowed=true,focusError=false,accountError=false}={}) {
     loadLessonProgress:async(userId, survey)=>{
       assert.equal(userId,'auth-one');
       assert.equal(survey.mainGoal,'ask-on-date');
-      return {nextLessonId:5};
+      return {nextLessonId:5, lessonOrder:[5,2,1,3,4,6]};
     },
+    getLessonNumber:(id, order)=>order.indexOf(id)+1,
     explain:e=>e.message,
     signOut:async()=>{throw new Error('Could not log out. Try again.');},
     client:{auth:{onAuthStateChange:callback=>{authChanged=callback;return {data:{subscription:{unsubscribe(){}}}};}}}
@@ -226,7 +227,7 @@ test('survey order drives the rendered path and 10 stars unlock the next ranked 
   await tick();
   const cards = [...w.document.querySelectorAll('#lesson-cards > *')];
   assert.deepEqual(cards.map(card => card.querySelector('.lesson-choice-number').textContent),
-    ['LESSON 05', 'LESSON 02', 'LESSON 01', 'LESSON 03', 'LESSON 04', 'LESSON 06']);
+    ['LESSON 01', 'LESSON 02', 'LESSON 03', 'LESSON 04', 'LESSON 05', 'LESSON 06']);
   assert.equal(cards[0].getAttribute('href'), 'beanos_lesson_template.html?lesson=5');
   assert.equal(cards[1].getAttribute('aria-disabled'), 'true');
   const task = (id, lessonId) => ({ id, difficulty: 5, lesson_id: lessonId });
@@ -498,7 +499,8 @@ test('each lesson route renders distinct copy while retaining its resource and r
     const loaded = [];
     w.BeanosAPI = {
       requireAccount: async () => ({ authUserId: 'auth-one' }),
-      loadLessonProgress: async () => ({ unlockedLessonIds: [1,2,3,4,5,6], completedLessons: [], starsByLesson: {}, completedTaskIdsByLesson: {} }),
+      getLessonNumber: (id, order) => order.indexOf(id) + 1,
+      loadLessonProgress: async () => ({ lessonOrder: [6,5,4,3,2,1], unlockedLessonIds: [1,2,3,4,5,6], completedLessons: [], starsByLesson: {}, completedTaskIdsByLesson: {} }),
       loadLessonRoleplayConfig: async lessonId => { loaded.push(['roleplay', lessonId]); return null; },
       loadLessonResources: async lessonId => { loaded.push(['resources', lessonId]); return []; },
       loadLessonTasks: async () => [], explain: e => e.message
@@ -507,6 +509,7 @@ test('each lesson route renders distinct copy while retaining its resource and r
     await tick();
     assert.equal(w.document.querySelector('#step-1 h1').textContent, titles[id - 1]);
     assert.equal(w.document.getElementById('lesson-content').hidden, false);
+    assert.equal(w.document.querySelector('#step-1 .badge').textContent, `Lesson ${7 - id} of 6`);
     assert.ok(loaded.some(([kind, lessonId]) => kind === 'resources' && lessonId === id));
     assert.ok(loaded.some(([kind, lessonId]) => kind === 'roleplay' && lessonId === id));
     intros.add(w.document.getElementById('lesson-intro').textContent);
@@ -517,4 +520,24 @@ test('each lesson route renders distinct copy while retaining its resource and r
   }
   assert.equal(intros.size, 6);
   assert.equal(frameworks.size, 6);
+});
+
+test('personalized lesson numbers are sequential while links and progress retain the original IDs', async () => {
+  const session = lessonSession();
+  session.rank([5, 2, 6, 1, 4, 3]);
+  session.w.eval(read('lessons.js'));
+  await tick();
+  const d = session.w.document;
+  assert.deepEqual(Array.from(d.querySelectorAll('.lesson-page-card .lesson-choice-number'), el => el.textContent),
+    ['LESSON 01', 'LESSON 02', 'LESSON 03', 'LESSON 04', 'LESSON 05', 'LESSON 06']);
+  assert.match(d.querySelector('.lesson-page-card').href, /lesson=5$/);
+  assert.equal(d.querySelector('[role="progressbar"]').getAttribute('aria-label'), 'Progress toward completing Lesson 1');
+  assert.match(d.getElementById('lesson-list-status').textContent, /Lesson 1 is your next/);
+  assert.match(d.querySelector('.locked').textContent, /Continue with Lesson 1/);
+  assert.equal(session.api.getLessonNumber(6, [5, 2, 6, 1, 4, 3]), 3);
+  session.dom.window.close();
+  const h = await home();
+  assert.match(h.d.querySelector('#home-lesson-list a').href, /lesson=5$/);
+  assert.equal(h.d.querySelector('#home-lesson-list .lesson-choice-number').textContent, 'LESSON 1');
+  h.dom.window.close();
 });

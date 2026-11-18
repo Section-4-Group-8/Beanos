@@ -25,6 +25,7 @@
     const completed = new Set(progress.completedLessons);
     const unlockedLessons = new Set(progress.unlockedLessonIds);
     for (const lessonId of progress.lessonOrder) {
+      const lessonNumber = api.getLessonNumber(lessonId, progress.lessonOrder);
       const title = lessons[lessonId - 1];
       const unlocked = unlockedLessons.has(lessonId);
       const isComplete = completed.has(lessonId);
@@ -35,7 +36,7 @@
 
       const number = document.createElement('span');
       number.className = 'lesson-choice-number';
-      number.textContent = `LESSON ${String(lessonId).padStart(2, '0')}`;
+      number.textContent = `LESSON ${String(lessonNumber).padStart(2, '0')}`;
       const name = document.createElement('span');
       name.className = 'lesson-choice-title';
       name.textContent = title;
@@ -46,7 +47,7 @@
         ? 'Completed · Available to revisit'
         : unlocked
           ? `Available now · ${stars} / 10 stars to complete`
-          : `Locked · Continue with Lesson ${progress.nextLessonId} on your path`;
+          : `Locked · Continue with Lesson ${api.getLessonNumber(progress.nextLessonId, progress.lessonOrder)} on your path`;
       const arrow = document.createElement('span');
       arrow.className = 'lesson-page-arrow';
       arrow.setAttribute('aria-hidden', 'true');
@@ -56,7 +57,7 @@
         const meter = document.createElement('span');
         meter.className = 'lesson-unlock-meter';
         meter.setAttribute('role', 'progressbar');
-        meter.setAttribute('aria-label', `Progress toward completing Lesson ${lessonId}`);
+        meter.setAttribute('aria-label', `Progress toward completing Lesson ${lessonNumber}`);
         meter.setAttribute('aria-valuemin', '0');
         meter.setAttribute('aria-valuemax', '10');
         meter.setAttribute('aria-valuenow', String(Math.min(10, stars)));
@@ -69,7 +70,7 @@
       cards.appendChild(card);
     }
     status.textContent = progress.nextLessonId
-      ? `Lesson ${progress.nextLessonId} is your next available lesson.`
+      ? `Lesson ${api.getLessonNumber(progress.nextLessonId, progress.lessonOrder)} is your next available lesson.`
       : 'You’ve completed all six lessons. You can revisit any lesson below.';
   }
 

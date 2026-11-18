@@ -192,6 +192,11 @@
     return order.includes(0) || new Set(order).size !== order.length ? defaultLessonOrder : order;
   }
 
+  function getLessonNumber(lessonId, lessonOrder) {
+    const index = lessonOrder?.indexOf(Number(lessonId)) ?? -1;
+    return index < 0 ? Number(lessonId) : index + 1;
+  }
+
   async function suggestLessonOrder(authUserId) {
     if ((await currentSessionUser()).id !== authUserId) throw new Error('Your login changed. Reload the Lessons page.');
     const fallback = 'A lesson order could not be suggested. Try again.';
@@ -353,6 +358,8 @@
     requestLessonRoleplay,
     suggestLessonOrder,
     acceptLessonOrder,
+    getLessonNumber,
+    getLessonOrder,
     loadLessonProgress,
     completeLessonTask
   });

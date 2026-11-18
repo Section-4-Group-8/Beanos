@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beanos — Lesson: Mastering the Warm Opener</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="beanos-api.js?v=lesson-path-2" defer></script>
+    <script src="beanos-api.js?v=lesson-numbering-1" defer></script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1323,9 +1323,9 @@
             activeLessonId = lessonId;
             initializeRoleplay(null);
             accessMessage.textContent = 'Checking your sign-in and lesson access…';
-            document.title = `Beanos — Lesson ${lessonId}: ${title}`;
+            document.title = `Beanos — ${title}`;
             document.querySelector('#step-1 h1').textContent = title;
-            document.querySelector('#step-1 .badge').textContent = `Lesson ${lessonId}`;
+            document.querySelector('#step-1 .badge').textContent = 'Lesson';
             const copy = lessonCopy[lessonId - 1];
             document.getElementById('lesson-intro').textContent = copy.intro;
             document.getElementById('lesson-principle').textContent = copy.principle;
@@ -1339,7 +1339,7 @@
             let accessCheckTimedOut = false;
             const accessCheckTimer = window.setTimeout(() => {
                 accessCheckTimedOut = true;
-                accessMessage.textContent = 'The sign-in check did not respond. Reload the page. If this continues, republish beanos-api.js and check the Supabase connection.';
+                accessMessage.textContent = 'The sign-in check did not respond. Reload the page. If this continues, republish beanos-api.js?v=lesson-numbering-1 and check the Supabase connection.';
             }, 12000);
 
             try {
@@ -1353,8 +1353,11 @@
                 accessMessage.textContent = 'Loading your lesson progress…';
                 lessonAuthUserId = account.authUserId || (await window.BeanosAPI.currentUser()).id;
                 const progress = await window.BeanosAPI.loadLessonProgress(lessonAuthUserId);
+                const lessonNumber = window.BeanosAPI.getLessonNumber(lessonId, progress.lessonOrder);
+                document.title = `Beanos — Lesson ${lessonNumber}: ${title}`;
+                document.querySelector('#step-1 .badge').textContent = `Lesson ${lessonNumber} of ${progress.lessonOrder.length}`;
                 if (!progress.unlockedLessonIds.includes(lessonId)) {
-                    accessMessage.textContent = `Lesson ${lessonId} is locked. Continue with Lesson ${progress.nextLessonId} on your path.`;
+                    accessMessage.textContent = `Lesson ${lessonNumber} is locked. Continue with Lesson ${window.BeanosAPI.getLessonNumber(progress.nextLessonId, progress.lessonOrder)} on your path.`;
                     return;
                 }
                 renderLessonTaskProgress(lessonId, progress);
