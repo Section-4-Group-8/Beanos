@@ -58,3 +58,7 @@ Fetch the latest `main`, integrate teammates' changes, and review your commit's 
 - [Beanos style guide](Beanos_style_guide.html)
 - [Account signup notes](docs/account-signup.md)
 - [Database diagram](images/erd2.png)
+
+## Ganderson Part — IS 403
+
+The separate [Ganderson Part](ganderson/README.md) adds an Express server, cookie login, and CRUD pages for dedicated users and practice records. Follow its setup guide to run locally and deploy the full site on Vercel with Supabase PostgreSQL. This module requires the Node server; GitHub Pages cannot run its API. Existing Beanos accounts and content are separate.

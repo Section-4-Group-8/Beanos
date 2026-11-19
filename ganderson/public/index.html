@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Ganderson Part — Beanos account and practice record management for IS 403.">
+<title>Ganderson Part | Beanos</title>
+<link rel="icon" href="/beanos-favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/ganderson/style.css">
+<script src="/ganderson/site.js" defer>
+</script>
+</head>
+<body data-page="overview">
+<a class="skip" href="#main">Skip to content</a>
+<header>
+<div class="header-inner">
+<a class="brand" href="/ganderson/">
+<img src="/ganderson/bean.svg" width="42" height="42" alt="">
+<span>Beanos<span>.</span>
+<small>Ganderson Part</small>
+</span>
+</a>
+<nav aria-label="Ganderson navigation">
+<a href="/ganderson/">Overview</a>
+<a href="/ganderson/users" data-private hidden>Maintain Users</a>
+<a href="/ganderson/records" data-private hidden>Maintain Records</a>
+<button type="button" class="danger" id="logout" hidden>Log out</button>
+</nav>
+</div>
+</header>
+<main id="main">
+<noscript>Enable JavaScript to log in and maintain records.</noscript>
+<section class="hero">
+<div>
+<p class="eyebrow">Small steps. Real confidence.</p>
+<h1>Good connections<br>start with practice.</h1>
+<p class="hero-copy">Beanos helps men build confidence with conversations, dating, and relationships. Thoughtful lessons and everyday practice turn a big goal into a next step.</p>
+<span class="pill">Ganderson Part · Practice management</span>
+</div>
+<img src="/ganderson/bean.svg" alt="The Beanos bean with small steps and a warm sun" width="480" height="400">
+</section>
+<div id="status" class="message" role="status" aria-live="polite">Checking your session…</div>
+<div class="entry-grid">
+<section class="card" id="login-card" hidden>
+<p class="eyebrow">Welcome back</p>
+<h2>Log in to manage Beanos.</h2>
+<p>Use your Ganderson Part account to maintain users and practice records.</p>
+<form id="login-form">
+<label>Email address<input name="user_email" type="email" autocomplete="username" maxlength="254" required>
+</label>
+<label>Password<input name="user_password" type="password" autocomplete="current-password" maxlength="128" required>
+</label>
+<button class="full" type="submit">Log in</button>
+</form>
+<p class="hint">Ganderson Part uses a separate class-project login from the main Beanos app.</p>
+</section>
+<section class="card account" id="account-card" hidden>
+<p class="eyebrow">You’re signed in</p>
+<h2 id="account-name">Welcome.</h2>
+<p id="account-email">
+</p>
+<div class="actions">
+<a class="button" href="/ganderson/users">Maintain Users</a>
+<a class="button secondary" href="/ganderson/records">Maintain Records</a>
+</div>
+<p class="hint">Manage the class-project catalog here. These records are separate from the lessons and tasks in the main app.</p>
+</section>
+<section class="card">
+<p class="eyebrow">A clearer next step</p>
+<h2>Practice with purpose.</h2>
+<ol class="steps">
+<li>
+<strong>Choose a focus.</strong>
+<br>Confidence, texting, personal style, invitations, and more.</li>
+<li>
+<strong>Make it achievable.</strong>
+<br>Give each practice record a clear task, difficulty, and time estimate.</li>
+<li>
+<strong>Keep it useful.</strong>
+<br>Review, edit, or retire records as the catalog grows.</li>
+</ol>
+</section>
+</div>
+</main>
+<footer>
+<span>A little progress, every day.</span>
+<a href="/index.html">Beanos home</a>
+<span>IS 403 · Ganderson Part</span>
+</footer>
+</body>
+</html>

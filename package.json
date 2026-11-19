@@ -2,10 +2,21 @@
   "name": "beanos",
   "private": true,
   "scripts": {
-    "test": "node --test tests/frontend.test.cjs"
+    "test": "node --test tests/frontend.test.cjs",
+    "build": "node ganderson/build.cjs",
+    "start": "node --env-file-if-exists=.env.local app.js",
+    "test:ganderson": "node --test ganderson/tests/*.test.cjs",
+    "setup:ganderson": "node --env-file-if-exists=.env.local ganderson/scripts/setup.cjs"
   },
   "devDependencies": {
     "jsdom": "26.1.0",
     "supabase": "^3.2.0"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "pg": "^8.23.1"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }

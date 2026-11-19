@@ -1,3 +1,9 @@
 node_modules/
 
 supabase/.temp/
+
+# Local server configuration and generated Vercel files.
+.env*
+!.env.example
+.vercel/
+/public/

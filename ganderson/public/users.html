@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Ganderson Part — Beanos account and practice record management for IS 403.">
+<title>Maintain Users | Beanos</title>
+<link rel="icon" href="/beanos-favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/ganderson/style.css">
+<script src="/ganderson/site.js" defer>
+</script>
+</head>
+<body data-page="users">
+<a class="skip" href="#main">Skip to content</a>
+<header>
+<div class="header-inner">
+<a class="brand" href="/ganderson/">
+<img src="/ganderson/bean.svg" width="42" height="42" alt="">
+<span>Beanos<span>.</span>
+<small>Ganderson Part</small>
+</span>
+</a>
+<nav aria-label="Ganderson navigation">
+<a href="/ganderson/">Overview</a>
+<a href="/ganderson/users" data-private hidden>Maintain Users</a>
+<a href="/ganderson/records" data-private hidden>Maintain Records</a>
+<button type="button" class="danger" id="logout" hidden>Log out</button>
+</nav>
+</div>
+</header>
+<main id="main">
+<noscript>Enable JavaScript to log in and maintain records.</noscript>
+<section class="card gate" id="login-gate" hidden>
+<h1>Log in to continue.</h1>
+<p>These management pages require a Ganderson Part account.</p>
+<a class="button" href="/ganderson/">Go to login</a>
+</section>
+<div id="status" class="message" role="status" aria-live="polite">Checking your session…</div>
+<section id="management" hidden>
+<div class="page-heading">
+<div>
+<p class="eyebrow">Ganderson Part</p>
+<h1>Maintain Users</h1>
+<p>Create, review, edit, and delete Ganderson Part accounts.</p>
+</div>
+<button id="add" type="button">Add user</button>
+</div>
+<div class="toolbar">
+<label>Search users<input id="search" type="search" placeholder="Name or email">
+</label>
+<span id="count" class="hint">
+</span>
+<button id="refresh" class="secondary" type="button">Refresh list</button>
+</div>
+<div class="table-wrap">
+<table>
+<caption class="empty" id="empty" hidden>No users to display.</caption>
+<thead>
+<tr>
+<th scope="col">User</th>
+<th scope="col">Email address</th>
+<th scope="col">Joined</th>
+<th scope="col">Actions</th>
+</tr>
+</thead>
+<tbody id="rows">
+</tbody>
+</table>
+</div>
+</section>
+<dialog id="editor" aria-labelledby="editor-title">
+<form id="edit-form">
+<div class="dialog-heading">
+<h2 id="editor-title">Add</h2>
+<button type="button" class="secondary" id="close-editor" aria-label="Close editor">Close</button>
+</div>
+<div id="form-status" class="message error" role="alert">
+</div>
+<label>Name<input name="user_name" autocomplete="name" maxlength="100" required>
+</label>
+<label>Email address<input name="user_email" type="email" autocomplete="off" maxlength="254" required>
+</label>
+<label id="password-label">Password<input name="user_password" type="password" autocomplete="new-password" minlength="12" maxlength="128">
+</label>
+<p class="hint" id="password-hint">Use 12–128 characters. Passwords are never displayed.</p>
+<div class="actions">
+<button type="submit" id="save">Save</button>
+<button type="button" class="secondary" id="cancel-editor">Cancel</button>
+</div>
+</form>
+</dialog>
+<dialog id="delete-dialog" aria-labelledby="delete-title">
+<h2 id="delete-title">Delete this entry?</h2>
+<p id="delete-description">
+</p>
+<p>This permanently removes the entry. You can cancel to keep it.</p>
+<div id="delete-status" class="message error" role="alert">
+</div>
+<div class="actions">
+<button class="danger" type="button" id="confirm-delete">Delete</button>
+<button type="button" class="secondary" id="cancel-delete">Cancel</button>
+</div>
+</dialog>
+</main>
+<footer>
+<span>A little progress, every day.</span>
+<a href="/index.html">Beanos home</a>
+<span>IS 403 · Ganderson Part</span>
+</footer>
+</body>
+</html>
